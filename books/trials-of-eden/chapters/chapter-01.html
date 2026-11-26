@@ -10,6 +10,12 @@ HOW TO USE THIS FILE
 3. Change the chapter number and heading below.
 4. Replace the sample paragraphs with your manuscript.
 5. Add the chapter to ../chapters.js and set available: true.
+6. Add Companion definitions to that chapter's companionTerms list in chapters.js.
+7. Wrap matching words in the manuscript using the example trigger button below.
+   Its data-companion-term value must match the reference id in chapters.js.
+
+EXAMPLE:
+<button type="button" class="companion-trigger" data-companion-term="maya-garcia">Maya Garcia</button>
 
 IMPORTANT
 - Keep the "chapter-document" class on the article.
@@ -44,6 +50,11 @@ IMPORTANT
     </p>
 
     <!-- ADD MORE PARAGRAPHS BY COPYING A <p> BLOCK ABOVE. -->
+
+    <!-- EXAMPLE TRIGGER: Wrap a name or term to make it clickable.
+    <p><button type="button" class="companion-trigger" data-companion-term="maya-garcia">Maya Garcia</button> entered the facility.</p>
+    The id must also exist in this chapter's companionTerms list in chapters.js.
+    -->
 
   </div>
 </article>
