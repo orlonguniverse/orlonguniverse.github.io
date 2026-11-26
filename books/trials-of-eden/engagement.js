@@ -11,6 +11,7 @@ let engagementUser = null;
 let engagementProfile = null;
 let currentReaction = null;
 let replyToComment = null;
+let accountMode = "signin";
 
 const CONTENT_INTERESTS = [
   { id:"characters", title:"Characters" },
@@ -169,28 +170,64 @@ async function saveReaction(reaction) {
   loadPublicStats();
 }
 
+function renderPublicBreakdown(containerId, items, labels, emptyMessage) {
+  const container = byId(containerId);
+  if (!container) return;
+  container.replaceChildren();
+  const usable = (items || []).map(item => ({
+    label: labels[item.reaction || item.interest_id] || item.reaction || item.interest_id,
+    value: Number(item.responses || item.count || 0)
+  })).filter(item => item.value > 0).sort((a,b) => b.value - a.value);
+  if (!usable.length) {
+    const note = document.createElement("p");
+    note.className = "engagement-muted";
+    note.textContent = emptyMessage;
+    container.appendChild(note);
+    return;
+  }
+  const maximum = Math.max(...usable.map(item => item.value));
+  usable.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "public-breakdown-row";
+    const label = document.createElement("span");
+    label.className = "public-breakdown-label";
+    label.textContent = item.label;
+    const track = document.createElement("div");
+    track.className = "public-breakdown-track";
+    track.setAttribute("aria-label", item.label + ": " + item.value);
+    const fill = document.createElement("div");
+    fill.className = "public-breakdown-fill";
+    fill.style.width = (item.value / maximum * 100) + "%";
+    track.appendChild(fill);
+    const value = document.createElement("strong");
+    value.className = "public-breakdown-value";
+    value.textContent = item.value.toLocaleString();
+    row.append(label,track,value);
+    container.appendChild(row);
+  });
+}
+
 async function loadPublicStats() {
   const container = byId("publicStats");
   if (!container) return;
   const { data, error } = await engagementClient.rpc("get_public_engagement_stats");
   if (error || !data) {
-    container.textContent = "Community statistics will appear once the database is ready.";
+    container.textContent = "Community statistics are temporarily unavailable.";
     return;
   }
   const chapters = Array.isArray(data.chapters) ? data.chapters : [];
-  const series = Array.isArray(data.series) ? data.series : [];
-  const contentInterests = Array.isArray(data.content_interests) ? data.content_interests : [];
   const totals = chapters.reduce((sum, item) => ({
     completions: sum.completions + Number(item.completions || 0),
     reactions: sum.reactions + Number(item.reactions || 0),
     comments: sum.comments + Number(item.comments || 0)
   }), { completions:0, reactions:0, comments:0 });
-  const interestCount = contentInterests.reduce((sum,item) => sum + Number(item.responses || 0), 0);
+  const interests = Array.isArray(data.content_interests) ? data.content_interests : [];
+  const interestCount = interests.reduce((sum,item) => sum + Number(item.responses || 0), 0);
   const stats = [
     [totals.completions, "CHAPTER MILESTONES"],
-    [totals.reactions, "CHAPTER REACTIONS"],
+    [totals.reactions, "TOTAL REACTIONS"],
     [totals.comments, "APPROVED COMMENTS"],
-    [interestCount, "CONTENT PREFERENCES"]
+    [interestCount, "PREFERENCE SELECTIONS"]
   ];
   container.replaceChildren();
   stats.forEach(([value,label]) => {
@@ -203,6 +240,13 @@ async function loadPublicStats() {
     card.append(number,caption);
     container.appendChild(card);
   });
+  renderPublicBreakdown("publicReactionStats", data.reactions || [], {
+    like:"Like", love:"Love", shocked:"Shocked", sad:"Sad", excited:"Excited"
+  }, "No chapter reactions have been recorded yet.");
+  renderPublicBreakdown("publicInterestStats", interests, {
+    characters:"Characters", plot:"Plot and twists", worldbuilding:"Worldbuilding and lore",
+    relationships:"Relationships", action:"Action and challenges", other:"Other"
+  }, "No content preferences have been submitted yet.");
 }
 
 function createCommentElement(comment, profileName) {
@@ -360,6 +404,33 @@ async function refreshEngagement() {
   await Promise.all([loadChapterActivity(),loadContentInterests(),loadChapterComments(),loadModeratorPanel()]);
 }
 
+function setAccountMode(mode) {
+  accountMode = mode === "signup" ? "signup" : "signin";
+  const nameField = byId("displayNameField");
+  const nameInput = byId("readerDisplayName");
+  const password = byId("readerPassword");
+  if (nameField) nameField.hidden = accountMode !== "signup";
+  if (nameInput) nameInput.required = false;
+  if (password) password.autocomplete = accountMode === "signup" ? "new-password" : "current-password";
+  document.querySelectorAll("[data-account-mode]").forEach(button => {
+    button.classList.toggle("active", button.dataset.accountMode === accountMode);
+    button.setAttribute("aria-pressed", String(button.dataset.accountMode === accountMode));
+  });
+  const submit = byId("accountSubmitButton");
+  if (submit) submit.textContent = accountMode === "signup" ? "CREATE FREE ACCOUNT" : "SIGN IN";
+  setMessage("accountMessage", accountMode === "signup"
+    ? "Create a free account to save your reading milestones and join discussions."
+    : "Welcome back. Enter your email address and password to continue.");
+}
+
+function openAccountDialog() {
+  const dialog = byId("accountDialog");
+  if (!dialog) return;
+  if (!engagementUser) setAccountMode("signin");
+  if (!dialog.open) dialog.showModal();
+  window.setTimeout(() => (byId("readerEmail") || byId("closeAccountDialog")).focus(), 30);
+}
+
 async function handleAuthState(session) {
   engagementUser = session && session.user ? session.user : null;
   engagementProfile = null;
@@ -369,31 +440,46 @@ async function handleAuthState(session) {
   }
   const form = byId("accountForm");
   const signOut = byId("signOutButton");
+  const displayName = engagementProfile && engagementProfile.display_name ? engagementProfile.display_name : "Reader";
   if (form) form.hidden = Boolean(engagementUser);
   if (signOut) signOut.hidden = !engagementUser;
   if (engagementUser) {
-    setMessage("accountMessage","Signed in as " + (engagementProfile && engagementProfile.display_name ? engagementProfile.display_name : "Reader") + ". Your participation is connected to this account.");
+    const message = "Signed in as " + displayName + ". Your participation is connected to this account.";
+    setMessage("accountMessage",message);
+    setMessage("accountStatusMessage",message);
+    const navButton = byId("openAccountButton");
+    if (navButton) navButton.textContent = displayName.toUpperCase();
+    const cardButton = byId("accountCardButton");
+    if (cardButton) cardButton.hidden = true;
   } else {
-    setMessage("accountMessage","Sign in or create a free account to take part. Reading remains open to everyone.");
+    const message = "You can read without an account. Sign in or create one to save milestones and join discussions.";
+    setMessage("accountMessage",message);
+    setMessage("accountStatusMessage",message);
+    const navButton = byId("openAccountButton");
+    if (navButton) navButton.textContent = "SIGN IN";
+    const cardButton = byId("accountCardButton");
+    if (cardButton) cardButton.hidden = false;
   }
   setEngagementEnabled(Boolean(engagementUser));
   await refreshEngagement();
 }
 
-async function signIn(event) {
+async function submitAccountForm(event) {
   event.preventDefault();
   const email = byId("readerEmail").value.trim();
   const password = byId("readerPassword").value;
-  const { data,error } = await engagementClient.auth.signInWithPassword({email,password});
-  if (error) { setMessage("accountMessage",error.message); return; }
-  await handleAuthState(data.session);
-}
-
-async function signUp() {
-  const email = byId("readerEmail").value.trim();
-  const password = byId("readerPassword").value;
+  if (accountMode === "signin") {
+    const { data,error } = await engagementClient.auth.signInWithPassword({email,password});
+    if (error) { setMessage("accountMessage",error.message); return; }
+    await handleAuthState(data.session);
+    byId("accountDialog")?.close();
+    return;
+  }
   const displayName = byId("readerDisplayName").value.trim() || "Reader";
-  if (!email || password.length < 8) { setMessage("accountMessage","Enter a valid email and a password of at least 8 characters."); return; }
+  if (!email || password.length < 8) {
+    setMessage("accountMessage","Enter a valid email and a password of at least 8 characters.");
+    return;
+  }
   const { data,error } = await engagementClient.auth.signUp({
     email,password,options:{
       data:{display_name:displayName},
@@ -401,8 +487,12 @@ async function signUp() {
     }
   });
   if (error) { setMessage("accountMessage",error.message); return; }
-  if (data.session) await handleAuthState(data.session);
-  else setMessage("accountMessage","Account created! Check your email and confirm your address before signing in.");
+  if (data.session) {
+    await handleAuthState(data.session);
+    byId("accountDialog")?.close();
+  } else {
+    setMessage("accountMessage","Account created! Check your email and confirm your address before signing in.");
+  }
 }
 
 async function signOut() {
@@ -416,9 +506,16 @@ function initialiseEngagement() {
     setMessage("accountMessage","The secure account service did not load. Please refresh the page.");
     return;
   }
-  byId("accountForm")?.addEventListener("submit",signIn);
-  byId("signUpButton")?.addEventListener("click",signUp);
+  byId("accountForm")?.addEventListener("submit",submitAccountForm);
+  document.querySelectorAll("[data-account-mode]").forEach(button => button.addEventListener("click",() => setAccountMode(button.dataset.accountMode)));
+  byId("openAccountButton")?.addEventListener("click",openAccountDialog);
+  byId("accountCardButton")?.addEventListener("click",openAccountDialog);
+  byId("closeAccountDialog")?.addEventListener("click",() => byId("accountDialog")?.close());
+  byId("accountDialog")?.addEventListener("click",event => {
+    if (event.target === byId("accountDialog")) byId("accountDialog").close();
+  });
   byId("signOutButton")?.addEventListener("click",signOut);
+  setAccountMode("signin");
   byId("completeChapterButton")?.addEventListener("click",markChapterComplete);
   byId("commentForm")?.addEventListener("submit",submitComment);
   document.querySelectorAll(".engagement-reactions button").forEach(button => {
