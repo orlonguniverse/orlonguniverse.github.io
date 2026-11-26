@@ -167,7 +167,95 @@ function updateProgress() {
 
 
 // =====================================
-// 7. LOAD SAVED SETTINGS
+// 7. SAVED READING PROGRESS & BOOKMARKS
+// =====================================
+
+// Each chapter gets its own saved position.
+const chapterId = "chapter-one";
+
+const progressKey = "edenProgress_" + chapterId;
+const bookmarkKey = "edenBookmark_" + chapterId;
+
+
+// Automatically save the reader's current position.
+function saveReadingProgress() {
+
+  localStorage.setItem(progressKey, window.scrollY);
+
+  const status = document.getElementById("readingStatus");
+
+  if (status) {
+    status.textContent = "YOUR READING PROGRESS IS SAVED";
+  }
+
+}
+
+
+// Restore the reader's previous position.
+function restoreReadingProgress() {
+
+  const savedPosition = Number(localStorage.getItem(progressKey));
+
+  if (savedPosition > 0) {
+
+    window.scrollTo({
+      top: savedPosition,
+      behavior: "auto"
+    });
+
+    const status = document.getElementById("readingStatus");
+
+    if (status) {
+      status.textContent = "YOUR PREVIOUS READING POSITION HAS BEEN RESTORED";
+    }
+
+  }
+
+  updateProgress();
+
+}
+
+
+// Save a specific bookmark.
+function saveBookmark() {
+
+  localStorage.setItem(bookmarkKey, window.scrollY);
+
+  const status = document.getElementById("readingStatus");
+
+  if (status) {
+    status.textContent = "BOOKMARK SAVED SUCCESSFULLY";
+  }
+
+}
+
+
+// Return to the saved bookmark.
+function goToBookmark() {
+
+  const bookmark = localStorage.getItem(bookmarkKey);
+
+  const status = document.getElementById("readingStatus");
+
+  if (bookmark === null) {
+
+    if (status) {
+      status.textContent = "YOU HAVEN'T SAVED A BOOKMARK YET";
+    }
+
+    return;
+  }
+
+  window.scrollTo({
+    top: Number(bookmark),
+    behavior: "smooth"
+  });
+
+}
+
+
+// =====================================
+// 8. LOAD SAVED SETTINGS
 // =====================================
 
 const savedTheme = localStorage.getItem("edenTheme") || "dark";
@@ -182,11 +270,18 @@ if (chapterText) {
 
 
 // =====================================
-// 8. EVENT LISTENERS
+// 9. EVENT LISTENERS
 // =====================================
 
-window.addEventListener("scroll", updateProgress, { passive: true });
+// Update progress and save position while scrolling.
+window.addEventListener("scroll", function() {
+
+  updateProgress();
+  saveReadingProgress();
+
+}, { passive: true });
 
 window.addEventListener("resize", updateProgress);
 
-window.addEventListener("load", updateProgress);
+// Restore progress when the page has finished loading.
+window.addEventListener("load", restoreReadingProgress);
