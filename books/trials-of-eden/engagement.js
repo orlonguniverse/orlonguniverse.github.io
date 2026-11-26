@@ -510,49 +510,73 @@ function renderQuizAttemptReview(quiz, attempt) {
 function renderQuizForm(quiz) {
   const target = byId("chapterQuiz");
   target.replaceChildren();
+
   const form = document.createElement("form");
   form.id = "chapterQuizForm";
+
   quiz.questions.slice(0,3).forEach((question,index) => {
-    const fieldset = document.createElement("fieldset");
-    fieldset.className = "quiz-question";
-    const legend = document.createElement("legend");
-    legend.textContent = (index+1) + ". " + question.question;
-    fieldset.appendChild(legend);
+    const panel = document.createElement("section");
+    panel.className = "quiz-question";
+    panel.setAttribute("role","group");
+    panel.setAttribute("aria-labelledby","quiz-question-title-" + index);
+
+    const heading = document.createElement("h4");
+    heading.className = "quiz-question-title";
+    heading.id = "quiz-question-title-" + index;
+    heading.textContent = (index + 1) + ". " + question.question;
+    panel.appendChild(heading);
+
     question.options.forEach((option,optionIndex) => {
-      const label = document.createElement("label");
-      label.className = "quiz-option";
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = "question-" + index;
-      input.value = String(optionIndex);
-      input.required = true;
-      const span = document.createElement("span");
-      span.textContent = option;
-      label.append(input,span);
-      fieldset.appendChild(label);
+      const answer = document.createElement("button");
+      answer.type = "button";
+      answer.className = "quiz-answer-button";
+      answer.textContent = option;
+      answer.setAttribute("aria-pressed","false");
+      answer.addEventListener("click",() => {
+        panel.querySelectorAll(".quiz-answer-button").forEach(button => {
+          button.setAttribute("aria-pressed",String(button === answer));
+        });
+        form.dataset["answer" + index] = String(optionIndex);
+        const warning = form.querySelector(".quiz-validation-message");
+        if (warning) warning.remove();
+      });
+      panel.appendChild(answer);
     });
-    form.appendChild(fieldset);
+    form.appendChild(panel);
   });
+
   const submit = document.createElement("button");
   submit.type = "submit";
   submit.className = "quiz-submit-button";
   submit.textContent = "SUBMIT MY ANSWERS";
   form.appendChild(submit);
+
   const note = document.createElement("p");
   note.className = "engagement-small";
-  note.textContent = "Once submitted, this attempt is locked. You can review it later and start a separate attempt.";
+  note.textContent = "Select one answer for each question. Once submitted, this attempt is locked; you can review it later and start a separate attempt.";
   form.appendChild(note);
+
   form.addEventListener("submit",async event => {
     event.preventDefault();
     if (!engagementUser) return;
     const answers = quiz.questions.slice(0,3).map((_,index) => {
-      const selected = form.querySelector('input[name="question-' + index + '"]:checked');
-      return selected ? Number(selected.value) : -1;
+      const selected = form.dataset["answer" + index];
+      return selected === undefined ? -1 : Number(selected);
     });
-    if (answers.some(answer => answer < 0)) return;
+    if (answers.some(answer => answer < 0)) {
+      const missingIndex = answers.findIndex(answer => answer < 0);
+      const warning = form.querySelector(".quiz-validation-message") || document.createElement("p");
+      warning.className = "engagement-small quiz-validation-message";
+      warning.textContent = "Please select an answer for all three questions before submitting.";
+      if (!warning.parentNode) form.insertBefore(warning,submit);
+      const missingPanel = form.querySelectorAll(".quiz-question")[missingIndex];
+      if (missingPanel) missingPanel.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+
+    const score = answers.reduce((total,answer,index) => total + (answer === quiz.questions[index].answer ? 1 : 0),0);
     submit.disabled = true;
     submit.textContent = "SAVING ATTEMPT...";
-    const score = answers.reduce((total,answer,index) => total + (answer === quiz.questions[index].answer ? 1 : 0),0);
     const {error} = await engagementClient.from("chapter_quiz_attempts").insert({
       user_id:engagementUser.id,
       chapter_id:engagementChapterId(),
@@ -572,9 +596,9 @@ function renderQuizForm(quiz) {
     }
     await loadChapterQuiz();
   });
+
   target.appendChild(form);
 }
-
 async function loadChapterQuiz() {
   const target = byId("chapterQuiz");
   if (!target) return;
