@@ -54,6 +54,8 @@ If you cannot see **AUTHOR MODERATION**, check that the UID was copied exactly, 
 ## 4. What the Reading Room now supports
 
 - Free reading without an account.
+- A private **My Reading Statistics** page at `books/trials-of-eden/account.html`, showing each signed-in reader their own completed chapter milestones, saved reactions, submitted comments and moderation statuses, and saved content preferences.
+- Account access from the main website, book contents page and Reading Room navigation.
 - Email-confirmed sign-up, sign-in and sign-out.
 - One saved completion per account and chapter.
 - Multiple saved content preferences per account: characters, plot and twists, worldbuilding and lore, relationships, action and challenges, and other suggestions.
