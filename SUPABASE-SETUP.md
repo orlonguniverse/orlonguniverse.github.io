@@ -94,3 +94,12 @@ The Reading Room now retrieves manuscript HTML from a **private Supabase Storage
 **Important:** the current `chapter-01.html` in the repository was only a sample template, not a finished manuscript. It has been replaced by `chapter-template.html` and Chapter 01 remains marked unavailable until you upload the real chapter to the private bucket. This avoids publishing placeholder text as a chapter and ensures no manuscript is exposed by a public GitHub URL.
 
 The Storage policy permits authenticated downloads only. The bucket must remain private; do not change its visibility to Public.
+
+
+## Chapter quiz attempts (added November 2026)
+
+The updated Reading Room includes optional three-question quizzes configured per chapter in `books/trials-of-eden/chapters.js`. Copy the commented `quiz` example into a chapter object, replace the question text/options, and set each `answer` to the correct option's zero-based index (first option = `0`). Keep exactly three questions.
+
+Each submission is stored in `chapter_quiz_attempts` as a separate attempt. Readers can review previous results and submit a new attempt, but existing submissions cannot be updated or deleted through the reader account. The table is private to the signed-in reader.
+
+**Database update required:** run the complete current `supabase/schema.sql` file in the Supabase SQL Editor to create the quiz-attempt table and its row-level security policies. This is safe to rerun; the schema uses idempotent table/policy creation where applicable.
