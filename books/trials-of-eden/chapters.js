@@ -77,15 +77,15 @@ window.EDEN_CHAPTERS = [
     {
       id: "maya-garcia",
       term: "Maya Garcia",
+      triggers: ["Maya", "Maya Garcia"],
       category: "CHARACTER",
       description: "Write a short, spoiler-safe explanation here."
     }
 
-    Then wrap the matching manuscript word/name in the chapter HTML:
-    <button type="button" class="companion-trigger"
-      data-companion-term="maya-garcia">Maya Garcia</button>
-
-    The data-companion-term id MUST match the reference id.
+    "triggers" lists every word or phrase that should open this entry.
+    The reader automatically finds and highlights these phrases in the
+    chapter text, so you do not need to wrap them manually in HTML.
+    The entry only appears in the Companion when a trigger is found.
   */
 
   {
@@ -98,6 +98,7 @@ window.EDEN_CHAPTERS = [
       {
         id: "maya-garcia",
         term: "Maya Garcia",
+        triggers: ["Maya", "Maya Garcia"],
         category: "CHARACTER",
         description: "The protagonist of the story."
       }
