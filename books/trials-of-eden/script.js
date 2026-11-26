@@ -49,13 +49,98 @@ function toggleCompanion() {
 // INTERACTIVE READING COMPANION
 // Reference definitions live beside each chapter in chapters.js.
 // =====================================
-function renderCompanion(chapter) {
+// Return the phrases that should open a Companion entry.
+// If no trigger list is supplied, the entry's display term is used.
+function getCompanionTriggers(reference) {
+  const triggers = Array.isArray(reference.triggers) ? reference.triggers : [reference.term];
+  return [...new Set(triggers.filter(trigger => typeof trigger === "string" && trigger.trim()))];
+}
+
+// Automatically turn matching manuscript phrases into Companion links.
+// Longer phrases are checked first, so "Maya Garcia" is linked as one phrase
+// rather than being split into "Maya" and "Garcia".
+function applyChapterCompanionTriggers(chapter) {
+  const reader = document.getElementById("chapterText");
+  if (!reader) return [];
+
+  const references = Array.isArray(chapter.companionTerms) ? chapter.companionTerms : [];
+  const text = reader.textContent || "";
+  const matchingReferences = references.filter(reference => {
+    const triggers = getCompanionTriggers(reference);
+    return triggers.some(trigger => new RegExp("\\\\b" + trigger.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&") + "\\\\b", "i").test(text));
+  });
+
+  const triggerMap = [];
+  matchingReferences.forEach(reference => {
+    getCompanionTriggers(reference).forEach(trigger => {
+      triggerMap.push({ trigger, id: reference.id });
+    });
+  });
+  triggerMap.sort((a, b) => b.trigger.length - a.trigger.length);
+
+  if (!triggerMap.length) return matchingReferences;
+
+  const escapedTriggers = triggerMap.map(item =>
+    item.trigger.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")
+  );
+  const matcher = new RegExp("\\\\b(" + escapedTriggers.join("|") + ")\\\\b", "gi");
+  const walker = document.createTreeWalker(reader, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    const parent = node.parentElement;
+    if (!parent || parent.closest("button, a, script, style, textarea, .companion-trigger")) continue;
+    if (node.nodeValue && matcher.test(node.nodeValue)) {
+      textNodes.push(node);
+    }
+    matcher.lastIndex = 0;
+  }
+
+  textNodes.forEach(node => {
+    const value = node.nodeValue;
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    matcher.lastIndex = 0;
+    let match;
+
+    while ((match = matcher.exec(value)) !== null) {
+      if (match.index > lastIndex) {
+        fragment.appendChild(document.createTextNode(value.slice(lastIndex, match.index)));
+      }
+
+      const matchedPhrase = match[0];
+      const reference = triggerMap.find(item => item.trigger.toLowerCase() === matchedPhrase.toLowerCase());
+      if (reference) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "companion-trigger";
+        button.dataset.companionTerm = reference.id;
+        button.textContent = matchedPhrase;
+        button.setAttribute("aria-label", "Open Companion reference: " + matchedPhrase);
+        fragment.appendChild(button);
+      } else {
+        fragment.appendChild(document.createTextNode(matchedPhrase));
+      }
+      lastIndex = match.index + matchedPhrase.length;
+    }
+
+    if (lastIndex < value.length) {
+      fragment.appendChild(document.createTextNode(value.slice(lastIndex)));
+    }
+    node.parentNode.replaceChild(fragment, node);
+  });
+
+  return matchingReferences;
+}
+
+function renderCompanion(chapter, matchingReferences) {
   const list = document.getElementById("companionTermList");
   const details = document.getElementById("companionDetails");
   if (!list || !details) return;
   list.innerHTML = "";
   details.innerHTML = "<h3>CHAPTER REFERENCES</h3><p>Select a reference to read its description. You can also select highlighted words in the manuscript.</p>";
-  const references = Array.isArray(chapter.companionTerms) ? chapter.companionTerms : [];
+
+  const references = Array.isArray(matchingReferences) ? matchingReferences : [];
   if (!references.length) {
     const note = document.createElement("p");
     note.className = "companion-empty";
@@ -63,6 +148,7 @@ function renderCompanion(chapter) {
     list.appendChild(note);
     return;
   }
+
   references.forEach(reference => {
     const button = document.createElement("button");
     button.type = "button";
@@ -73,6 +159,7 @@ function renderCompanion(chapter) {
     list.appendChild(button);
   });
 }
+
 function showCompanionTerm(termId) {
   const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === currentChapter);
   const details = document.getElementById("companionDetails");
@@ -205,8 +292,10 @@ async function loadChapter(chapterId) {
     const partLabel = document.getElementById("currentPartLabel");
     if (partLabel) partLabel.textContent = part ? part.title.toUpperCase() : "BOOK SECTION";
 
-    // Refresh the Companion index for this chapter.
-    renderCompanion(chapter);
+    // Find references that actually occur in this chapter, then make
+    // every matching trigger phrase clickable in the manuscript.
+    const matchingReferences = applyChapterCompanionTriggers(chapter);
+    renderCompanion(chapter, matchingReferences);
 
     renderChapterDirectory();
     updateChapterNavigation();
