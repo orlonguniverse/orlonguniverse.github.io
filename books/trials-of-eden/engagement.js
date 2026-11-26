@@ -252,13 +252,10 @@ async function loadChapterComments() {
     container.appendChild(note);
     return;
   }
-  const userIds = [...new Set(data.map(comment => comment.user_id))];
-  const profiles = await engagementClient.from("reader_profiles").select("user_id,display_name").in("user_id",userIds);
-  const names = new Map((profiles.data || []).map(profile => [profile.user_id,profile.display_name]));
   data.filter(comment => !comment.parent_id).forEach(comment => {
-    container.appendChild(createCommentElement(comment,names.get(comment.user_id)));
+    container.appendChild(createCommentElement(comment,"Reader"));
     data.filter(reply => reply.parent_id === comment.id).forEach(reply => {
-      const replyElement = createCommentElement(reply,names.get(reply.user_id));
+      const replyElement = createCommentElement(reply,"Reader"));
       replyElement.style.marginLeft = "22px";
       container.appendChild(replyElement);
     });
