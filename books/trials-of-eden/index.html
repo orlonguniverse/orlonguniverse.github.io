@@ -782,38 +782,8 @@ body.focus-mode .reader {
 
     <h2 class="sidebar-title">CHAPTERS</h2>
 
-    <div class="chapter-list">
-
-      <a href="#chapter" class="chapter-item active">
-
-        <span class="chapter-number">Chapter 01</span>
-
-        <span class="chapter-name">First Chapter</span>
-
-        <span class="chapter-status">Preview layout</span>
-
-      </a>
-
-      <div class="chapter-item">
-
-        <span class="chapter-number">Chapter 02</span>
-
-        <span class="chapter-name">Coming soon</span>
-
-        <span class="chapter-status">Not yet released</span>
-
-      </div>
-
-      <div class="chapter-item">
-
-        <span class="chapter-number">Chapter 03</span>
-
-        <span class="chapter-name">Coming soon</span>
-
-        <span class="chapter-status">Not yet released</span>
-
-      </div>
-
+    <div class="chapter-list" id="chapterList">
+      <p class="directory-note">Loading chapters...</p>
     </div>
 
     <p class="directory-note">
@@ -855,78 +825,8 @@ body.focus-mode .reader {
     </div>
 
 
-    <header class="chapter-heading">
-
-      <div class="chapter-number">CHAPTER ONE</div>
-
-      <h2>YOUR CHAPTER TITLE</h2>
-
-      <p>Written by Callum Macann</p>
-
-    </header>
-
-    
-   <!-- CHAPTER PROGRESS PANEL -->
-   
-   <div class="chapter-progress">
-   
-     <div class="chapter-progress-heading">
-       <span>YOUR READING PROGRESS</span>
-       <span id="chapterProgressPercent">0% COMPLETE</span>
-     </div>
-   
-     <div
-       class="chapter-progress-track"
-       id="chapterProgressTrack"
-       role="progressbar"
-       aria-label="Chapter reading progress"
-       aria-valuemin="0"
-       aria-valuemax="100"
-       aria-valuenow="0"
-     >
-       <div id="chapterProgressFill"></div>
-     </div>
-   
-     <div class="chapter-progress-details">
-       <span id="readingTimeRemaining">
-         Calculating reading time...
-       </span>
-   
-       <span id="chapterWordCount"></span>
-     </div>
-   
-   </div>
-
-   <!--
-      REPLACE THE PLACEHOLDER BELOW WITH YOUR
-      ACTUAL CHAPTER TEXT WHEN IT IS READY.
-    -->
-
-    <div class="chapter-text" id="chapterText">
-
-      <p class="placeholder">
-        This is a preview of the reading interface.
-        Your actual manuscript has not been added yet.
-
-        When you're ready, replace this placeholder
-        with the text of your first chapter.
-
-        Each paragraph should be placed inside its own
-        paragraph element, like the example below.
-      </p>
-
-      <p>
-        Your first paragraph will appear here.
-      </p>
-
-      <p>
-        Your second paragraph will appear here.
-      </p>
-
-      <p>
-        Your third paragraph will appear here.
-      </p>
-
+    <div id="chapterContent" aria-live="polite">
+      <p class="placeholder">Loading chapter...</p>
     </div>
 
 
@@ -936,15 +836,8 @@ body.focus-mode .reader {
 
 
     <div class="reader-navigation">
-
-      <button disabled>
-        PREVIOUS CHAPTER
-      </button>
-
-      <button disabled>
-        NEXT CHAPTER
-      </button>
-
+      <button id="previousChapter" type="button" disabled>PREVIOUS CHAPTER</button>
+      <button id="nextChapter" type="button" disabled>NEXT CHAPTER</button>
     </div>
 
   </article>
@@ -1030,21 +923,32 @@ body.focus-mode .reader {
 
 </footer>
 
+<script src="chapters.js"></script>
 <script src="script.js"></script>
 
-<!-- FLOATING BOOKMARK CONTROL -->
-
-<div class="floating-bookmark">
-
-  <button onclick="saveBookmark()" title="Save bookmark">
-    SAVE
-  </button>
-
-  <button onclick="goToBookmark()" title="Return to bookmark">
-    RETURN
-  </button>
-
-</div>
+<!-- FLOATING READING PANEL -->
+<section class="reading-widget" id="readingWidget" aria-label="Reading progress controls">
+  <div class="reading-widget-header">
+    <span class="reading-widget-label">READING PROGRESS</span>
+    <div class="reading-widget-actions">
+      <button type="button" id="pinReadingWidget" aria-pressed="false" title="Keep the panel expanded">PIN</button>
+      <button type="button" id="collapseReadingWidget" aria-expanded="true" title="Collapse reading panel">−</button>
+    </div>
+  </div>
+  <div class="reading-widget-body" id="readingWidgetBody">
+    <div class="reading-widget-stat">
+      <strong id="widgetProgressPercent">0%</strong>
+      <span id="widgetTimeRemaining">Calculating time...</span>
+    </div>
+    <div class="reading-widget-track" role="progressbar" id="widgetProgressTrack" aria-label="Chapter reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="widgetProgressFill"></div>
+    </div>
+    <div class="reading-widget-buttons">
+      <button type="button" id="saveBookmarkButton" onclick="saveBookmark()">SAVE</button>
+      <button type="button" id="returnBookmarkButton" onclick="goToBookmark()">RETURN</button>
+    </div>
+  </div>
+</section>
 
 </body>
 </html>
