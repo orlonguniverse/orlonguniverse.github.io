@@ -37,7 +37,7 @@ The SQL is designed to be safe to run again if setup needs to be repeated.
    - Site URL: `https://orlonguniverse.github.io`
    - Redirect URL: `https://orlonguniverse.github.io/books/trials-of-eden/*`
 4. Configure the email template so the confirmation/magic link returns readers to the Reading Room.
-5. For a public launch, configure a reliable SMTP provider in Supabase. The built-in email service is intended for testing and has sending limits.
+5. For a public launch, configure a reliable SMTP provider in Supabase. The built-in email service is intended for testing and has sending limits.\n6. The Reading Room account form uses email and password; readers must confirm their email before signing in.
 
 ## 4. Send me the two public connection values
 
