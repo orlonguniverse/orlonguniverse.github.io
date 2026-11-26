@@ -314,3 +314,55 @@ body.light .companion-reference-button.selected {
 body.light .companion-trigger {
   border-bottom-color: var(--blue-light);
 }
+
+
+/* =====================================
+   READER ENGAGEMENT + COMMUNITY
+===================================== */
+.engagement-section { padding:65px 24px 90px; border-top:1px solid var(--border); background:var(--background); }
+.engagement-inner { max-width:1120px; margin:0 auto; }
+.engagement-eyebrow { color:var(--blue-light); font-size:10px; letter-spacing:3px; text-align:center; }
+.engagement-inner > h2 { font-family:'Cinzel',serif; font-weight:400; letter-spacing:3px; text-align:center; font-size:clamp(22px,4vw,32px); }
+.engagement-intro { max-width:680px; margin:0 auto 35px; text-align:center; color:var(--muted); font-size:13px; line-height:1.8; }
+.engagement-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; align-items:start; }
+.engagement-card { padding:24px; background:var(--surface); border:1px solid var(--border); margin-bottom:18px; min-width:0; }
+.engagement-card h3 { margin:0 0 15px; font-family:'Cinzel',serif; font-size:13px; font-weight:500; letter-spacing:1.5px; }
+.engagement-muted,.engagement-small { color:var(--muted); font-size:11px; line-height:1.8; }
+.engagement-small { font-size:10px; }
+.engagement-card form label:not(.spoiler-option) { display:block; margin:13px 0 6px; color:var(--muted); font-size:10px; }
+.engagement-card input:not([type="checkbox"]),.engagement-card textarea { display:block; width:100%; padding:11px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:3px; font:inherit; font-size:12px; }
+.engagement-card textarea { resize:vertical; line-height:1.7; }
+.engagement-card button { padding:11px 13px; color:var(--text); background:var(--surface-2); border:1px solid var(--blue); font-size:9px; font-weight:600; letter-spacing:1px; cursor:pointer; }
+.engagement-card button:hover:not(:disabled) { background:color-mix(in srgb,var(--blue) 18%,var(--surface-2)); }
+.engagement-card button:disabled { opacity:.45; cursor:not-allowed; }
+.engagement-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; }
+.engagement-card button.secondary { border-color:var(--border); }
+.engagement-reactions { display:flex; flex-wrap:wrap; gap:7px; margin-top:15px; }
+.engagement-reactions button { display:flex; align-items:center; gap:6px; }
+.engagement-reactions button.selected,.series-choice.selected { border-color:var(--blue); box-shadow:inset 0 0 0 1px var(--blue); }
+.series-interest-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.series-interest-row strong { display:block; font-size:11px; font-weight:500; }
+.series-interest-row small { display:block; color:var(--muted); font-size:9px; margin-top:4px; }
+.series-choice-group { display:flex; gap:4px; }
+.series-choice { padding:8px !important; font-size:8px !important; }
+.engagement-stats { margin-top:2px; }
+.public-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.public-stat { padding:16px; background:var(--surface-2); text-align:center; }
+.public-stat strong { display:block; color:var(--blue-light); font-family:'Cinzel',serif; font-size:23px; font-weight:400; }
+.public-stat span { display:block; margin-top:5px; color:var(--muted); font-size:9px; letter-spacing:1px; text-transform:uppercase; }
+.discussion-card { margin-top:18px; }
+.spoiler-option { display:flex; align-items:center; gap:8px; margin:12px 0; color:var(--muted); font-size:10px; }
+.spoiler-option input { accent-color:var(--blue); }
+.chapter-comments { margin-top:22px; }
+.comment-item { padding:17px 0; border-top:1px solid var(--border); }
+.comment-meta { color:var(--blue-light); font-size:9px; letter-spacing:1px; }
+.comment-body { color:var(--text); font-size:12px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+.comment-spoiler { padding:10px 12px; color:var(--muted); background:var(--surface-2); border:1px dashed var(--border); font-size:10px; }
+.comment-tools { display:flex; gap:8px; margin-top:10px; }
+.comment-tools button { padding:7px 9px; font-size:8px; }
+.moderator-card { border-color:var(--blue); }
+.moderator-item { padding:14px 0; border-top:1px solid var(--border); }
+.moderator-item p { color:var(--text); font-size:12px; line-height:1.7; white-space:pre-wrap; }
+.moderator-actions { display:flex; gap:8px; }
+@media(max-width:900px) { .engagement-grid { grid-template-columns:1fr 1fr; } .engagement-grid .engagement-card:last-child { grid-column:1/-1; } }
+@media(max-width:620px) { .engagement-section { padding:45px 15px 65px; } .engagement-grid { grid-template-columns:1fr; } .engagement-grid .engagement-card:last-child { grid-column:auto; } .engagement-card { padding:19px; } .public-stats { grid-template-columns:1fr 1fr; } .series-interest-row { grid-template-columns:1fr; } }
