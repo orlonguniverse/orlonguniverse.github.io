@@ -735,6 +735,7 @@ body.focus-mode .reader {
 
     <a href="../../index.html">HOME</a>
 
+    <a href="contents.html">BOOK CONTENTS</a>
     <a href="#directory">CHAPTERS</a>
 
     <button id="themeButton" onclick="toggleTheme()">
@@ -835,10 +836,11 @@ body.focus-mode .reader {
     </div>
 
 
-    <div class="reader-navigation">
-      <button id="previousChapter" type="button" disabled>PREVIOUS CHAPTER</button>
+    <!-- Chapter navigation is updated automatically for the selected chapter. -->
+    <nav class="reader-navigation" aria-label="Chapter navigation">
+      <button id="previousChapter" type="button" hidden disabled>PREVIOUS CHAPTER</button>
       <button id="nextChapter" type="button" disabled>NEXT CHAPTER</button>
-    </div>
+    </nav>
 
   </article>
 
