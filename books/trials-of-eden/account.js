@@ -184,6 +184,7 @@ async function showSession(session){
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
  const userId=signedIn?session.user.id:null;
  if(userId===lastDashboardUserId)return;
+ if(!userId&&lastDashboardUserId){try{sessionStorage.removeItem("edenDashboard:"+lastDashboardUserId);}catch(_){}}
  lastDashboardUserId=userId;
  if(signedIn){
   const name=session.user.user_metadata?.display_name;
