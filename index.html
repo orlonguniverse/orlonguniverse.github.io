@@ -668,21 +668,23 @@ footer a {
 .main-account-dialog > p { color:#aab7c9; font-size:13px; line-height:1.7; }
 .main-account-dialog > a,.main-account-dialog > button { display:block; width:100%; margin-top:12px; text-align:center; }
 </style>
+<link rel="stylesheet" href="site-nav.css">
 </head>
 
 <body>
 
 <!-- NAVIGATION -->
 
-<nav>
+<nav class="topbar" aria-label="Main navigation">
   <a href="#home" class="logo">ORLONG</a>
-
-  <div class="nav-links">
+  <div class="topbar-right">
     <a href="#home">HOME</a>
-    <a href="#read">READ</a>
-    <a href="#explore">EXPLORE EDEN</a>
-    <a href="#community">COMMUNITY</a>
-    <button type="button" id="mainAccountButton" class="join-link main-account-button">MY ACCOUNT</button>
+    <a href="books/trials-of-eden/contents.html">BOOK CONTENTS</a>
+    <a href="books/trials-of-eden/index.html#directory">CHAPTERS</a>
+    <button type="button" id="mainAccountButton" class="nav-account-button main-account-button">MY ACCOUNT</button>
+    <a href="books/trials-of-eden/account.html">MY STATISTICS</a>
+    <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+    <a href="books/trials-of-eden/index.html#companion">COMPANION</a>
   </div>
 </nav>
 <dialog id="mainAccountDialog" class="main-account-dialog" aria-labelledby="mainAccountHeading"><div class="main-account-dialog-head"><div><p class="eyebrow">YOUR ORLONG ACCOUNT</p><h2 id="mainAccountHeading">WELCOME BACK</h2></div><button type="button" id="closeMainAccount" aria-label="Close account menu">×</button></div><p id="mainAccountGreeting">You are signed in.</p><a href="books/trials-of-eden/account.html" class="button">VIEW MY PROFILE &amp; STATISTICS</a><button type="button" id="mainAccountSignOut" class="button">SIGN OUT</button></dialog>
@@ -1020,6 +1022,7 @@ document.getElementById("year").textContent =
 
 </script>
 
+<script src="site-nav.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="main-account.js"></script>
 </body>
