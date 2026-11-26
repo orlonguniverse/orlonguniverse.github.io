@@ -56,7 +56,22 @@ window.EDEN_BOOK_SECTIONS = {
 // CHAPTERS — PART ONE CURRENTLY HAS CHAPTERS 01–07.
 // Add future chapters below and set the correct partId.
 window.EDEN_CHAPTERS = [
-  { id: "chapter-01", number: "Chapter 01", title: "Your Chapter Title", partId: "part-01", available: true },
+  /*
+    COMPANION REFERENCES — HOW TO ADD ONE
+    Add objects inside companionTerms. Example:
+    { id: "maya-garcia", term: "Maya Garcia", category: "CHARACTER",
+      description: "Write a short, spoiler-safe explanation here." }
+
+    Then wrap the matching manuscript word/name in chapter-01.html:
+    <button type="button" class="companion-trigger" data-companion-term="maya-garcia">Maya Garcia</button>
+
+    The data-companion-term id MUST match the id below.
+    All entries automatically appear in the Companion's reference list.
+  */
+  { id: "chapter-01", number: "Chapter 01", title: "Your Chapter Title", partId: "part-01", available: true, companionTerms: [
+    // ADD THIS CHAPTER'S REFERENCES HERE.
+    // { id: "maya-garcia", term: "Maya Garcia", category: "CHARACTER", description: "Your description here." }
+  ] },
   { id: "chapter-02", number: "Chapter 02", title: "Chapter title to be added", partId: "part-01", available: false },
   { id: "chapter-03", number: "Chapter 03", title: "Chapter title to be added", partId: "part-01", available: false },
   { id: "chapter-04", number: "Chapter 04", title: "Chapter title to be added", partId: "part-01", available: false },
