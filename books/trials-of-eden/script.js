@@ -358,6 +358,66 @@ function updateChapterNavigation() {
   }
 }
 
+// Keep a private, per-browser copy so returning readers see the chapter
+// immediately. Supabase is still checked in the background for updates.
+function getCachedChapterSource(chapterId) {
+  try {
+    return localStorage.getItem("edenChapterCache:" + chapterId) || null;
+  } catch (error) {
+    console.warn("Could not read the local chapter cache:", error);
+    return null;
+  }
+}
+
+function saveCachedChapterSource(chapterId, source) {
+  try {
+    localStorage.setItem("edenChapterCache:" + chapterId, source);
+  } catch (error) {
+    // A full or unavailable browser store must never prevent online reading.
+    console.warn("Could not save the local chapter cache:", error);
+  }
+}
+
+function renderChapterSource(source, chapter) {
+  const target = document.getElementById("chapterContent");
+  const parsed = new DOMParser().parseFromString(source, "text/html");
+  const chapterDocument = parsed.querySelector(".chapter-document");
+  if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
+
+  const manuscript = chapterDocument.querySelector("#chapterText, .chapter-text");
+  const manuscriptText = manuscript ? manuscript.textContent.trim() : "";
+  if (!manuscript || !manuscriptText ||
+      manuscriptText.includes("Your first paragraph goes here.") ||
+      manuscriptText.includes("Your second paragraph goes here.") ||
+      manuscriptText.includes("Your third paragraph goes here.")) {
+    throw new Error("This chapter still contains the blank template text. Replace the sample paragraphs with your manuscript, then upload the finished HTML again.");
+  }
+
+  target.innerHTML = chapterDocument.innerHTML;
+  const heading = target.querySelector(".chapter-heading h2");
+  const number = target.querySelector(".chapter-heading .chapter-number");
+  if (heading) document.title = heading.textContent + " | The Trials of Eden";
+  if (number) number.textContent = chapter.number.toUpperCase();
+
+  const reader = document.getElementById("chapterText");
+  // Do not set an inline font-size here: it overrides the user's live
+  // Reading Options CSS variable and makes the size control appear broken.
+  applyReaderSize(localStorage.getItem("edenFontSize") || 16);
+  applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
+  chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\\s+/).length : 0;
+
+  const part = (window.EDEN_PARTS || []).find(item => item.id === chapter.partId);
+  const partLabel = document.getElementById("currentPartLabel");
+  if (partLabel) partLabel.textContent = part ? part.title.toUpperCase() : "BOOK SECTION";
+
+  const matchingReferences = applyChapterCompanionTriggers(chapter);
+  renderCompanion(chapter, matchingReferences);
+  renderChapterDirectory();
+  updateChapterNavigation();
+  restoreReadingPosition();
+  updateProgress();
+}
+
 async function loadChapter(chapterId) {
   const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === chapterId && item.available);
   const target = document.getElementById("chapterContent");
@@ -369,55 +429,53 @@ async function loadChapter(chapterId) {
   }
 
   currentChapter = chapter.id;
-  target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
+  if (!window.engagementClient || !window.engagementUser) {
+    target.innerHTML = '<p class="placeholder">Please sign in to read this chapter.</p>';
+    return;
+  }
+
+  const cachedSource = getCachedChapterSource(chapter.id);
+  if (cachedSource) {
+    try {
+      renderChapterSource(cachedSource, chapter);
+    } catch (cacheError) {
+      console.warn("The saved chapter copy was invalid; fetching a fresh copy.", cacheError);
+      try { localStorage.removeItem("edenChapterCache:" + chapter.id); } catch (_) {}
+      target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
+    }
+  } else {
+    target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
+  }
 
   try {
-    if (!window.engagementClient || !window.engagementUser) throw new Error("Please sign in to read this chapter.");
-    const { data: chapterFile, error: chapterError } = await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
-    if (chapterError || !chapterFile) throw new Error("This chapter has not been uploaded to the private reading library yet.");
-    const source = await chapterFile.text();
-    const parsed = new DOMParser().parseFromString(source, "text/html");
-    const chapterDocument = parsed.querySelector(".chapter-document");
-    if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
-
-    // Check only visible manuscript text, not instructional HTML comments.
-    // This lets authors keep the helpful template notes in uploaded files.
-    const manuscript = chapterDocument.querySelector("#chapterText, .chapter-text");
-    const manuscriptText = manuscript ? manuscript.textContent.trim() : "";
-    if (!manuscript || !manuscriptText ||
-        manuscriptText.includes("Your first paragraph goes here.") ||
-        manuscriptText.includes("Your second paragraph goes here.") ||
-        manuscriptText.includes("Your third paragraph goes here.")) {
-      throw new Error("This chapter still contains the blank template text. Replace the sample paragraphs with your manuscript, then upload the finished HTML again.");
+    const { data: chapterFile, error: chapterError } =
+      await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
+    if (chapterError || !chapterFile) {
+      if (cachedSource) {
+        console.warn("Using the saved chapter copy because the online refresh failed:", chapterError);
+        return;
+      }
+      throw new Error("This chapter has not been uploaded to the private reading library yet.");
     }
 
-    target.innerHTML = chapterDocument.innerHTML;
-    const heading = target.querySelector(".chapter-heading h2");
-    const number = target.querySelector(".chapter-heading .chapter-number");
-    if (heading) document.title = heading.textContent + " | The Trials of Eden";
-    if (number) number.textContent = chapter.number.toUpperCase();
+    const freshSource = await chapterFile.text();
+    // Validate before caching so a bad upload cannot replace a working copy.
+    const validation = new DOMParser().parseFromString(freshSource, "text/html");
+    if (!validation.querySelector(".chapter-document")) {
+      throw new Error("Chapter file is missing its chapter-document wrapper.");
+    }
+    saveCachedChapterSource(chapter.id, freshSource);
 
-    const reader = document.getElementById("chapterText");
-    if (reader) reader.style.fontSize = fontSize + "px";
-    applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
-    chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\s+/).length : 0;
-
-    // Show the Part name alongside the chapter currently being read.
-    const part = (window.EDEN_PARTS || []).find(item => item.id === chapter.partId);
-    const partLabel = document.getElementById("currentPartLabel");
-    if (partLabel) partLabel.textContent = part ? part.title.toUpperCase() : "BOOK SECTION";
-
-    // Find references that actually occur in this chapter, then make
-    // every matching trigger phrase clickable in the manuscript.
-    const matchingReferences = applyChapterCompanionTriggers(chapter);
-    renderCompanion(chapter, matchingReferences);
-
-    renderChapterDirectory();
-    updateChapterNavigation();
-    restoreReadingPosition();
-    updateProgress();
+    if (freshSource !== cachedSource) {
+      renderChapterSource(freshSource, chapter);
+    }
   } catch (error) {
     console.error("The Trials of Eden chapter could not be loaded:", error);
+    if (cachedSource) {
+      // A previously validated chapter remains readable even if the network
+      // or Supabase is temporarily unavailable.
+      return;
+    }
     const message = document.createElement("p");
     message.className = "placeholder";
     message.textContent = error && error.message
@@ -426,7 +484,6 @@ async function loadChapter(chapterId) {
     target.replaceChildren(message);
   }
 }
-
 
 // =====================================
 // 3. LIVE CHAPTER READING PROGRESS
