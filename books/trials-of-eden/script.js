@@ -295,6 +295,11 @@ async function loadChapter(chapterId) {
     const { data: chapterFile, error: chapterError } = await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
     if (chapterError || !chapterFile) throw new Error("This chapter has not been uploaded to the private reading library yet.");
     const source = await chapterFile.text();
+    if (source.includes("Your first paragraph goes here.") ||
+        source.includes("Your second paragraph goes here.") ||
+        source.includes("Replace these examples with your own paragraphs.")) {
+      throw new Error("The file in the eden-chapters bucket is still the blank chapter template. Replace its sample paragraphs with your actual Chapter One manuscript, then upload the finished HTML again as chapter-01.html.");
+    }
     const parsed = new DOMParser().parseFromString(source, "text/html");
     const chapterDocument = parsed.querySelector(".chapter-document");
     if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
@@ -325,8 +330,13 @@ async function loadChapter(chapterId) {
     restoreReadingPosition();
     updateProgress();
   } catch (error) {
-    console.error(error);
-    target.innerHTML = '<p class="placeholder">We could not load this chapter. Please refresh the page and try again.</p>';
+    console.error("The Trials of Eden chapter could not be loaded:", error);
+    const message = document.createElement("p");
+    message.className = "placeholder";
+    message.textContent = error && error.message
+      ? "CHAPTER NOT LOADED: " + error.message
+      : "We could not load this chapter. Please refresh the page and try again.";
+    target.replaceChildren(message);
   }
 }
 
