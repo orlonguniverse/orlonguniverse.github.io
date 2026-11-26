@@ -42,8 +42,8 @@ window.EDEN_CHAPTERS = [
   {
     id: "chapter-02",
     number: "Chapter 02",
-    title: "Coming Soon",
-    available: false
+    title: "Your Chapter Title",
+    available: true
   },
 
   // ========================================================
