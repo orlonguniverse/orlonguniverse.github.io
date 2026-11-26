@@ -11,11 +11,19 @@ HOW TO USE THIS FILE
 4. Replace the sample paragraphs with your manuscript.
 5. Add the chapter to ../chapters.js and set available: true.
 6. Add Companion definitions to that chapter's companionTerms list in chapters.js.
-7. Wrap matching words in the manuscript using the example trigger button below.
-   Its data-companion-term value must match the reference id in chapters.js.
+7. Add a "triggers" array to each Companion definition. These are the words
+   and phrases that should open that entry (for example: ["Maya", "Maya Garcia"]).
+   Matching phrases are automatically highlighted in the manuscript.
+   The Companion entry only appears if at least one trigger occurs in the chapter.
 
-EXAMPLE:
-<button type="button" class="companion-trigger" data-companion-term="maya-garcia">Maya Garcia</button>
+EXAMPLE COMPANION ENTRY IN chapters.js:
+{
+  id: "maya-garcia",
+  term: "Maya Garcia",
+  triggers: ["Maya", "Maya Garcia"],
+  category: "CHARACTER",
+  description: "The protagonist of the story."
+}
 
 IMPORTANT
 - Keep the "chapter-document" class on the article.
