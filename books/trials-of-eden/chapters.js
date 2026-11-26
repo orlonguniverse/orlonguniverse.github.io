@@ -93,16 +93,6 @@ window.EDEN_CHAPTERS = [
     title: "The Show",
     partId: "part-01",
     available: true,
-    // CHAPTER CHALLENGE TEMPLATE — replace the sample text with three questions
-    // based on this chapter. Each answer is the zero-based option number.
-    // quiz: {
-    //   version: "1",
-    //   questions: [
-    //     { question: "Your first question?", options: ["Option A","Option B","Option C"], answer: 0, explanation: "Optional explanation." },
-    //     { question: "Your second question?", options: ["Option A","Option B","Option C"], answer: 1, explanation: "Optional explanation." },
-    //     { question: "Your third question?", options: ["Option A","Option B","Option C"], answer: 2, explanation: "Optional explanation." }
-    //   ]
-    // },
     companionTerms: [
       {
         id: "maya-garcia",
