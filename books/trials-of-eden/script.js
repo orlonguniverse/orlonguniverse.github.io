@@ -63,15 +63,6 @@ function applyReaderSize(value) {
   localStorage.setItem("edenFontSize", String(size));
 }
 
-function applyReaderLineHeight(value) {
-  const valid = ["1.6", "1.8", "2", "2.2"];
-  const selected = valid.includes(String(value)) ? String(value) : "1.8";
-  document.body.style.setProperty("--reader-line-height", selected);
-  const control = document.getElementById("readerLineHeightSelect");
-  if (control) control.value = selected;
-  localStorage.setItem("edenLineHeight", selected);
-}
-
 function toggleFocus() {
   const active = document.body.classList.toggle("focus-mode");
   const button = document.getElementById("readingFocusButton");
@@ -596,7 +587,6 @@ applyTheme(savedTheme);
 applyReaderTheme(localStorage.getItem("edenReaderTheme") || "classic");
 applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
 applyReaderSize(localStorage.getItem("edenFontSize") || 16);
-applyReaderLineHeight(localStorage.getItem("edenLineHeight") || "1.8");
 
 const themeControl = document.getElementById("readerThemeSelect");
 if (themeControl) themeControl.addEventListener("change", event => applyReaderTheme(event.target.value));
@@ -607,8 +597,6 @@ if (fontControl) fontControl.addEventListener("change", event => applyReaderFont
 const sizeControl = document.getElementById("readerTextSize");
 if (sizeControl) sizeControl.addEventListener("input", event => applyReaderSize(event.target.value));
 
-const lineControl = document.getElementById("readerLineHeightSelect");
-if (lineControl) lineControl.addEventListener("change", event => applyReaderLineHeight(event.target.value));
 
 // The script is loaded after the HTML controls, so they can be connected here.
 setReadingWidgetState();
