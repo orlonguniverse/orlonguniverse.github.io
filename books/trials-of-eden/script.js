@@ -317,6 +317,7 @@ const CHAPTER_CACHE_DATABASE = "eden-reader-chapters";
 const CHAPTER_CACHE_STORE = "chapters";
 let chapterCacheDatabasePromise = null;
 const chapterLoadsInProgress = new Map();
+const chapterMemoryCache = new Map();
 
 function openChapterCacheDatabase() {
   if (!("indexedDB" in window)) return Promise.reject(new Error("IndexedDB is unavailable."));
@@ -337,6 +338,7 @@ function openChapterCacheDatabase() {
 }
 
 async function getCachedChapterSource(chapterId) {
+  if (chapterMemoryCache.has(chapterId)) return chapterMemoryCache.get(chapterId);
   try {
     const database = await openChapterCacheDatabase();
     const record = await new Promise((resolve, reject) => {
@@ -345,7 +347,10 @@ async function getCachedChapterSource(chapterId) {
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
-    if (record && record.source) return record.source;
+    if (record && record.source) {
+      chapterMemoryCache.set(chapterId, record.source);
+      return record.source;
+    }
   } catch (error) {
     console.warn("IndexedDB chapter cache is unavailable; checking the older browser cache.", error);
   }
@@ -354,6 +359,7 @@ async function getCachedChapterSource(chapterId) {
   try {
     const legacySource = localStorage.getItem("edenChapterCache:" + chapterId);
     if (legacySource) {
+      chapterMemoryCache.set(chapterId, legacySource);
       await saveCachedChapterSource(chapterId, legacySource);
       try { localStorage.removeItem("edenChapterCache:" + chapterId); } catch (_) {}
       return legacySource;
@@ -365,6 +371,7 @@ async function getCachedChapterSource(chapterId) {
 }
 
 async function saveCachedChapterSource(chapterId, source) {
+  chapterMemoryCache.set(chapterId, source);
   try {
     const database = await openChapterCacheDatabase();
     await new Promise((resolve, reject) => {
