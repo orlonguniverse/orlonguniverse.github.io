@@ -9,9 +9,12 @@ HOW TO USE THIS FILE
    Example: chapter-04.html
 3. Change the chapter number and heading below.
 4. Replace the sample paragraphs with your manuscript.
-5. Add the chapter to ../chapters.js and set available: true.
-6. Add Companion definitions to that chapter's companionTerms list in chapters.js.
-7. Add a "triggers" array to each Companion definition. These are the words
+5. Add scene breaks only where a new scene begins (not automatically after the heading).
+   Copy the complete ELECTRIC EEL SCENE BREAK block below and paste it between
+   paragraphs. Keep it INSIDE the chapter-text container.
+6. Add the chapter to ../chapters.js and set available: true.
+7. Add Companion definitions to that chapter's companionTerms list in chapters.js.
+8. Add a "triggers" array to each Companion definition. These are the words
    and phrases that should open that entry (for example: ["Maya", "Maya Garcia"]).
    Matching phrases are automatically highlighted in the manuscript.
    The Companion entry only appears if at least one trigger occurs in the chapter.
@@ -29,7 +32,32 @@ IMPORTANT
 - Keep the "chapter-document" class on the article.
 - Keep the "chapterText" id on the manuscript container.
 - Use one <p>...</p> block for each paragraph.
+- Do not put a scene break directly below the chapter heading unless the story genuinely begins after a scene transition.
+- Put every scene break between paragraphs, inside <div class="chapter-text" id="chapterText">.
 - Do not add <html>, <head>, or <body> tags here.
+
+ELECTRIC EEL SCENE BREAK BLOCK
+Copy this entire block wherever a scene break is needed:
+
+<div class="orlong-scene-break" role="separator" aria-label="Scene break">
+  <svg viewBox="0 0 180 48" aria-hidden="true" focusable="false">
+    <g class="eel-body">
+      <path d="M5 12 C13 2 21 22 30 12 S46 2 53 12"/>
+      <path d="M65 24 C73 14 81 34 90 24 S106 14 113 24"/>
+      <path d="M125 36 C133 26 141 46 150 36 S166 26 173 36"/>
+    </g>
+    <g class="eel-eye">
+      <circle cx="53" cy="12" r="1.8"/>
+      <circle cx="113" cy="24" r="1.8"/>
+      <circle cx="173" cy="36" r="1.8"/>
+    </g>
+    <g class="eel-spark">
+      <path d="M25 2 L21 7 L26 7 L22 12"/>
+      <path d="M85 14 L81 19 L86 19 L82 24"/>
+      <path d="M145 26 L141 31 L146 31 L142 36"/>
+    </g>
+  </svg>
+</div>
 ============================================================
 -->
 
@@ -53,8 +81,29 @@ IMPORTANT
       Your second paragraph goes here. Xantheon.
     </p>
 
+    <!-- SCENE BREAK: Use this only when the scene changes. -->
+    <div class="orlong-scene-break" role="separator" aria-label="Scene break">
+      <svg viewBox="0 0 180 48" aria-hidden="true" focusable="false">
+        <g class="eel-body">
+          <path d="M5 12 C13 2 21 22 30 12 S46 2 53 12"/>
+          <path d="M65 24 C73 14 81 34 90 24 S106 14 113 24"/>
+          <path d="M125 36 C133 26 141 46 150 36 S166 26 173 36"/>
+        </g>
+        <g class="eel-eye">
+          <circle cx="53" cy="12" r="1.8"/>
+          <circle cx="113" cy="24" r="1.8"/>
+          <circle cx="173" cy="36" r="1.8"/>
+        </g>
+        <g class="eel-spark">
+          <path d="M25 2 L21 7 L26 7 L22 12"/>
+          <path d="M85 14 L81 19 L86 19 L82 24"/>
+          <path d="M145 26 L141 31 L146 31 L142 36"/>
+        </g>
+      </svg>
+    </div>
+
     <p>
-      Your third paragraph goes here.
+      Your next scene begins here.
     </p>
 
     <!-- ADD MORE PARAGRAPHS BY COPYING A <p> BLOCK ABOVE. -->
