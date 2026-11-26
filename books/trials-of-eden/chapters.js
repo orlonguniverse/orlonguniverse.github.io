@@ -22,10 +22,9 @@ HOW TO ADD A NEW PART
 4. The Contents page will group those chapters automatically.
 
 OPTIONAL PROLOGUE / EPILOGUE
-Change enabled: false to enabled: true in EDEN_BOOK_SECTIONS.
-Create prologue.html or epilogue.html in the chapters folder,
-then add its entry to EDEN_CHAPTERS using partId
-"front-matter" or "back-matter".
+Change enabled: false to enabled: true when you are ready
+to include either section. Create its HTML file in the
+chapters folder and add its entry to EDEN_CHAPTERS.
 
 IMPORTANT: ids must be unique, lowercase and hyphenated.
 The id must match the HTML filename without ".html".
@@ -36,21 +35,36 @@ Use commas between entries.
 // THE TEN PARTS OF THE BOOK
 window.EDEN_PARTS = [
   { id: "part-01", title: "Part One" },
-   { id: "part-02", title: "Part Two" },
-   { id: "part-03", title: "Part Three" },
-   { id: "part-04", title: "Part Four" },
-   { id: "part-05", title: "Part Five" },
-   { id: "part-06", title: "Part Six" },
-   { id: "part-07", title: "Part Seven" },
-   { id: "part-08", title: "Part Eight" },
-   { id: "part-09", title: "Part Nine" },
-   { id: "part-10", title: "Part Ten" },
+  { id: "part-02", title: "Part Two" },
+  { id: "part-03", title: "Part Three" },
+  { id: "part-04", title: "Part Four" },
+  { id: "part-05", title: "Part Five" },
+  { id: "part-06", title: "Part Six" },
+  { id: "part-07", title: "Part Seven" },
+  { id: "part-08", title: "Part Eight" },
+  { id: "part-09", title: "Part Nine" },
+  { id: "part-10", title: "Part Ten" }
 ];
 
 // OPTIONAL OPENING / CLOSING SECTIONS
+// Keep these disabled until their pages are ready.
 window.EDEN_BOOK_SECTIONS = {
-  prologue: { enabled: true, id: "prologue", number: "Prologue", title: "Prologue", partId: "front-matter", available: false },
-  epilogue: { enabled: false, id: "epilogue", number: "Epilogue", title: "Epilogue", partId: "back-matter", available: false }
+  prologue: {
+    enabled: false,
+    id: "prologue",
+    number: "Prologue",
+    title: "Prologue",
+    partId: "front-matter",
+    available: false
+  },
+  epilogue: {
+    enabled: false,
+    id: "epilogue",
+    number: "Epilogue",
+    title: "Epilogue",
+    partId: "back-matter",
+    available: false
+  }
 };
 
 // CHAPTERS — PART ONE CURRENTLY HAS CHAPTERS 01–07.
@@ -58,28 +72,37 @@ window.EDEN_BOOK_SECTIONS = {
 window.EDEN_CHAPTERS = [
   /*
     COMPANION REFERENCES — HOW TO ADD ONE
-    Add objects inside companionTerms. Example:
-    { id: "maya-garcia", term: "Maya Garcia", category: "CHARACTER",
-      description: "Write a short, spoiler-safe explanation here." }
+    Add reference objects inside that chapter's companionTerms.
+    Example:
+    {
+      id: "maya-garcia",
+      term: "Maya Garcia",
+      category: "CHARACTER",
+      description: "Write a short, spoiler-safe explanation here."
+    }
 
-    Then wrap the matching manuscript word/name in chapter-01.html:
-    <button type="button" class="companion-trigger" data-companion-term="maya-garcia">Maya Garcia</button>
+    Then wrap the matching manuscript word/name in the chapter HTML:
+    <button type="button" class="companion-trigger"
+      data-companion-term="maya-garcia">Maya Garcia</button>
 
-    The data-companion-term id MUST match the id below.
-    All entries automatically appear in the Companion's reference list.
+    The data-companion-term id MUST match the reference id.
   */
-   
-   {
-  id: "maya-garcia",
-  term: "Maya Garcia",
-  category: "CHARACTER",
-  description: "The protagonist of the story."
-   }
-   
-  { id: "chapter-01", number: "Chapter 01", title: "Your Chapter Title", partId: "part-01", available: true, companionTerms: [
-    // ADD THIS CHAPTER'S REFERENCES HERE.
-    // { id: "maya-garcia", term: "Maya Garcia", category: "CHARACTER", description: "Your description here." }
-  ] },
+
+  {
+    id: "chapter-01",
+    number: "Chapter 01",
+    title: "Your Chapter Title",
+    partId: "part-01",
+    available: true,
+    companionTerms: [
+      {
+        id: "maya-garcia",
+        term: "Maya Garcia",
+        category: "CHARACTER",
+        description: "The protagonist of the story."
+      }
+    ]
+  },
   { id: "chapter-02", number: "Chapter 02", title: "Chapter title to be added", partId: "part-01", available: false },
   { id: "chapter-03", number: "Chapter 03", title: "Chapter title to be added", partId: "part-01", available: false },
   { id: "chapter-04", number: "Chapter 04", title: "Chapter title to be added", partId: "part-01", available: false },
