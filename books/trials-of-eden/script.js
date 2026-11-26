@@ -396,6 +396,18 @@ function validateChapterSource(source) {
   const chapterDocument = parsed.querySelector(".chapter-document");
   const manuscript = chapterDocument?.querySelector("#chapterText, .chapter-text");
   const manuscriptText = manuscript?.textContent.trim() || "";
+
+  // Read optional quiz data from this chapter's private Supabase HTML file.
+  window.EDEN_ACTIVE_CHAPTER_QUIZ = null;
+  const quizElement = chapterDocument?.querySelector("#chapterQuizData");
+  if (quizElement) {
+    try {
+      window.EDEN_ACTIVE_CHAPTER_QUIZ = JSON.parse(quizElement.textContent);
+    } catch (error) {
+      console.error("This chapter's quiz data contains invalid JSON:", error);
+    }
+    quizElement.remove();
+  }
   if (!chapterDocument || !manuscript || !manuscriptText ||
       manuscriptText.includes("Your first paragraph goes here.") ||
       manuscriptText.includes("Your second paragraph goes here.") ||
