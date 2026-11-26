@@ -87,7 +87,30 @@ footer a { color:var(--blue-light); }
     <h2>EXPLORE THE BOOK</h2>
     <p>Browse the Parts and chapters below. Available chapters can be opened directly; chapters still in preparation are listed so you can see how the book is organised.</p>
   </div>
-  <div id="bookContents" aria-live="polite"><p>Loading book contents...</p></div>
+  <div id="bookContents" aria-live="polite">
+    <!--
+      FALLBACK CONTENTS:
+      This is the visible structure if JavaScript is unavailable.
+      The contents.js file replaces this with the live chapter list
+      from chapters.js when scripts load successfully.
+    -->
+    <section class="part-section">
+      <div class="part-heading"><h2>Part One</h2><span class="part-count">7 CHAPTERS</span></div>
+      <div class="contents-chapter-list">
+        <a class="contents-chapter is-available" href="index.html?chapter=chapter-01" aria-label="Read Chapter 01: Your Chapter Title">
+          <span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 01</span><span class="contents-chapter-title">Your Chapter Title</span></span>
+          <span class="contents-chapter-status">READ CHAPTER</span>
+        </a>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 02</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 03</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 04</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 05</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 06</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+        <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 07</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
+      </div>
+    </section>
+    <section class="part-section"><div class="part-heading"><h2>Part 2</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 3</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 4</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 5</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 6</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 7</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 8</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 9</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section><section class="part-section"><div class="part-heading"><h2>Part 10</h2><span class="part-count">CHAPTERS TO BE ADDED</span></div><p class="part-empty">Chapters for this Part will appear here.</p></section>
+  </div>
 </main>
 <footer>
   <p>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN</p>
