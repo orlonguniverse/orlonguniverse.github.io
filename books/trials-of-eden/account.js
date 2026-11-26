@@ -3,6 +3,7 @@ const ACCOUNT_SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const ACCOUNT_SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const accountClient=window.supabase.createClient(ACCOUNT_SUPABASE_URL,ACCOUNT_SUPABASE_KEY);
 let accountMode="signin";
+let lastDashboardUserId=undefined;
 const accountById=id=>document.getElementById(id);
 const chapterInfo=id=>(window.EDEN_CHAPTERS||[]).find(chapter=>chapter.id===id);
 const safeDate=value=>value?new Date(value).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"";
@@ -165,7 +166,14 @@ async function uploadProfilePicture(){
 
 async function showSession(session){
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
- if(signedIn)await loadPersonalDashboard(session.user);
+ const userId=signedIn?session.user.id:null;
+ if(userId===lastDashboardUserId)return;
+ lastDashboardUserId=userId;
+ if(signedIn){
+  const name=session.user.user_metadata?.display_name;
+  if(name)accountById("profileName").textContent=String(name).toUpperCase();
+  await loadPersonalDashboard(session.user);
+ }
 }
 async function submitAccount(event){
  event.preventDefault();const email=accountById("email").value.trim(),password=accountById("password").value;
@@ -174,7 +182,7 @@ async function submitAccount(event){
  const {data,error}=await accountClient.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:window.location.origin+window.location.pathname}});
  if(error){setAuthMessage(error.message);return;}if(data.session)await showSession(data.session);else setAuthMessage("Account created! Check your email and confirm your address before signing in.");
 }
-async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
+async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
  accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);setMode("signin");
