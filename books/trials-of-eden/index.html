@@ -790,7 +790,6 @@ body.focus-mode .reader {
     <button type="button" id="openAccountButton" class="nav-account-button">SIGN IN</button>
     <a href="account.html">MY STATISTICS</a>
     <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
-    <a href="#companion">COMPANION</a>
   </div>
 </nav>
 
@@ -959,15 +958,7 @@ body.focus-mode .reader {
     <div class="companion-box">
 
       <h3>READING OPTIONS</h3>
-
-      <label class="reader-setting-label" for="readerPresetSelect">READING PRESET</label>
-      <select id="readerPresetSelect" class="reader-setting-select">
-        <option value="custom">Custom settings</option>
-        <option value="print">Balanced Print</option>
-        <option value="night">Night Reader</option>
-        <option value="accessible">Accessible Reading</option>
-      </select>
-      <p class="reader-setting-note">Presets adjust the page, type and spacing together. You can customise any setting afterwards.</p>
+      <p class="reader-setting-note">These settings change the manuscript immediately and are saved on this device.</p>
 
       <label class="reader-setting-label" for="readerThemeSelect">PAGE APPEARANCE</label>
       <select id="readerThemeSelect" class="reader-setting-select">
@@ -976,54 +967,28 @@ body.focus-mode .reader {
         <option value="sepia">Vintage — Warm Sepia</option>
         <option value="midnight">Midnight — Soft Charcoal</option>
       </select>
-      <p class="reader-setting-note">Choose a reading-page style. Your selection is saved on this device.</p>
 
       <label class="reader-setting-label" for="readerFontSelect">MANUSCRIPT FONT</label>
       <select id="readerFontSelect" class="reader-setting-select">
-        <option value="literary">Literary Serif (Libre Baskerville)</option>
-        <option value="atkinson">Dyslexia-friendly (Atkinson Hyperlegible)</option>
+        <option value="literary">Literary Serif</option>
+        <option value="atkinson">Atkinson Hyperlegible</option>
         <option value="arial">Arial</option>
-        <option value="roboto">Roboto</option>
         <option value="lora">Lora</option>
-        <option value="merriweather">Merriweather</option>
-        <option value="orlong">Orlong Signature</option>
-        <option value="handwritten">Handwritten (Caveat)</option>
       </select>
-      <p class="reader-setting-note">Your font choice is saved on this device and applies to the manuscript text.</p>
 
       <label class="reader-setting-label" for="readerTextSize">TEXT SIZE <span id="readerTextSizeValue">16px</span></label>
-      <input id="readerTextSize" class="reader-setting-range" type="range" min="14" max="24" step="1" value="16">
+      <input id="readerTextSize" class="reader-setting-range" type="range" min="14" max="30" step="1" value="16">
 
       <label class="reader-setting-label" for="readerLineHeightSelect">LINE SPACING</label>
       <select id="readerLineHeightSelect" class="reader-setting-select">
-        <option value="1.7">Compact</option>
-        <option value="1.9">Comfortable</option>
-        <option value="2.1">Relaxed</option>
-        <option value="2.3">Extra spacious</option>
+        <option value="1.6">Compact</option>
+        <option value="1.8">Comfortable</option>
+        <option value="2">Relaxed</option>
+        <option value="2.2">Spacious</option>
       </select>
 
-      <label class="reader-setting-label" for="readerParagraphSelect">PARAGRAPH SPACING</label>
-      <select id="readerParagraphSelect" class="reader-setting-select">
-        <option value="1.1">Close</option>
-        <option value="1.6">Balanced</option>
-        <option value="2">Open</option>
-      </select>
-
-      <label class="reader-setting-label" for="readerWidthSelect">TEXT COLUMN WIDTH</label>
-      <select id="readerWidthSelect" class="reader-setting-select">
-        <option value="narrow">Narrow</option>
-        <option value="standard">Standard book</option>
-        <option value="wide">Wide</option>
-      </select>
-
-      <label class="reader-setting-label" for="readerModeSelect">READING LAYOUT</label>
-      <select id="readerModeSelect" class="reader-setting-select">
-        <option value="book">Book page</option>
-        <option value="scroll">Continuous scroll</option>
-      </select>
-
-      <button type="button" id="companionFocusButton" onclick="toggleFocus()">ENTER FOCUS MODE</button>
-      <p class="reader-setting-note">Focus Mode hides the surrounding website and keeps the manuscript front and centre.</p>
+      <button type="button" id="readingFocusButton" onclick="toggleFocus()">ENTER FOCUS MODE</button>
+      <p class="reader-setting-note">Focus Mode hides surrounding page elements and centres the manuscript.</p>
 
 
 
