@@ -416,3 +416,10 @@ body.light .companion-trigger {
 
 /* Keep the reading interface uncluttered while Focus Mode is active. */
 body.focus-mode .engagement-section { display:none !important; }
+
+.account-actions-dialog { max-width:380px; }
+.account-action-link { display:block; margin-top:12px; padding:13px; text-align:center; color:var(--text); background:var(--surface-2); border:1px solid var(--blue); font-size:10px; font-weight:600; letter-spacing:1px; }
+.account-action-link:hover { background:color-mix(in srgb,var(--blue) 18%,var(--surface-2)); }
+#clearContentInterestsButton { margin:10px 0 0 8px; border-color:var(--border); }
+.personal-remove-button { margin:8px 8px 0 0; padding:7px 10px; color:var(--muted); background:var(--surface); border:1px solid var(--border); font-size:9px; cursor:pointer; }
+.personal-remove-button:hover { color:var(--text); border-color:var(--blue); }
