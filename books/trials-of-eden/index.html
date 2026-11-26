@@ -662,8 +662,20 @@ body.focus-mode .reader {
           FOCUS
         </button>
 
+        <button onclick="saveBookmark()" title="Save your current position">
+          BOOKMARK
+        </button>
+
+        <button onclick="goToBookmark()" title="Return to your bookmark">
+          MY BOOKMARK
+        </button>
+
       </div>
 
+    <span id="readingStatus" aria-live="polite">
+      Your progress saves automatically
+    </span>
+       
     </div>
 
 
