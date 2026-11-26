@@ -141,3 +141,69 @@ function updateProgress() {
 }
 
 window.addEventListener("load", updateProgress);
+
+// =========================
+// READER PREFERENCES
+// =========================
+
+let fontSize = Number(localStorage.getItem("edenFontSize")) || 16;
+
+
+// =========================
+// THEME SWITCH
+// =========================
+
+function applyTheme(theme) {
+
+  document.body.classList.remove("dark", "light");
+  document.body.classList.add(theme);
+
+  const button = document.getElementById("themeButton");
+
+  button.textContent =
+    theme === "light" ? "DARK MODE" : "LIGHT MODE";
+
+  localStorage.setItem("edenTheme", theme);
+
+}
+
+
+function toggleTheme() {
+
+  const newTheme =
+    document.body.classList.contains("dark") ? "light" : "dark";
+
+  applyTheme(newTheme);
+
+}
+
+
+// =========================
+// TEXT SIZE CONTROL
+// =========================
+
+function changeFontSize(amount) {
+
+  fontSize += amount;
+
+  if (fontSize < 13) fontSize = 13;
+  if (fontSize > 23) fontSize = 23;
+
+  document.getElementById("chapterText").style.fontSize =
+    fontSize + "px";
+
+  localStorage.setItem("edenFontSize", fontSize);
+
+}
+
+
+// =========================
+// LOAD SAVED PREFERENCES
+// =========================
+
+const savedTheme = localStorage.getItem("edenTheme") || "dark";
+
+applyTheme(savedTheme);
+
+document.getElementById("chapterText").style.fontSize =
+  fontSize + "px";
