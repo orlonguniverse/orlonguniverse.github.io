@@ -923,9 +923,6 @@ body.focus-mode .reader {
 
 </footer>
 
-<script src="chapters.js"></script>
-<script src="script.js"></script>
-
 <!-- FLOATING READING PANEL -->
 <section class="reading-widget" id="readingWidget" aria-label="Reading progress controls">
   <div class="reading-widget-header">
@@ -949,6 +946,10 @@ body.focus-mode .reader {
     </div>
   </div>
 </section>
+
+<!-- Scripts must load AFTER the floating panel so PIN and collapse controls are available. -->
+<script src="chapters.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
