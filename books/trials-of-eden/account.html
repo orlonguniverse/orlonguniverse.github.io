@@ -22,16 +22,17 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
-<a href="../../index.html" class="logo">ORLONG</a>
-<div class="topbar-right">
-<a href="../../index.html">HOME</a>
-<a href="contents.html">BOOK CONTENTS</a>
-<a href="index.html#directory">CHAPTERS</a>
-<a href="#dashboard" class="nav-account-button">MY ACCOUNT</a>
-<a href="#dashboard">MY STATISTICS</a>
-<button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
-<a href="index.html#companion">COMPANION</a>
-</div></nav>
+  <a href="../../index.html" class="logo">ORLONG</a>
+  <div class="topbar-right">
+    <a href="../../index.html">HOME</a>
+    <a href="contents.html">BOOK CONTENTS</a>
+    <a href="index.html#directory">CHAPTERS</a>
+    <button type="button" id="openAccountButton" class="nav-account-button" data-account-target="#dashboard" data-account-href="account.html">SIGN IN</button>
+    <a href="#dashboard">MY STATISTICS</a>
+    <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+    <a href="index.html#companion">COMPANION</a>
+  </div>
+</nav>
 <main>
 <header class="page-heading"><p class="eyebrow">YOUR PERSONAL READING PROFILE</p><h1>MY READING STATISTICS</h1><p>Track the chapters you've marked complete, your reactions, your comments and your contribution to the reader community.</p></header>
 <section class="panel auth-panel" id="authPanel"><h2 id="authHeading">YOUR READER ACCOUNT</h2><p class="muted" id="authMessage" aria-live="polite">Sign in to see your personal reading statistics, or create a free account to start tracking your activity.</p>
@@ -47,5 +48,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="../../site-nav.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="chapters.js"></script><script src="account.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js"></script>
 </body></html>
