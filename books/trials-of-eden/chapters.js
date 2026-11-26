@@ -101,13 +101,13 @@ window.EDEN_CHAPTERS = [
         triggers: ["Maya", "Maya Garcia"],
         category: "CHARACTER",
         description: "The protagonist of the story."
-      }
+      },
       {
         id: "xantheon",
-        term: "Xantheon
+        term: "Xantheon",
         triggers: ["Xantheon"],
         category: "SECTION",
-        description: "The section of which Eden is located within."
+        description: "The section in which Eden is located."
       }
     ]
   },
