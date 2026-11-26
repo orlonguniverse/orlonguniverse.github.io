@@ -36,20 +36,11 @@ Use commas between entries.
 // THE TEN PARTS OF THE BOOK
 window.EDEN_PARTS = [
   { id: "part-01", title: "Part One" },
-  { id: "part-02", title: "Part Two" },
-  { id: "part-03", title: "Part Three" },
-  { id: "part-04", title: "Part Four" },
-  { id: "part-05", title: "Part Five" },
-  { id: "part-06", title: "Part Six" },
-  { id: "part-07", title: "Part Seven" },
-  { id: "part-08", title: "Part Eight" },
-  { id: "part-09", title: "Part Nine" },
-  { id: "part-10", title: "Part Ten" }
 ];
 
 // OPTIONAL OPENING / CLOSING SECTIONS
 window.EDEN_BOOK_SECTIONS = {
-  prologue: { enabled: false, id: "prologue", number: "Prologue", title: "Prologue", partId: "front-matter", available: false },
+  prologue: { enabled: true, id: "prologue", number: "Prologue", title: "Prologue", partId: "front-matter", available: false },
   epilogue: { enabled: false, id: "epilogue", number: "Epilogue", title: "Epilogue", partId: "back-matter", available: false }
 };
 
@@ -68,6 +59,14 @@ window.EDEN_CHAPTERS = [
     The data-companion-term id MUST match the id below.
     All entries automatically appear in the Companion's reference list.
   */
+   
+   {
+  id: "maya-garcia",
+  term: "Maya Garcia",
+  category: "CHARACTER",
+  description: "The protagonist of the story."
+   }
+   
   { id: "chapter-01", number: "Chapter 01", title: "Your Chapter Title", partId: "part-01", available: true, companionTerms: [
     // ADD THIS CHAPTER'S REFERENCES HERE.
     // { id: "maya-garcia", term: "Maya Garcia", category: "CHARACTER", description: "Your description here." }
