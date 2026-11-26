@@ -366,3 +366,14 @@ body.light .companion-trigger {
 .moderator-actions { display:flex; gap:8px; }
 @media(max-width:900px) { .engagement-grid { grid-template-columns:1fr 1fr; } .engagement-grid .engagement-card:last-child { grid-column:1/-1; } }
 @media(max-width:620px) { .engagement-section { padding:45px 15px 65px; } .engagement-grid { grid-template-columns:1fr; } .engagement-grid .engagement-card:last-child { grid-column:auto; } .engagement-card { padding:19px; } .public-stats { grid-template-columns:1fr 1fr; } .series-interest-row { grid-template-columns:1fr; } }
+
+
+/* Reader content-interest preferences */
+.content-interest-controls { display:grid; gap:2px; margin:15px 0; }
+.content-interest-option { display:flex; align-items:flex-start; gap:11px; padding:12px 9px; border-bottom:1px solid var(--border); cursor:pointer; }
+.content-interest-option input { width:16px; height:16px; margin:2px 0 0; flex:0 0 auto; accent-color:var(--blue); }
+.content-interest-option strong { display:block; color:var(--text); font-size:11px; font-weight:600; }
+.content-interest-option small { display:block; margin-top:4px; color:var(--muted); font-size:9px; line-height:1.5; }
+.other-interest-label { display:block; margin:14px 0 6px; color:var(--muted); font-size:10px; }
+#saveContentInterestsButton { margin-top:13px; }
+#saveContentInterestsButton:disabled { opacity:.45; }
