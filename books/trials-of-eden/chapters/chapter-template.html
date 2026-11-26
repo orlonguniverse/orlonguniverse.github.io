@@ -12,8 +12,10 @@ HOW TO USE THIS FILE
 5. Add a scene break only where a new scene begins (not automatically after the heading).
    Insert this one-line component between paragraphs:
    <orlong-scene-break variant="electric-eel"></orlong-scene-break>
-6. Add the chapter to ../chapters.js and set available: true.
-7. Add Companion definitions to that chapter's companionTerms list in chapters.js.
+6. Add the optional quiz by uncommenting and editing the chapterQuizData block
+   in this template. Leave it commented out if this chapter has no quiz.
+7. Add the chapter to ../chapters.js and set available: true.
+8. Add Companion definitions to that chapter's companionTerms list in chapters.js.
 8. Add a "triggers" array to each Companion definition. These are the words
    and phrases that should open that entry (for example: ["Maya", "Maya Garcia"]).
    Matching phrases are automatically highlighted in the manuscript.
@@ -51,6 +53,49 @@ into each chapter. Keep the component between paragraphs inside chapter-text.
     <h2>YOUR CHAPTER TITLE</h2>
     <p>Written by Callum Macann</p>
   </header>
+
+  <!--
+  OPTIONAL CHAPTER QUIZ — HOW TO ADD ONE
+  1. Copy the complete <script type="application/json"> block below.
+  2. Remove the opening and closing HTML comment markers around that block.
+  3. Replace all three questions, four options, answers and explanations.
+  4. answer is zero-based: 0 = first option, 1 = second, 2 = third, 3 = fourth.
+  5. Keep exactly three questions. Increase version (e.g. "2") if you change
+     the quiz after readers have already submitted attempts.
+  6. If this chapter has no quiz, leave the block commented out or delete it.
+  7. Do not put quiz data inside chapterText.
+
+  IMPORTANT: The answer key is included in the chapter HTML sent to signed-in
+  readers. This is convenient, but technically curious readers could inspect it.
+  -->
+
+  <!--
+  <script type="application/json" id="chapterQuizData">
+  {
+    "version": "1",
+    "questions": [
+      {
+        "question": "Replace this with your first question.",
+        "options": ["First option", "Second option", "Third option", "Fourth option"],
+        "answer": 0,
+        "explanation": "Explain briefly why the correct answer is right."
+      },
+      {
+        "question": "Replace this with your second question.",
+        "options": ["First option", "Second option", "Third option", "Fourth option"],
+        "answer": 1,
+        "explanation": "Explain briefly why the correct answer is right."
+      },
+      {
+        "question": "Replace this with your third question.",
+        "options": ["First option", "Second option", "Third option", "Fourth option"],
+        "answer": 2,
+        "explanation": "Explain briefly why the correct answer is right."
+      }
+    ]
+  }
+  </script>
+  -->
 
   <!-- MANUSCRIPT: Replace these examples with your own paragraphs. -->
   <div class="chapter-text" id="chapterText">
