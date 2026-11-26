@@ -128,17 +128,27 @@ function showCompanion(category) {
 }
 
 
+
 // =====================================
 // 6. READING PROGRESS
 // =====================================
+
+let chapterTotalWords = null;
 
 function updateProgress() {
 
   const reader = document.getElementById("chapterText");
   const progressBar = document.getElementById("progressBar");
 
-  if (!reader || !progressBar) return;
+  const progressFill = document.getElementById("chapterProgressFill");
+  const progressPercent = document.getElementById("chapterProgressPercent");
+  const readingTime = document.getElementById("readingTimeRemaining");
+  const wordCountDisplay = document.getElementById("chapterWordCount");
+  const progressTrack = document.getElementById("chapterProgressTrack");
 
+  if (!reader) return;
+
+  // Find the chapter's position and dimensions.
   const readerTop =
     window.scrollY + reader.getBoundingClientRect().top;
 
@@ -148,20 +158,86 @@ function updateProgress() {
 
   let progress = 0;
 
+  // Calculate progress through the chapter.
   if (availableScroll > 0) {
 
     progress =
       ((window.scrollY - readerTop) / availableScroll) * 100;
 
-  } else if (window.scrollY >= readerTop) {
+  } else if (reader.getBoundingClientRect().bottom <= window.innerHeight) {
 
     progress = 100;
 
   }
 
+  // Keep progress between 0 and 100.
   progress = Math.max(0, Math.min(100, progress));
 
-  progressBar.style.width = progress + "%";
+  const percentage = Math.round(progress);
+
+  // Update the thin progress bar at the top.
+  if (progressBar) {
+    progressBar.style.width = percentage + "%";
+  }
+
+  // Update the larger chapter progress panel.
+  if (progressFill) {
+    progressFill.style.width = percentage + "%";
+  }
+
+  if (progressPercent) {
+    progressPercent.textContent = percentage + "% COMPLETE";
+  }
+
+  if (progressTrack) {
+    progressTrack.setAttribute("aria-valuenow", percentage);
+  }
+
+  // Calculate the chapter's word count only once.
+if (chapterTotalWords === null) {
+
+  const text = reader.innerText.trim();
+
+  chapterTotalWords = text
+    ? text.split(/\s+/).length
+    : 0;
+
+}
+
+const totalWords = chapterTotalWords;
+
+if (wordCountDisplay) {
+  wordCountDisplay.textContent =
+    totalWords.toLocaleString() + " WORDS";
+}
+
+  // Estimate remaining reading time.
+  const remainingWords = Math.ceil(
+    totalWords * (1 - progress / 100)
+  );
+
+  const minutesRemaining = remainingWords / 220;
+
+  if (readingTime) {
+
+    if (percentage >= 100 || totalWords === 0) {
+
+      readingTime.textContent =
+        totalWords === 0 ? "No chapter text yet" : "CHAPTER COMPLETE";
+
+    } else if (minutesRemaining < 1) {
+
+      readingTime.textContent =
+        "Less than a minute remaining";
+
+    } else {
+
+      readingTime.textContent =
+        "~" + Math.ceil(minutesRemaining) + " MIN REMAINING";
+
+    }
+
+  }
 
 }
 
