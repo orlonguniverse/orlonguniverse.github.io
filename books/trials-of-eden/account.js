@@ -157,6 +157,51 @@ async function loadPersonalDashboard(user,cachedData=null,silent=false){
   });
 }
 
+
+async function loadCardCollection(user){
+ const grid=accountById("cardCollectionGrid");
+ const summary=accountById("cardCollectionSummary");
+ if(!grid||!summary)return;
+ grid.replaceChildren();
+ summary.textContent="LOADING YOUR COLLECTION...";
+ const {data,error}=await accountClient.rpc("get_my_card_collection");
+ if(error){
+  const note=document.createElement("div");note.className="empty";
+  note.textContent="Your card collection is temporarily unavailable. The Stage 3 database update may still need to be run.";
+  grid.appendChild(note);summary.textContent="COLLECTION UNAVAILABLE";console.error("Could not load card collection:",error);return;
+ }
+ const cards=data||[];
+ const totalCopies=cards.reduce((total,card)=>total+Number(card.copy_count||0),0);
+ summary.textContent=totalCopies+" CARD "+(totalCopies===1?"COPY":"COPIES")+" · "+cards.length+" UNIQUE "+(cards.length===1?"CARD":"CARDS");
+ if(!cards.length){
+  const empty=document.createElement("div");empty.className="empty";
+  empty.textContent="Your binder is empty for now. Earn your first collectible by completing an eligible Reading Room activity.";
+  grid.appendChild(empty);return;
+ }
+ cards.forEach(card=>{
+  const item=document.createElement("article");item.className="owned-card";
+  if(card.artwork_url){
+   const image=document.createElement("img");image.className="owned-card-image";
+   image.src=new URL(card.artwork_url,window.location.origin).href;
+   image.alt=card.card_name+" collectible card";image.loading="lazy";
+   image.onerror=()=>{image.hidden=true;};
+   item.appendChild(image);
+  }
+  const number=document.createElement("p");number.className="owned-card-number";number.textContent=card.card_number||"COLLECTIBLE";
+  const name=document.createElement("h3");name.textContent=card.card_name;
+  const meta=document.createElement("p");meta.className="owned-card-meta";
+  meta.textContent=[card.category_label,card.rarity].filter(Boolean).join(" · ");
+  const count=document.createElement("span");count.className="owned-card-count";
+  const copies=Number(card.copy_count||0);count.textContent=copies+" "+(copies===1?"COPY":"COPIES");
+  item.append(number,name,meta,count);
+  if(card.spoiler_safe_description){
+   const description=document.createElement("p");description.className="owned-card-description";
+   description.textContent=card.spoiler_safe_description;item.appendChild(description);
+  }
+  grid.appendChild(item);
+ });
+}
+
 async function uploadProfilePicture(){
  const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
  const file=input?.files?.[0];
@@ -198,6 +243,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
+  await loadCardCollection(session.user);
  }
 }
 async function submitAccount(event){
