@@ -723,114 +723,27 @@ body.focus-mode .reader {
 }
 
 
-/* Chapter challenge — restrained Orlong styling with consistently aligned choices. */
+/* Chapter Challenge — clean question panels and full-width selectable answer buttons. */
 .engagement-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-.chapter-quiz-card{
-  border:1px solid var(--border);
-  background:var(--surface);
-}
+.chapter-quiz-card{min-width:0;border:1px solid var(--border);background:var(--surface);}
 .chapter-quiz-card > h3{margin-bottom:8px;}
 .chapter-quiz-card #chapterQuiz{width:100%;min-width:0;}
-#chapterQuizForm{display:grid;gap:18px;width:100%;margin-top:18px;}
-.quiz-question{
-  display:grid;
-  gap:9px;
-  min-width:0;
-  margin:0;
-  padding:17px;
-  border:1px solid var(--border);
-  border-radius:3px;
-  background:var(--surface-2);
-}
-.quiz-question legend{
-  display:block;
-  width:100%;
-  padding:0 0 12px;
-  color:var(--text);
-  font-family:'Cinzel',serif;
-  font-size:12px;
-  font-weight:500;
-  line-height:1.75;
-  letter-spacing:.35px;
-}
-.quiz-option{
-  display:grid;
-  grid-template-columns:18px minmax(0,1fr);
-  align-items:center;
-  gap:12px;
-  width:100%;
-  min-height:44px;
-  box-sizing:border-box;
-  margin:0;
-  padding:10px 12px;
-  color:var(--text);
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:2px;
-  font-size:11px;
-  line-height:1.65;
-  text-align:left;
-  cursor:pointer;
-  transition:border-color .18s ease,background-color .18s ease,color .18s ease;
-}
-.quiz-option:hover{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 7%,var(--surface));}
-.quiz-option:has(input:checked){
-  border-color:var(--blue);
-  background:color-mix(in srgb,var(--blue) 11%,var(--surface));
-  color:var(--text);
-  box-shadow:inset 2px 0 0 var(--blue);
-}
-.quiz-option input{
-  display:block;
-  width:16px;
-  height:16px;
-  min-width:16px;
-  margin:0;
-  justify-self:center;
-  align-self:center;
-  accent-color:var(--blue);
-  cursor:pointer;
-}
-.quiz-option span{display:block;min-width:0;align-self:center;overflow-wrap:anywhere;}
-.quiz-option:focus-within{outline:2px solid var(--blue);outline-offset:2px;}
-.quiz-submit-button,.quiz-retake-button{
-  display:block;
-  width:100%;
-  min-height:44px;
-  box-sizing:border-box;
-  margin:8px 0 0;
-  padding:13px 16px;
-  color:var(--text);
-  background:var(--surface-2);
-  border:1px solid var(--blue);
-  border-radius:2px;
-  font-size:9px;
-  font-weight:600;
-  letter-spacing:1.5px;
-  cursor:pointer;
-  transition:background-color .18s ease,border-color .18s ease;
-}
+#chapterQuizForm{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;width:100%;min-width:0;margin:20px 0 0;}
+.quiz-question{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:100%;min-width:0;margin:0;padding:20px;border:1px solid var(--border);border-radius:4px;background:var(--surface-2);}
+.quiz-question-title{display:block;width:100%;min-width:0;margin:0 0 5px;padding:0 0 13px;border-bottom:1px solid var(--border);color:var(--text);font-family:'Cinzel',serif;font-size:13px;font-weight:500;line-height:1.65;letter-spacing:.35px;white-space:normal;overflow-wrap:anywhere;}
+.quiz-answer-button{display:flex;align-items:center;justify-content:flex-start;width:100%;min-width:0;min-height:48px;margin:0;padding:13px 15px;border:1px solid var(--border);border-radius:3px;background:var(--surface);color:var(--text);font:400 12px/1.6 'Inter',sans-serif;letter-spacing:0;text-align:left;white-space:normal;overflow-wrap:anywhere;cursor:pointer;transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;}
+.quiz-answer-button:hover{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 7%,var(--surface));}
+.quiz-answer-button[aria-pressed="true"]{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 13%,var(--surface));box-shadow:inset 3px 0 0 var(--blue);}
+.quiz-answer-button:focus-visible,.quiz-submit-button:focus-visible,.quiz-retake-button:focus-visible{outline:2px solid var(--blue);outline-offset:3px;}
+.quiz-submit-button,.quiz-retake-button{display:block;width:100%;min-height:48px;box-sizing:border-box;margin:4px 0 0;padding:14px 16px;color:var(--text);background:var(--surface-2);border:1px solid var(--blue);border-radius:3px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-align:center;cursor:pointer;transition:background-color .18s ease,border-color .18s ease;}
 .quiz-submit-button:hover,.quiz-retake-button:hover{background:color-mix(in srgb,var(--blue) 13%,var(--surface-2));}
 .quiz-submit-button:disabled{opacity:.5;cursor:wait;}
-.quiz-result{
-  margin:12px 0 18px;
-  padding:15px;
-  color:var(--blue-light);
-  background:var(--surface-2);
-  border:1px solid var(--border);
-  font-family:'Cinzel',serif;
-  font-size:13px;
-  letter-spacing:1.2px;
-}
+.quiz-result{margin:12px 0 18px;padding:15px;color:var(--blue-light);background:var(--surface-2);border:1px solid var(--border);font-family:'Cinzel',serif;font-size:13px;letter-spacing:1.2px;}
 .quiz-review-item{padding:15px 0;border-bottom:1px solid var(--border);font-size:11px;line-height:1.75;}
 .quiz-review-item strong{display:block;margin-bottom:8px;color:var(--text);font-family:'Cinzel',serif;font-size:11px;font-weight:500;}
 .quiz-review-item p{margin:5px 0;color:var(--muted);}
 .quiz-review-item small{display:block;margin-top:8px;color:var(--blue-light);line-height:1.7;}
-@media(max-width:620px){
-  .quiz-question{padding:13px;}
-  .quiz-option{gap:10px;padding:10px;}
-}
-
+@media(max-width:620px){#chapterQuizForm{gap:16px;}.quiz-question{padding:15px;}.quiz-answer-button{min-height:46px;padding:12px;}}
 /* Final Reading Room control fixes: independent, always-available Companion scrolling. */
 @media (min-width: 1101px) {
   .reading-layout { align-items: start; }
@@ -1224,7 +1137,7 @@ body.focus-mode .reader {
 <script src="chapters.js"></script>
 <script src="scene-breaks.js?v=2"></script>
 <script src="script.js"></script>
-<script src="engagement.js"></script>
+<script src="engagement.js?v=answer-buttons-1"></script>
 
 </body>
 </html>
