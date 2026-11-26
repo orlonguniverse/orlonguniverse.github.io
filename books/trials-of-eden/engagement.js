@@ -12,12 +12,13 @@ let engagementProfile = null;
 let currentReaction = null;
 let replyToComment = null;
 
-const ORLONG_SERIES = [
-  { id: "eden", name: "Eden Trilogy", detail: "Maya Garcia's story" },
-  { id: "bitsy", name: "Bitsy Series", detail: "The story of Bitsy" },
-  { id: "evalon", name: "Evalon Trilogy", detail: "Rod White's story" },
-  { id: "varex", name: "Varex Trilogy", detail: "Morph's story" },
-  { id: "arcanet", name: "Arcanet Trilogy", detail: "Daniel Garcia's story" }
+const CONTENT_INTERESTS = [
+  { id:"characters", title:"Characters" },
+  { id:"plot", title:"Plot and twists" },
+  { id:"worldbuilding", title:"Worldbuilding and lore" },
+  { id:"relationships", title:"Relationships" },
+  { id:"action", title:"Action and challenges" },
+  { id:"other", title:"Other" }
 ];
 
 const byId = id => document.getElementById(id);
@@ -34,54 +35,73 @@ function setEngagementEnabled(enabled) {
   });
   document.querySelectorAll(".engagement-reactions button").forEach(button => button.disabled = !enabled);
   document.querySelectorAll(".series-choice").forEach(button => button.disabled = !enabled);
+  document.querySelectorAll("#contentInterestControls input, #otherInterestDetail").forEach(input => input.disabled = !enabled);
+  const interestSave = byId("saveContentInterestsButton");
+  if (interestSave) interestSave.disabled = !enabled;
 }
 
-function renderSeriesChoices(interests = []) {
-  const container = byId("seriesInterestControls");
-  if (!container) return;
-  container.replaceChildren();
-  ORLONG_SERIES.filter(series => series.id !== "eden").forEach(series => {
-    const existing = interests.find(item => item.series_id === series.id);
-    const row = document.createElement("div");
-    row.className = "series-interest-row";
-    const info = document.createElement("div");
-    const title = document.createElement("strong");
-    title.textContent = series.name;
-    const detail = document.createElement("small");
-    detail.textContent = series.detail;
-    info.append(title, detail);
-    const choices = document.createElement("div");
-    choices.className = "series-choice-group";
-    [["interested","YES"],["maybe","MAYBE"],["not_now","NOT YET"]].forEach(([value,label]) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "series-choice" + (existing && existing.interest === value ? " selected" : "");
-      button.textContent = label;
-      button.disabled = !engagementUser;
-      button.setAttribute("aria-pressed", String(Boolean(existing && existing.interest === value)));
-      button.addEventListener("click", () => saveSeriesInterest(series.id, value));
-      choices.appendChild(button);
-    });
-    row.append(info, choices);
-    container.appendChild(row);
+function renderContentInterests(interests = []) {
+  const selected = new Set(interests.map(item => item.interest_id));
+  document.querySelectorAll("#contentInterestControls input[type='checkbox']").forEach(input => {
+    input.checked = selected.has(input.value);
+    input.disabled = !engagementUser;
   });
+  const other = interests.find(item => item.interest_id === "other");
+  const detail = byId("otherInterestDetail");
+  if (detail) {
+    detail.value = other && other.other_detail ? other.other_detail : "";
+    detail.disabled = !engagementUser;
+  }
+  const save = byId("saveContentInterestsButton");
+  if (save) save.disabled = !engagementUser;
 }
 
-async function loadSeriesInterests() {
-  if (!engagementUser) { renderSeriesChoices(); return; }
-  const { data, error } = await engagementClient.from("series_interest")
-    .select("series_id,interest").eq("user_id", engagementUser.id);
-  if (error) { setMessage("seriesInterestMessage", "Could not load your choices. Please refresh."); return; }
-  renderSeriesChoices(data || []);
+async function loadContentInterests() {
+  if (!engagementUser) {
+    renderContentInterests();
+    setMessage("contentInterestMessage","Sign in to share what interests you.");
+    return;
+  }
+  const { data, error } = await engagementClient.from("reader_content_interests")
+    .select("interest_id,other_detail").eq("user_id",engagementUser.id);
+  if (error) {
+    setMessage("contentInterestMessage","Could not load your preferences. Please refresh.");
+    return;
+  }
+  renderContentInterests(data || []);
+  setMessage("contentInterestMessage", data && data.length ? "Your preferences are saved. You can change them at any time." : "Choose as many topics as you like.");
 }
 
-async function saveSeriesInterest(seriesId, interest) {
+async function saveContentInterests() {
   if (!engagementUser) return;
-  const { error } = await engagementClient.from("series_interest").upsert({
-    user_id: engagementUser.id, series_id: seriesId, interest, updated_at: new Date().toISOString()
-  }, { onConflict: "user_id,series_id" });
-  setMessage("seriesInterestMessage", error ? "We couldn't save that choice. Please try again." : "Your interest has been saved. You can change it whenever you like.");
-  if (!error) loadSeriesInterests();
+  const selected = [...document.querySelectorAll("#contentInterestControls input[type='checkbox']:checked")].map(input => input.value);
+  const otherDetail = byId("otherInterestDetail").value.trim();
+  if (!selected.length) {
+    setMessage("contentInterestMessage","Please select at least one topic before saving.");
+    return;
+  }
+  if (!selected.includes("other") && otherDetail) {
+    setMessage("contentInterestMessage","Select Other if you'd like to include an additional suggestion.");
+    return;
+  }
+  const rows = selected.map(interest_id => ({
+    user_id:engagementUser.id,
+    interest_id,
+    other_detail:interest_id === "other" ? (otherDetail || null) : null,
+    updated_at:new Date().toISOString()
+  }));
+  const { error: deleteError } = await engagementClient.from("reader_content_interests")
+    .delete().eq("user_id",engagementUser.id);
+  if (deleteError) {
+    setMessage("contentInterestMessage","We couldn't update your preferences. Please try again.");
+    return;
+  }
+  const { error } = await engagementClient.from("reader_content_interests").insert(rows);
+  if (error) {
+    setMessage("contentInterestMessage","We couldn't save your preferences. Please try again.");
+    return;
+  }
+  setMessage("contentInterestMessage","Thank you! Your preferences have been saved.");
   loadPublicStats();
 }
 
@@ -159,17 +179,18 @@ async function loadPublicStats() {
   }
   const chapters = Array.isArray(data.chapters) ? data.chapters : [];
   const series = Array.isArray(data.series) ? data.series : [];
+  const contentInterests = Array.isArray(data.content_interests) ? data.content_interests : [];
   const totals = chapters.reduce((sum, item) => ({
     completions: sum.completions + Number(item.completions || 0),
     reactions: sum.reactions + Number(item.reactions || 0),
     comments: sum.comments + Number(item.comments || 0)
   }), { completions:0, reactions:0, comments:0 });
-  const interestCount = series.reduce((sum,item) => sum + Number(item.interested || 0) + Number(item.maybe || 0), 0);
+  const interestCount = contentInterests.reduce((sum,item) => sum + Number(item.responses || 0), 0);
   const stats = [
     [totals.completions, "CHAPTER MILESTONES"],
     [totals.reactions, "CHAPTER REACTIONS"],
     [totals.comments, "APPROVED COMMENTS"],
-    [interestCount, "SERIES INTERESTS"]
+    [interestCount, "CONTENT PREFERENCES"]
   ];
   container.replaceChildren();
   stats.forEach(([value,label]) => {
@@ -336,7 +357,7 @@ async function loadModeratorPanel() {
 }
 
 async function refreshEngagement() {
-  await Promise.all([loadChapterActivity(),loadSeriesInterests(),loadChapterComments(),loadModeratorPanel()]);
+  await Promise.all([loadChapterActivity(),loadContentInterests(),loadChapterComments(),loadModeratorPanel()]);
 }
 
 async function handleAuthState(session) {
@@ -403,7 +424,8 @@ function initialiseEngagement() {
   document.querySelectorAll(".engagement-reactions button").forEach(button => {
     button.addEventListener("click",() => saveReaction(button.dataset.reaction));
   });
-  renderSeriesChoices();
+  document.querySelectorAll("#contentInterestControls input").forEach(input => input.addEventListener("change",() => setMessage("contentInterestMessage","Remember to save your updated preferences.")));
+  byId("saveContentInterestsButton")?.addEventListener("click",saveContentInterests);
   loadPublicStats();
   engagementClient.auth.onAuthStateChange((_event,session) => {
     // Defer database work out of the auth callback to avoid blocking token refresh.
