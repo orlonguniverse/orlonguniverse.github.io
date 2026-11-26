@@ -678,21 +678,52 @@ body[data-reader-mode="scroll"] .reader { max-width: 100%; min-height: 0; }
 .comment-author{display:flex;align-items:center;gap:8px;min-height:34px}.comment-author strong{color:var(--blue-light);font-weight:600}.comment-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover;border:1px solid var(--blue);background:var(--surface-2)}.comment-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;color:var(--blue-light);font-size:12px;font-weight:700}
 
 
-/* Orlong / Eden trilogy scene-break dinkus: three electric eels. */
+/* Minimal electric-eel scene break — a quiet, straight manuscript divider. */
 .orlong-scene-break {
-  display:flex; align-items:center; justify-content:center; width:100%;
-  margin:2.4em auto; color:var(--blue-light, #65adff); clear:both;
-  break-inside:avoid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 560px);
+  margin: 2.15em auto;
+  color: var(--muted);
+  clear: both;
+  break-inside: avoid;
 }
-.orlong-scene-break svg { display:block; width:min(170px, 42%); height:auto; overflow:visible; }
-.orlong-scene-break .eel-body {
-  fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round;
+.orlong-scene-break svg {
+  display: block;
+  width: 100%;
+  height: 18px;
+  overflow: visible;
 }
-.orlong-scene-break .eel-eye { fill:currentColor; }
-.orlong-scene-break .eel-spark {
-  fill:none; stroke:#8cc8ff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+.orlong-scene-break .scene-rule {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: .8;
+  opacity: .48;
+}
+.orlong-scene-break .scene-eel {
+  fill: var(--surface);
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linejoin: miter;
+  opacity: .82;
+}
+.orlong-scene-break .scene-eel-eye {
+  fill: currentColor;
+  opacity: .8;
+}
+.orlong-scene-break .scene-eel-mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: .8;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  opacity: .8;
 }
 body[data-reader-theme="paper"] .orlong-scene-break,
-body[data-reader-theme="sepia"] .orlong-scene-break { color:#8b6a3e; }
-body[data-reader-theme="paper"] .orlong-scene-break .eel-spark,
-body[data-reader-theme="sepia"] .orlong-scene-break .eel-spark { stroke:#b18a4d; }
+body[data-reader-theme="sepia"] .orlong-scene-break {
+  color: #8b7960;
+}
+body[data-reader-theme="midnight"] .orlong-scene-break {
+  color: #9ba8bb;
+}
