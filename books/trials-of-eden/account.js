@@ -1,0 +1,69 @@
+// THE TRIALS OF EDEN — PRIVATE READER STATISTICS
+const ACCOUNT_SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
+const ACCOUNT_SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
+const accountClient=window.supabase.createClient(ACCOUNT_SUPABASE_URL,ACCOUNT_SUPABASE_KEY);
+let accountMode="signin";
+const accountById=id=>document.getElementById(id);
+const chapterInfo=id=>(window.EDEN_CHAPTERS||[]).find(chapter=>chapter.id===id);
+const safeDate=value=>value?new Date(value).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"";
+const setAuthMessage=message=>{accountById("authMessage").textContent=message;};
+function setMode(mode){
+ accountMode=mode==="signup"?"signup":"signin";accountById("nameField").hidden=accountMode!=="signup";
+ accountById("password").autocomplete=accountMode==="signup"?"new-password":"current-password";
+ document.querySelectorAll("[data-mode]").forEach(button=>{button.classList.toggle("active",button.dataset.mode===accountMode);button.setAttribute("aria-pressed",String(button.dataset.mode===accountMode));});
+ accountById("authSubmit").textContent=accountMode==="signup"?"CREATE FREE ACCOUNT":"SIGN IN";
+ accountById("authHeading").textContent=accountMode==="signup"?"CREATE YOUR READER ACCOUNT":"YOUR READER ACCOUNT";
+}
+function addActivity(containerId,rows,emptyMessage,renderRow){
+ const container=accountById(containerId);container.replaceChildren();
+ if(!rows.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=emptyMessage;container.appendChild(empty);return;}
+ rows.forEach(row=>container.appendChild(renderRow(row)));
+}
+function activityCard(title,detail,body){
+ const card=document.createElement("article");card.className="activity-item";
+ const heading=document.createElement("strong");heading.textContent=title;
+ const small=document.createElement("small");small.textContent=detail;card.append(heading,small);
+ if(body){const paragraph=document.createElement("p");paragraph.textContent=body;card.appendChild(paragraph);}return card;
+}
+async function loadPersonalDashboard(user){
+ const [profile,completionsResult,reactionsResult,commentsResult,preferencesResult]=await Promise.all([
+  accountClient.from("reader_profiles").select("display_name").eq("user_id",user.id).maybeSingle(),
+  accountClient.from("chapter_completions").select("chapter_id,completed_at").eq("user_id",user.id).order("completed_at",{ascending:false}),
+  accountClient.from("chapter_reactions").select("chapter_id,reaction,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
+  accountClient.from("chapter_comments").select("id,chapter_id,body,moderation_status,created_at,contains_spoiler").eq("user_id",user.id).order("created_at",{ascending:false}),
+  accountClient.from("reader_content_interests").select("interest_id,other_detail,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false})
+ ]);
+ const errors=[completionsResult,reactionsResult,commentsResult,preferencesResult].filter(result=>result.error);
+ if(errors.length){setAuthMessage("We couldn't load all your statistics. Please refresh and try again.");console.error(errors);return;}
+ const completions=completionsResult.data||[],reactions=reactionsResult.data||[],comments=commentsResult.data||[],preferences=preferencesResult.data||[];
+ accountById("profileName").textContent=(profile.data?.display_name||"Reader").toUpperCase();
+ const approved=comments.filter(x=>x.moderation_status==="approved").length,pending=comments.filter(x=>x.moderation_status==="pending").length,hidden=comments.filter(x=>x.moderation_status==="hidden").length;
+ const reactionCounts=reactions.reduce((counts,item)=>{counts[item.reaction]=(counts[item.reaction]||0)+1;return counts;},{});
+ const stats=[[completions.length,"CHAPTERS COMPLETED"],[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"],[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]];
+ accountById("personalStats").replaceChildren();
+ stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="stat";const number=document.createElement("strong");number.textContent=value.toLocaleString();const caption=document.createElement("span");caption.textContent=label;card.append(number,caption);accountById("personalStats").appendChild(card);});
+ addActivity("completedList",completions,"You haven't marked any chapters as completed yet.",item=>{const c=chapterInfo(item.chapter_id);return activityCard(c?c.number+" — "+c.title:item.chapter_id,"Completed "+safeDate(item.completed_at));});
+ addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{const c=chapterInfo(item.chapter_id),label={like:"👍 Like",love:"❤️ Love",shocked:"😮 Shocked",sad:"😢 Sad",excited:"⚡ Excited"}[item.reaction]||item.reaction;return activityCard(c?c.number+" — "+c.title:item.chapter_id,label+" · "+safeDate(item.updated_at));});
+ addActivity("commentList",comments,"You haven't submitted any comments yet.",item=>{const c=chapterInfo(item.chapter_id),status={approved:"APPROVED",pending:"AWAITING REVIEW",hidden:"HIDDEN"}[item.moderation_status]||item.moderation_status.toUpperCase();return activityCard(c?c.number+" — "+c.title:item.chapter_id,status+" · "+safeDate(item.created_at),item.body);});
+ const labels={characters:"Characters",plot:"Plot and twists",worldbuilding:"Worldbuilding and lore",relationships:"Relationships",action:"Action and challenges",other:"Other"},container=accountById("preferenceList");container.replaceChildren();
+ if(!preferences.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="You haven't saved any content preferences yet.";container.appendChild(empty);}
+ preferences.forEach(item=>{const tag=document.createElement("span");tag.className="pill";tag.textContent=labels[item.interest_id]||item.interest_id;container.appendChild(tag);if(item.other_detail){const detail=document.createElement("p");detail.className="muted";detail.textContent=item.other_detail;container.appendChild(detail);}});
+}
+async function showSession(session){
+ const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
+ if(signedIn)await loadPersonalDashboard(session.user);
+}
+async function submitAccount(event){
+ event.preventDefault();const email=accountById("email").value.trim(),password=accountById("password").value;
+ if(accountMode==="signin"){const {data,error}=await accountClient.auth.signInWithPassword({email,password});if(error){setAuthMessage(error.message);return;}await showSession(data.session);return;}
+ const displayName=accountById("displayName").value.trim()||"Reader";
+ const {data,error}=await accountClient.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:window.location.origin+window.location.pathname}});
+ if(error){setAuthMessage(error.message);return;}if(data.session)await showSession(data.session);else setAuthMessage("Account created! Check your email and confirm your address before signing in.");
+}
+async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
+document.addEventListener("DOMContentLoaded",async()=>{
+ document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
+ accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);setMode("signin");
+ const {data}=await accountClient.auth.getSession();await showSession(data.session);
+ accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
+});
