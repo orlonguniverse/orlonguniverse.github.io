@@ -55,6 +55,74 @@ function applyReaderFont(font) {
   localStorage.setItem("edenReaderFont", selectedFont);
 }
 
+const readerPreferences = {
+  size: { key:"edenFontSize", min:14, max:24, fallback:16 },
+  lineHeight: { key:"edenLineHeight", allowed:["1.7","1.9","2.1","2.3"], fallback:"1.9" },
+  paragraph: { key:"edenParagraphSpacing", allowed:["1.1","1.6","2"], fallback:"1.6" },
+  width: { key:"edenTextWidth", allowed:["narrow","standard","wide"], fallback:"standard" },
+  mode: { key:"edenReadingMode", allowed:["book","scroll"], fallback:"book" }
+};
+
+function applyReaderSize(value) {
+  const size=Math.max(14,Math.min(24,Number(value)||16));
+  fontSize=size;
+  document.body.style.setProperty("--reader-font-size",size+"px");
+  const slider=document.getElementById("readerTextSize");
+  const label=document.getElementById("readerTextSizeValue");
+  if(slider)slider.value=String(size);
+  if(label)label.textContent=size+"px";
+  localStorage.setItem("edenFontSize",String(size));
+}
+function applyReaderLineHeight(value) {
+  const setting=readerPreferences.lineHeight;
+  const selected=setting.allowed.includes(String(value))?String(value):setting.fallback;
+  document.body.style.setProperty("--reader-line-height",selected);
+  const control=document.getElementById("readerLineHeightSelect");
+  if(control)control.value=selected;
+  localStorage.setItem(setting.key,selected);
+}
+function applyReaderParagraphSpacing(value) {
+  const setting=readerPreferences.paragraph;
+  const selected=setting.allowed.includes(String(value))?String(value):setting.fallback;
+  document.body.style.setProperty("--reader-paragraph-spacing",selected+"em");
+  const control=document.getElementById("readerParagraphSelect");
+  if(control)control.value=selected;
+  localStorage.setItem(setting.key,selected);
+}
+function applyReaderWidth(value) {
+  const setting=readerPreferences.width;
+  const selected=setting.allowed.includes(value)?value:setting.fallback;
+  document.body.dataset.readerWidth=selected;
+  const control=document.getElementById("readerWidthSelect");
+  if(control)control.value=selected;
+  localStorage.setItem(setting.key,selected);
+}
+function applyReaderMode(value) {
+  const setting=readerPreferences.mode;
+  const selected=setting.allowed.includes(value)?value:setting.fallback;
+  document.body.dataset.readerMode=selected;
+  const control=document.getElementById("readerModeSelect");
+  if(control)control.value=selected;
+  localStorage.setItem(setting.key,selected);
+}
+function applyReaderPreset(preset) {
+  const presets={
+    print:{theme:"paper",font:"literary",size:17,line:"2.1",paragraph:"1.6",width:"standard",mode:"book"},
+    night:{theme:"midnight",font:"lora",size:17,line:"2.1",paragraph:"1.6",width:"standard",mode:"book"},
+    accessible:{theme:"paper",font:"atkinson",size:19,line:"2.3",paragraph:"2",width:"wide",mode:"scroll"}
+  };
+  const choice=presets[preset];
+  if(choice){
+    applyReaderTheme(choice.theme);applyReaderFont(choice.font);applyReaderSize(choice.size);
+    applyReaderLineHeight(choice.line);applyReaderParagraphSpacing(choice.paragraph);
+    applyReaderWidth(choice.width);applyReaderMode(choice.mode);
+  }
+  const selector=document.getElementById("readerPresetSelect");
+  if(selector)selector.value=choice?preset:"custom";
+  localStorage.setItem("edenReaderPreset",choice?preset:"custom");
+}
+
+
 function applyReferenceLinePreference(showLines) {
   document.body.classList.toggle("hide-reference-lines", !showLines);
   const toggle = document.getElementById("referenceLinesToggle");
@@ -63,7 +131,11 @@ function applyReferenceLinePreference(showLines) {
 }
 
 function toggleFocus() {
-  document.body.classList.toggle("focus-mode");
+  const active=document.body.classList.toggle("focus-mode");
+  const button=document.getElementById("companionFocusButton");
+  if(button)button.textContent=active?"EXIT FOCUS MODE":"ENTER FOCUS MODE";
+  const exit=document.querySelector(".focus-exit");
+  if(exit)exit.setAttribute("aria-pressed",String(active));
 }
 
 function toggleCompanion() {
@@ -499,7 +571,25 @@ if (initialReader) initialReader.style.fontSize = fontSize + "px";
 
 applyReaderTheme(localStorage.getItem("edenReaderTheme") || "classic");
 applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
+applyReaderSize(localStorage.getItem("edenFontSize") || 16);
+applyReaderLineHeight(localStorage.getItem("edenLineHeight") || "1.9");
+applyReaderParagraphSpacing(localStorage.getItem("edenParagraphSpacing") || "1.6");
+applyReaderWidth(localStorage.getItem("edenTextWidth") || "standard");
+applyReaderMode(localStorage.getItem("edenReadingMode") || "book");
 applyReferenceLinePreference(localStorage.getItem("edenReferenceLines") !== "false");
+const presetSelect=document.getElementById("readerPresetSelect");
+if(presetSelect)presetSelect.value=localStorage.getItem("edenReaderPreset")||"custom";
+const sizeControl=document.getElementById("readerTextSize");
+if(sizeControl)sizeControl.addEventListener("input",event=>{applyReaderSize(event.target.value);localStorage.setItem("edenReaderPreset","custom");if(presetSelect)presetSelect.value="custom";});
+const lineControl=document.getElementById("readerLineHeightSelect");
+if(lineControl)lineControl.addEventListener("change",event=>{applyReaderLineHeight(event.target.value);if(presetSelect)presetSelect.value="custom";});
+const paragraphControl=document.getElementById("readerParagraphSelect");
+if(paragraphControl)paragraphControl.addEventListener("change",event=>{applyReaderParagraphSpacing(event.target.value);if(presetSelect)presetSelect.value="custom";});
+const widthControl=document.getElementById("readerWidthSelect");
+if(widthControl)widthControl.addEventListener("change",event=>{applyReaderWidth(event.target.value);if(presetSelect)presetSelect.value="custom";});
+const modeControl=document.getElementById("readerModeSelect");
+if(modeControl)modeControl.addEventListener("change",event=>{applyReaderMode(event.target.value);if(presetSelect)presetSelect.value="custom";});
+if(presetSelect)presetSelect.addEventListener("change",event=>applyReaderPreset(event.target.value));
 
 const readerThemeSelect = document.getElementById("readerThemeSelect");
 if (readerThemeSelect) {
