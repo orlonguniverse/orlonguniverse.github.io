@@ -723,20 +723,113 @@ body.focus-mode .reader {
 }
 
 
-/* Chapter-specific quiz */
+/* Chapter challenge — restrained Orlong styling with consistently aligned choices. */
 .engagement-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
-.chapter-quiz-card{border-color:#398cff55;background:linear-gradient(145deg,var(--surface),#10213a);}
-.quiz-question{margin:15px 0;padding:13px;border:1px solid var(--border);min-width:0;}
-.quiz-question legend{padding:0 5px;color:var(--text);font-size:12px;line-height:1.6;}
-.quiz-option{display:flex;align-items:flex-start;gap:9px;margin:10px 0;color:var(--muted);font-size:11px;line-height:1.5;cursor:pointer;}
-.quiz-option input{width:auto;margin:2px 0 0;accent-color:#398cff;}
-.quiz-submit-button,.quiz-retake-button{width:100%;margin-top:10px;padding:12px;color:white;background:#1557a6;border:1px solid #398cff;font-size:10px;letter-spacing:1px;cursor:pointer;}
+.chapter-quiz-card{
+  border:1px solid var(--border);
+  background:var(--surface);
+}
+.chapter-quiz-card > h3{margin-bottom:8px;}
+.chapter-quiz-card #chapterQuiz{width:100%;min-width:0;}
+#chapterQuizForm{display:grid;gap:18px;width:100%;margin-top:18px;}
+.quiz-question{
+  display:grid;
+  gap:9px;
+  min-width:0;
+  margin:0;
+  padding:17px;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:var(--surface-2);
+}
+.quiz-question legend{
+  display:block;
+  width:100%;
+  padding:0 0 12px;
+  color:var(--text);
+  font-family:'Cinzel',serif;
+  font-size:12px;
+  font-weight:500;
+  line-height:1.75;
+  letter-spacing:.35px;
+}
+.quiz-option{
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  width:100%;
+  min-height:44px;
+  box-sizing:border-box;
+  margin:0;
+  padding:10px 12px;
+  color:var(--text);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:2px;
+  font-size:11px;
+  line-height:1.65;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .18s ease,background-color .18s ease,color .18s ease;
+}
+.quiz-option:hover{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 7%,var(--surface));}
+.quiz-option:has(input:checked){
+  border-color:var(--blue);
+  background:color-mix(in srgb,var(--blue) 11%,var(--surface));
+  color:var(--text);
+  box-shadow:inset 2px 0 0 var(--blue);
+}
+.quiz-option input{
+  display:block;
+  width:16px;
+  height:16px;
+  min-width:16px;
+  margin:0;
+  justify-self:center;
+  align-self:center;
+  accent-color:var(--blue);
+  cursor:pointer;
+}
+.quiz-option span{display:block;min-width:0;align-self:center;overflow-wrap:anywhere;}
+.quiz-option:focus-within{outline:2px solid var(--blue);outline-offset:2px;}
+.quiz-submit-button,.quiz-retake-button{
+  display:block;
+  width:100%;
+  min-height:44px;
+  box-sizing:border-box;
+  margin:8px 0 0;
+  padding:13px 16px;
+  color:var(--text);
+  background:var(--surface-2);
+  border:1px solid var(--blue);
+  border-radius:2px;
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  cursor:pointer;
+  transition:background-color .18s ease,border-color .18s ease;
+}
+.quiz-submit-button:hover,.quiz-retake-button:hover{background:color-mix(in srgb,var(--blue) 13%,var(--surface-2));}
 .quiz-submit-button:disabled{opacity:.5;cursor:wait;}
-.quiz-result{padding:12px;background:var(--surface-2);color:var(--blue-light);font-family:Cinzel,serif;letter-spacing:1px;}
-.quiz-review-item{padding:11px 0;border-bottom:1px solid var(--border);font-size:11px;line-height:1.7;}
-.quiz-review-item strong{display:block;color:var(--text);}
+.quiz-result{
+  margin:12px 0 18px;
+  padding:15px;
+  color:var(--blue-light);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  font-family:'Cinzel',serif;
+  font-size:13px;
+  letter-spacing:1.2px;
+}
+.quiz-review-item{padding:15px 0;border-bottom:1px solid var(--border);font-size:11px;line-height:1.75;}
+.quiz-review-item strong{display:block;margin-bottom:8px;color:var(--text);font-family:'Cinzel',serif;font-size:11px;font-weight:500;}
 .quiz-review-item p{margin:5px 0;color:var(--muted);}
-.quiz-review-item small{color:var(--blue-light);}
+.quiz-review-item small{display:block;margin-top:8px;color:var(--blue-light);line-height:1.7;}
+@media(max-width:620px){
+  .quiz-question{padding:13px;}
+  .quiz-option{gap:10px;padding:10px;}
+}
 
 /* Final Reading Room control fixes: independent, always-available Companion scrolling. */
 @media (min-width: 1101px) {
