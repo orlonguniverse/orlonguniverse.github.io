@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Orlong Universe | Callum Macann</title>
+<meta name="description" content="Discover The Orlong Universe, an interconnected science-fiction and fantasy saga created by Callum Macann.">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --blue: #398cff;
+  --orange: #ed9a42;
+  --red: #e34d4d;
+  --purple: #a77be8;
+  --gold: #d9bd65;
+  --background: #070b13;
+  --text: #f3f4f8;
+  --muted: #a1a9b8;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+}
+
+a { color: inherit; text-decoration: none; }
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 7%;
+  background: rgba(7,11,19,.94);
+  border-bottom: 1px solid #ffffff12;
+  backdrop-filter: blur(14px);
+}
+
+.logo {
+  font-family: 'Cinzel', serif;
+  font-size: 19px;
+  letter-spacing: 3px;
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.nav-links a:hover { color: white; }
+
+.hero {
+  min-height: 690px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 20px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 70%, #17447755, transparent 55%),
+    radial-gradient(ellipse at 15% 20%, #203a6233, transparent 45%),
+    linear-gradient(180deg, #0c1525, #070b13);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border: 1px solid #6a9ed522;
+  border-radius: 50%;
+  box-shadow: 0 0 100px #2877c722;
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: #8bbdff;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+
+.hero h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(38px, 8vw, 88px);
+  letter-spacing: 8px;
+  margin: 0;
+  font-weight: 500;
+  text-shadow: 0 0 45px #438bff44;
+}
+
+.hero p {
+  max-width: 600px;
+  margin: 28px auto 36px;
+  line-height: 1.9;
+  font-size: 15px;
+  color: #c2cbd9;
+}
+
+.button {
+  display: inline-block;
+  border: 1px solid #76aaff;
+  padding: 15px 28px;
+  color: white;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: .25s;
+}
+
+.button:hover {
+  background: #398cff;
+  border-color: #398cff;
+}
+
+section { padding: 100px 8%; }
+
+.section-heading {
+  text-align: center;
+  margin-bottom: 55px;
+}
+
+.section-heading h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 30px;
+  letter-spacing: 3px;
+  font-weight: 500;
+}
+
+.section-heading p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.featured {
+  background: linear-gradient(120deg, #101c30, #0b111e);
+}
+
+.featured-content {
+  max-width: 1100px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  align-items: center;
+  gap: 65px;
+}
+
+.book-art {
+  min-height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 50% 45%, #125cbd88, transparent 65%),
+    linear-gradient(145deg, #101d35, #050914);
+  border: 1px solid #398cff55;
+  box-shadow: 0 15px 65px #0008;
+}
+
+.book-art-inner {
+  text-align: center;
+  padding: 25px;
+}
+
+.book-art h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 29px;
+  letter-spacing: 4px;
+  color: #8bbdff;
+}
+
+.book-art span {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #d3e5ff;
+}
+
+.featured-info .eyebrow { color: var(--blue); }
+
+.featured-info h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 36px;
+  font-weight: 500;
+}
+
+.featured-info p {
+  color: var(--muted);
+  line-height: 2;
+  font-size: 14px;
+}
+
+.universe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.world {
+  min-height: 285px;
+  padding: 30px 24px;
+  border: 1px solid #ffffff18;
+  background: linear-gradient(155deg, #172033, #0a0f19);
+  transition: .3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.world:hover {
+  transform: translateY(-7px);
+  border-color: var(--accent);
+}
+
+.world::after {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .08;
+  filter: blur(45px);
+  right: -50px;
+  bottom: -60px;
+}
+
+.world .number {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+
+.world h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 23px;
+  letter-spacing: 2px;
+  margin-top: 40px;
+}
+
+.world p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.world .animal {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 25px;
+}
+
+.about {
+  text-align: center;
+  background: #0d1421;
+}
+
+.about-content {
+  max-width: 700px;
+  margin: auto;
+}
+
+.about p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 2;
+}
+
+footer {
+  padding: 55px 20px;
+  text-align: center;
+  border-top: 1px solid #ffffff12;
+}
+
+footer h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  letter-spacing: 4px;
+}
+
+footer p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 2;
+}
+
+@media(max-width: 700px) {
+  nav { flex-direction: column; gap: 18px; }
+  .nav-links { gap: 15px; flex-wrap: wrap; justify-content: center; }
+  .hero { min-height: 560px; }
+  .featured-content { grid-template-columns: 1fr; gap: 35px; }
+  .book-art { min-height: 340px; }
+  section { padding: 75px 6%; }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <a href="#" class="logo">ORLONG</a>
+  <div class="nav-links">
+    <a href="#home">HOME</a>
+    <a href="#books">THE BOOKS</a>
+    <a href="#universe">THE UNIVERSE</a>
+    <a href="#about">ABOUT</a>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <div class="hero-content">
+    <div class="eyebrow">A universe beyond imagination</div>
+    <h1>ORLONG</h1>
+    <p>
+      Five worlds. Extraordinary abilities. Interconnected destinies.
+      Discover an expansive science-fiction and fantasy universe
+      created by Callum Macann.
+    </p>
+    <a href="#books" class="button">Discover the universe</a>
+  </div>
+</header>
+
+<section class="featured" id="books">
+  <div class="featured-content">
+    <div class="book-art">
+      <div class="book-art-inner">
+        <span>HOUSE BLUE EEL</span>
+        <h3>THE TRIALS<br>OF EDEN</h3>
+        <span>AN ORLONG STORY</span>
+      </div>
+    </div>
+
+    <div class="featured-info">
+      <div class="eyebrow">The beginning of an extraordinary journey</div>
+      <h2>The Trials of Eden</h2>
+      <p>
+        In a world shaped by extraordinary abilities and an
+        uncertain future, Maya Garcia enters a competition
+        that will challenge everything she knows.
+      </p>
+      <p>
+        Welcome to Eden. Where survival is only the beginning.
+      </p>
+      <a href="#about" class="button">Discover the author</a>
+    </div>
+  </div>
+</section>
+
+<section id="universe">
+  <div class="section-heading">
+    <div class="eyebrow">Explore the worlds</div>
+    <h2>THE ORLONG UNIVERSE</h2>
+    <p>
+      Five distinct identities. Five extraordinary journeys.
+      One interconnected universe.
+    </p>
+  </div>
+
+  <div class="universe-grid">
+
+    <article class="world" style="--accent:#398cff">
+      <div class="number">01 / BLUE</div>
+      <h3>EDEN</h3>
+      <p>Energy Harnessing</p>
+      <p>Discover Maya Garcia and the world of Eden.</p>
+      <div class="animal">The Electric Eel</div>
+    </article>
+
+    <article class="world" style="--accent:#ed9a42">
+      <div class="number">02 / ORANGE</div>
+      <h3>BITSY</h3>
+      <p>Harmonic Resonance</p>
+      <p>Explore the extraordinary journey of Bitsy.</p>
+      <div class="animal">The Hummingbird</div>
+    </article>
+
+    <article class="world" style="--accent:#e34d4d">
+      <div class="number">03 / RED</div>
+      <h3>ARCANET</h3>
+      <p>Embodied Rebirth</p>
+      <p>Enter a world of transformation and discovery.</p>
+      <div class="animal">The Phoenix</div>
+    </article>
+
+    <article class="world" style="--accent:#a77be8">
+      <div class="number">04 / PURPLE</div>
+      <h3>VAREX</h3>
+      <p>Cognitive Shifting</p>
+      <p>Follow Morph into the frozen world of Zenithica.</p>
+      <div class="animal">The Octopus</div>
+    </article>
+
+    <article class="world" style="--accent:#d9bd65">
+      <div class="number">05 / YELLOW</div>
+      <h3>EVALON</h3>
+      <p>Earthen Resonance</p>
+      <p>Discover Rod White and the mysteries of Evalon.</p>
+      <div class="animal">The Peacock</div>
+    </article>
+
+  </div>
+</section>
+
+<section class="about" id="about">
+  <div class="about-content">
+    <div class="eyebrow">Behind the universe</div>
+    <h2 style="font-family:Cinzel,serif;font-weight:500">
+      THE CREATOR
+    </h2>
+    <p>
+      Callum Macann is the creator of The Orlong Universe,
+      an interconnected science-fiction and fantasy saga
+      spanning multiple worlds, characters and generations.
+    </p>
+    <p>
+      This is where the stories connect, the worlds unfold
+      and extraordinary destinies begin.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <h2>THE ORLONG UNIVERSE</h2>
+  <p>Created by Callum Macann</p>
+  <p>© 2026 Callum Macann. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
