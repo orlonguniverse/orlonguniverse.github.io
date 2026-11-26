@@ -19,6 +19,7 @@ label{display:block;margin:14px 0 6px;color:var(--muted);font-size:11px}input{wi
 .section-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.empty{padding:15px;background:var(--surface2);color:var(--muted);font-size:11px}
 footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:10px;line-height:2}
 @media(max-width:700px){.topbar{flex-direction:column}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:40px 14px 65px}.panel{padding:18px}}
+.profile-picture-editor{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}.account-avatar{width:104px;height:104px;flex:0 0 104px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);background:var(--surface2)}.profile-picture-fields{flex:1;min-width:220px}.profile-picture-fields label{display:block;margin-bottom:8px;color:var(--blue-light);font-size:10px;letter-spacing:1px}.profile-picture-fields input{display:block;width:100%;color:var(--text);font-size:12px}.profile-picture-fields button{margin-top:12px}@media(max-width:560px){.profile-picture-editor{flex-direction:column}}
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -39,6 +40,14 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <form id="authForm"><div id="nameField" hidden><label for="displayName">Display name (optional)</label><input id="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?"></div><label for="email">Email address</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com"><label for="password">Password</label><input id="password" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters"><button class="primary" id="authSubmit" type="submit">SIGN IN</button></form><p class="muted">Your statistics are private to your account. Your email address is never shown publicly.</p></section>
 <section id="dashboard" hidden>
 <p id="dashboardMessage" class="muted" role="status" aria-live="polite" hidden></p>
+<section class="panel profile-picture-panel" aria-labelledby="profilePictureHeading">
+<h2 id="profilePictureHeading">YOUR PROFILE</h2><div class="profile-picture-editor">
+<img id="accountAvatarPreview" class="account-avatar" src="" alt="Your profile picture" hidden>
+<div class="profile-picture-fields"><label for="accountAvatarInput">PROFILE PICTURE</label>
+<input id="accountAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+<p class="muted">Choose a JPG, PNG, WebP or GIF image up to 2 MB. Your picture will be visible beside your public discussion comments.</p>
+<button class="primary" id="uploadAvatarButton" type="button">UPLOAD PROFILE PICTURE</button>
+<p id="avatarUploadMessage" class="muted" role="status" aria-live="polite"></p></div></div></section>
 <div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
