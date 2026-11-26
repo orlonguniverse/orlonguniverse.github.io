@@ -423,3 +423,9 @@ body.focus-mode .engagement-section { display:none !important; }
 #clearContentInterestsButton { margin:10px 0 0 8px; border-color:var(--border); }
 .personal-remove-button { margin:8px 8px 0 0; padding:7px 10px; color:var(--muted); background:var(--surface); border:1px solid var(--border); font-size:9px; cursor:pointer; }
 .personal-remove-button:hover { color:var(--text); border-color:var(--blue); }
+
+/* Account-only access gate for the private manuscript library. */
+.reader-access-gate { max-width:620px; margin:70px auto; padding:34px 28px; text-align:center; background:var(--surface-2); border:1px solid var(--blue); }
+.reader-access-gate h2 { font-family:Cinzel,serif; font-size:19px; letter-spacing:2px; }
+.reader-access-gate p { color:var(--muted); line-height:1.9; }
+.reader-access-gate button { margin-top:14px; padding:13px 20px; color:white; background:#236bd2; border:1px solid #65adff; cursor:pointer; letter-spacing:1px; font-size:10px; }
