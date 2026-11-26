@@ -4,118 +4,889 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Trials of Eden | Orlong Universe</title>
+
+<title>Reading Room | The Trials of Eden</title>
+
+<meta name="description" content="Read The Trials of Eden by Callum Macann.">
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+
+/* =========================
+   1. THEME SETTINGS
+========================= */
+
+:root {
+  --blue: #398cff;
+  --blue-light: #8bbdff;
+}
+
+body.dark {
+  --background: #090e18;
+  --surface: #101a2a;
+  --surface-2: #162338;
+  --text: #e9edf5;
+  --muted: #9ca9bc;
+  --border: #ffffff18;
+  --reader-text: #d6dce7;
+}
+
+body.light {
+  --background: #f2efe8;
+  --surface: #ffffff;
+  --surface-2: #e9e5dc;
+  --text: #242a34;
+  --muted: #687080;
+  --border: #17243a20;
+  --reader-text: #303744;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-    margin: 0;
-    background: #080e1b;
-    color: white;
-    font-family: Georgia, serif;
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  transition: background .25s, color .25s;
 }
 
-header {
-    background: #101c30;
-    text-align: center;
-    padding: 65px 20px;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-h1 {
-    font-size: 38px;
-    letter-spacing: 4px;
+button {
+  font: inherit;
+  cursor: pointer;
 }
 
-.subtitle {
-    color: #83b7ff;
-    letter-spacing: 2px;
+/* =========================
+   2. TOP NAVIGATION
+========================= */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 5%;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
-main {
-    max-width: 750px;
-    margin: 60px auto;
-    padding: 0 25px;
+.logo {
+  font-family: 'Cinzel', serif;
+  font-size: 17px;
+  letter-spacing: 3px;
 }
 
-h2 {
-    font-size: 25px;
-    border-bottom: 1px solid #ffffff30;
-    padding-bottom: 15px;
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 22px;
 }
 
-.chapter {
-    display: block;
-    padding: 20px;
-    margin: 15px 0;
-    background: #111d30;
-    border: 1px solid #283c5b;
-    color: white;
-    text-decoration: none;
+.topbar a,
+.topbar button {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted);
 }
 
-.chapter:hover {
-    border-color: #398cff;
+.topbar a:hover,
+.topbar button:hover {
+  color: var(--blue-light);
 }
 
-.chapter small {
-    display: block;
-    margin-top: 8px;
-    color: #9eabc0;
+.topbar button {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 10px 14px;
 }
 
-a.back {
-    color: #83b7ff;
+/* =========================
+   3. BOOK HEADER
+========================= */
+
+.book-header {
+  padding: 65px 20px 50px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, #17447744, transparent 65%),
+    var(--background);
+  border-bottom: 1px solid var(--border);
 }
+
+.book-label {
+  color: var(--blue-light);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.book-header h1 {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: clamp(28px, 5vw, 46px);
+  letter-spacing: 4px;
+  margin: 18px 0 10px;
+}
+
+.book-header p {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* =========================
+   4. MAIN PAGE LAYOUT
+========================= */
+
+.reading-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 760px) 260px;
+  justify-content: center;
+  gap: 30px;
+  max-width: 1450px;
+  margin: auto;
+  padding: 45px 30px 100px;
+  align-items: start;
+}
+
+/* =========================
+   5. CHAPTER DIRECTORY
+========================= */
+
+.sidebar {
+  position: sticky;
+  top: 95px;
+}
+
+.sidebar-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin: 0 0 22px;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chapter-item {
+  display: block;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: .2s;
+}
+
+.chapter-item:hover {
+  border-color: var(--blue);
+}
+
+.chapter-item.active {
+  border-color: var(--blue);
+  background: var(--surface-2);
+}
+
+.chapter-number {
+  color: var(--blue-light);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.chapter-name {
+  display: block;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+.chapter-status {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 7px;
+}
+
+.directory-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  margin-top: 20px;
+}
+
+/* =========================
+   6. READER
+========================= */
+
+.reader {
+  min-width: 0;
+  padding: 45px 55px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 15px 50px #0000000b;
+}
+
+.reader-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reader-top span {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.reader-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-controls button {
+  min-width: 34px;
+  height: 34px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.reader-controls button:hover {
+  border-color: var(--blue);
+}
+
+.chapter-heading {
+  text-align: center;
+  padding: 65px 0 45px;
+}
+
+.chapter-heading .chapter-number {
+  font-size: 10px;
+}
+
+.chapter-heading h2 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(23px, 4vw, 34px);
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin: 20px 0;
+}
+
+.chapter-heading p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.chapter-text {
+  max-width: 620px;
+  margin: auto;
+  color: var(--reader-text);
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 16px;
+  line-height: 2.05;
+}
+
+.chapter-text p {
+  margin-bottom: 28px;
+}
+
+.chapter-text .placeholder {
+  padding: 25px;
+  background: var(--surface-2);
+  border-left: 3px solid var(--blue);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.chapter-end {
+  text-align: center;
+  margin-top: 70px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+.reader-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 35px;
+}
+
+.reader-navigation button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 13px 16px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.reader-navigation button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* =========================
+   7. READING COMPANION
+========================= */
+
+.companion {
+  position: sticky;
+  top: 95px;
+}
+
+.companion-box {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 15px;
+}
+
+.companion-box h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  margin: 0 0 15px;
+}
+
+.companion-box p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.companion-box button {
+  width: 100%;
+  padding: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 10px;
+  text-align: left;
+  margin-top: 7px;
+}
+
+.companion-box button:hover {
+  border-color: var(--blue);
+}
+
+.companion-hidden {
+  display: none;
+}
+
+/* =========================
+   8. FOOTER
+========================= */
 
 footer {
-    text-align: center;
-    padding: 35px;
-    color: #8d9bb0;
+  padding: 40px 20px;
+  border-top: 1px solid var(--border);
+  text-align: center;
 }
+
+footer p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 2;
+}
+
+footer a {
+  color: var(--blue-light);
+}
+
+/* =========================
+   9. FOCUS MODE
+========================= */
+
+body.focus-mode .sidebar,
+body.focus-mode .companion,
+body.focus-mode .book-header,
+body.focus-mode .topbar {
+  display: none;
+}
+
+body.focus-mode .reading-layout {
+  display: block;
+  max-width: 900px;
+  padding-top: 35px;
+}
+
+body.focus-mode .reader {
+  padding: 55px;
+}
+
+/* =========================
+   10. MOBILE LAYOUT
+========================= */
+
+@media(max-width: 1100px) {
+
+  .reading-layout {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .companion {
+    grid-column: 2;
+    position: static;
+  }
+
+}
+
+@media(max-width: 700px) {
+
+  .topbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .topbar-right {
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .reading-layout {
+    display: flex;
+    flex-direction: column;
+    padding: 25px 15px 60px;
+    gap: 20px;
+  }
+
+  .sidebar,
+  .companion {
+    position: static;
+    width: 100%;
+  }
+
+  .chapter-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .reader {
+    width: 100%;
+    padding: 30px 20px;
+  }
+
+  .chapter-heading {
+    padding: 45px 0 30px;
+  }
+
+  .chapter-text {
+    font-size: 15px;
+    line-height: 1.95;
+  }
+
+  body.focus-mode .reader {
+    padding: 30px 20px;
+  }
+
+}
+
 </style>
 </head>
 
-<body>
 
-<header>
-    <p class="subtitle">HOUSE BLUE EEL</p>
-    <h1>THE TRIALS OF EDEN</h1>
-    <p>Eden Trilogy · Book One</p>
+<body class="dark">
+
+
+<!-- TOP NAVIGATION -->
+
+<nav class="topbar">
+
+  <a href="../../index.html" class="logo">ORLONG</a>
+
+  <div class="topbar-right">
+
+    <a href="../../index.html">HOME</a>
+
+    <a href="#directory">CHAPTERS</a>
+
+    <button id="themeButton" onclick="toggleTheme()">
+      LIGHT MODE
+    </button>
+
+  </div>
+
+</nav>
+
+
+<!-- BOOK HEADER -->
+
+<header class="book-header">
+
+  <div class="book-label">HOUSE BLUE EEL</div>
+
+  <h1>THE TRIALS OF EDEN</h1>
+
+  <p>EDEN TRILOGY · BOOK ONE</p>
+
 </header>
 
-<main>
 
-    <a class="back" href="../../index.html">
-        ← Return to Orlong Universe
-    </a>
+<!-- READING LAYOUT -->
 
-    <h2>Read the Book</h2>
+<main class="reading-layout">
 
-    <p>
-        Welcome to The Trials of Eden.
-        Select a chapter below to begin reading.
+
+  <!-- CHAPTER DIRECTORY -->
+
+  <aside class="sidebar" id="directory">
+
+    <h2 class="sidebar-title">CHAPTERS</h2>
+
+    <div class="chapter-list">
+
+      <a href="#chapter" class="chapter-item active">
+
+        <span class="chapter-number">Chapter 01</span>
+
+        <span class="chapter-name">First Chapter</span>
+
+        <span class="chapter-status">Preview layout</span>
+
+      </a>
+
+      <div class="chapter-item">
+
+        <span class="chapter-number">Chapter 02</span>
+
+        <span class="chapter-name">Coming soon</span>
+
+        <span class="chapter-status">Not yet released</span>
+
+      </div>
+
+      <div class="chapter-item">
+
+        <span class="chapter-number">Chapter 03</span>
+
+        <span class="chapter-name">Coming soon</span>
+
+        <span class="chapter-status">Not yet released</span>
+
+      </div>
+
+    </div>
+
+    <p class="directory-note">
+      The chapter directory will grow as new chapters
+      become available.
     </p>
 
-    <a class="chapter" href="chapter-01.html">
-        Chapter One
-        <small>Begin reading →</small>
-    </a>
+  </aside>
 
-    <div class="chapter">
-        Chapter Two
-        <small>Coming soon</small>
+
+  <!-- MAIN READER -->
+
+  <article class="reader" id="chapter">
+
+    <div class="reader-top">
+
+      <span>THE TRIALS OF EDEN</span>
+
+      <div class="reader-controls">
+
+        <button onclick="changeFontSize(-1)" title="Decrease text size">
+          A-
+        </button>
+
+        <button onclick="changeFontSize(1)" title="Increase text size">
+          A+
+        </button>
+
+        <button onclick="toggleFocus()" title="Toggle focus mode">
+          FOCUS
+        </button>
+
+      </div>
+
     </div>
 
-    <div class="chapter">
-        Chapter Three
-        <small>Coming soon</small>
+
+    <header class="chapter-heading">
+
+      <div class="chapter-number">CHAPTER ONE</div>
+
+      <h2>YOUR CHAPTER TITLE</h2>
+
+      <p>Written by Callum Macann</p>
+
+    </header>
+
+
+    <!--
+      REPLACE THE PLACEHOLDER BELOW WITH YOUR
+      ACTUAL CHAPTER TEXT WHEN IT IS READY.
+    -->
+
+    <div class="chapter-text" id="chapterText">
+
+      <p class="placeholder">
+        This is a preview of the reading interface.
+        Your actual manuscript has not been added yet.
+
+        When you're ready, replace this placeholder
+        with the text of your first chapter.
+
+        Each paragraph should be placed inside its own
+        paragraph element, like the example below.
+      </p>
+
+      <p>
+        Your first paragraph will appear here.
+      </p>
+
+      <p>
+        Your second paragraph will appear here.
+      </p>
+
+      <p>
+        Your third paragraph will appear here.
+      </p>
+
     </div>
+
+
+    <div class="chapter-end">
+      END OF CHAPTER
+    </div>
+
+
+    <div class="reader-navigation">
+
+      <button disabled>
+        PREVIOUS CHAPTER
+      </button>
+
+      <button disabled>
+        NEXT CHAPTER
+      </button>
+
+    </div>
+
+  </article>
+
+
+  <!-- READING COMPANION -->
+
+  <aside class="companion" id="companion">
+
+    <div class="companion-box">
+
+      <h3>READING COMPANION</h3>
+
+      <p>
+        An optional companion to your reading experience.
+        Explore additional information without interrupting
+        the main chapter.
+      </p>
+
+      <button onclick="showCompanion('characters')">
+        Character references
+      </button>
+
+      <button onclick="showCompanion('locations')">
+        Location references
+      </button>
+
+      <button onclick="showCompanion('notes')">
+        Author notes
+      </button>
+
+    </div>
+
+
+    <div class="companion-box" id="companionContent">
+
+      <h3>WELCOME TO EDEN</h3>
+
+      <p>
+        Select one of the categories above to explore
+        supplementary reading material.
+      </p>
+
+    </div>
+
+    <div class="companion-box">
+
+      <h3>READING OPTIONS</h3>
+
+      <p>
+        Prefer a distraction-free experience?
+      </p>
+
+      <button onclick="toggleFocus()">
+        Toggle focus mode
+      </button>
+
+      <button onclick="toggleCompanion()">
+        Hide / show companion
+      </button>
+
+    </div>
+
+  </aside>
+
 
 </main>
 
+
+<!-- FOOTER -->
+
 <footer>
-    THE ORLONG UNIVERSE<br>
-    Created by Callum Macann
+
+  <p>THE TRIALS OF EDEN</p>
+
+  <p>Created by Callum Macann</p>
+
+  <p>
+    <a href="../../index.html">Return to the main website</a>
+  </p>
+
+  <p>© 2026 Callum Macann. All rights reserved.</p>
+
 </footer>
+
+
+<!-- INTERACTIVE FEATURES -->
+
+<script>
+
+// =========================
+// THEME SWITCH
+// =========================
+
+function toggleTheme() {
+
+  const body = document.body;
+  const button = document.getElementById("themeButton");
+
+  body.classList.toggle("light");
+  body.classList.toggle("dark");
+
+  if (body.classList.contains("light")) {
+    button.textContent = "DARK MODE";
+  } else {
+    button.textContent = "LIGHT MODE";
+  }
+
+}
+
+
+// =========================
+// TEXT SIZE CONTROL
+// =========================
+
+let fontSize = 16;
+
+function changeFontSize(amount) {
+
+  fontSize += amount;
+
+  if (fontSize < 13) fontSize = 13;
+  if (fontSize > 23) fontSize = 23;
+
+  document.getElementById("chapterText").style.fontSize =
+    fontSize + "px";
+
+}
+
+
+// =========================
+// FOCUS MODE
+// =========================
+
+function toggleFocus() {
+
+  document.body.classList.toggle("focus-mode");
+
+}
+
+
+// =========================
+// READING COMPANION
+// =========================
+
+function toggleCompanion() {
+
+  document.getElementById("companion").classList.toggle("companion-hidden");
+
+}
+
+
+function showCompanion(category) {
+
+  const panel = document.getElementById("companionContent");
+
+  if (category === "characters") {
+
+    panel.innerHTML = `
+      <h3>CHARACTER REFERENCES</h3>
+      <p>
+        Character information connected to this chapter
+        will appear here.
+      </p>
+    `;
+
+  }
+
+  if (category === "locations") {
+
+    panel.innerHTML = `
+      <h3>LOCATION REFERENCES</h3>
+      <p>
+        Locations and places mentioned in this chapter
+        will appear here.
+      </p>
+    `;
+
+  }
+
+  if (category === "notes") {
+
+    panel.innerHTML = `
+      <h3>AUTHOR NOTES</h3>
+      <p>
+        Additional commentary from Callum Macann
+        will appear here.
+      </p>
+    `;
+
+  }
+
+}
+
+</script>
 
 </body>
 </html>
