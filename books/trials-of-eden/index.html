@@ -741,6 +741,8 @@ body.focus-mode .reader {
 
     <a href="#directory">CHAPTERS</a>
 
+    <button type="button" id="openAccountButton" class="nav-account-button">SIGN IN</button>
+
     <button id="themeButton" onclick="toggleTheme()">
       LIGHT MODE
     </button>
@@ -752,6 +754,33 @@ body.focus-mode .reader {
   </div>
 
 </nav>
+
+<dialog class="account-dialog" id="accountDialog" aria-labelledby="accountDialogTitle">
+  <div class="account-dialog-header">
+    <div>
+      <p class="engagement-eyebrow">THE ORLONG COMMUNITY</p>
+      <h2 id="accountDialogTitle">READER ACCOUNT</h2>
+    </div>
+    <button type="button" id="closeAccountDialog" class="account-dialog-close" aria-label="Close account window">×</button>
+  </div>
+  <p id="accountMessage" class="engagement-muted" aria-live="polite">Sign in or create a free account to take part.</p>
+  <div class="account-mode-switch" role="group" aria-label="Account action">
+    <button type="button" class="active" data-account-mode="signin">SIGN IN</button>
+    <button type="button" data-account-mode="signup">CREATE ACCOUNT</button>
+  </div>
+  <form id="accountForm">
+    <div id="displayNameField" hidden>
+      <label for="readerDisplayName">Display name <span>(optional)</span></label>
+      <input id="readerDisplayName" name="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?">
+    </div>
+    <label for="readerEmail">Email address</label>
+    <input id="readerEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+    <label for="readerPassword">Password</label>
+    <input id="readerPassword" name="password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required>
+    <button type="submit" id="accountSubmitButton" class="account-submit-button">SIGN IN</button>
+  </form>
+  <p class="engagement-small account-privacy-note">Email confirmation is required when creating an account. Your email address is never displayed publicly.</p>
+</dialog>
 
 <button class="focus-exit" onclick="toggleFocus()">
   EXIT FOCUS MODE
@@ -925,21 +954,9 @@ body.focus-mode .reader {
     <div class="engagement-grid">
       <section class="engagement-card" id="accountCard">
         <h3>READER ACCOUNT</h3>
-        <p id="accountMessage" class="engagement-muted" aria-live="polite">Sign in or create a free account to take part.</p>
-        <form id="accountForm">
-          <label for="readerDisplayName">Display name</label>
-          <input id="readerDisplayName" name="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?">
-          <label for="readerEmail">Email address</label>
-          <input id="readerEmail" name="email" type="email" autocomplete="email" required>
-          <label for="readerPassword">Password</label>
-          <input id="readerPassword" name="password" type="password" autocomplete="current-password" minlength="8" required>
-          <div class="engagement-actions">
-            <button type="submit" id="signInButton">SIGN IN</button>
-            <button type="button" id="signUpButton" class="secondary">CREATE ACCOUNT</button>
-          </div>
-        </form>
+        <p id="accountStatusMessage" class="engagement-muted" aria-live="polite">You can read the novel without an account. Sign in if you'd like to save your progress or join the discussion.</p>
+        <button type="button" id="accountCardButton">SIGN IN / CREATE ACCOUNT</button>
         <button type="button" id="signOutButton" class="secondary" hidden>SIGN OUT</button>
-        <p class="engagement-small">Email confirmation is required. Your email address is never displayed publicly.</p>
       </section>
 
       <section class="engagement-card" id="chapterEngagementCard">
@@ -976,9 +993,21 @@ body.focus-mode .reader {
     </div>
 
     <section class="engagement-card engagement-stats" id="publicStatsCard">
-      <h3>READERS' MILESTONES</h3>
-      <p class="engagement-muted">A community snapshot based on saved chapter activity.</p>
+      <p class="engagement-eyebrow">OPEN TO EVERYONE</p>
+      <h3>READER INSIGHTS</h3>
+      <p class="engagement-muted">A live, anonymous snapshot of how the community is responding to The Trials of Eden. You do not need an account to explore these results.</p>
       <div id="publicStats" class="public-stats" aria-live="polite"><p>Loading community statistics…</p></div>
+      <div class="public-insights-grid">
+        <section class="public-insight-block">
+          <h4>HOW READERS ARE REACTING</h4>
+          <div id="publicReactionStats" class="public-breakdown" aria-live="polite"><p class="engagement-muted">Loading reactions…</p></div>
+        </section>
+        <section class="public-insight-block">
+          <h4>WHAT READERS WANT MORE OF</h4>
+          <div id="publicInterestStats" class="public-breakdown" aria-live="polite"><p class="engagement-muted">Loading preferences…</p></div>
+        </section>
+      </div>
+      <p class="engagement-small public-stats-note">Only combined totals are shown. Individual readers, email addresses and written suggestions are never displayed here.</p>
     </section>
 
     <section class="engagement-card discussion-card" id="chapterDiscussion">
