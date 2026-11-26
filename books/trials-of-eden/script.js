@@ -576,6 +576,10 @@ applyReaderMode(localStorage.getItem("edenReadingMode") || "book");
 applyReferenceLinePreference(localStorage.getItem("edenReferenceLines") !== "false");
 const presetSelect=document.getElementById("readerPresetSelect");
 if(presetSelect)presetSelect.value=localStorage.getItem("edenReaderPreset")||"custom";
+function markReaderCustom(){
+  localStorage.setItem("edenReaderPreset","custom");
+  if(presetSelect)presetSelect.value="custom";
+}
 const sizeControl=document.getElementById("readerTextSize");
 if(sizeControl)sizeControl.addEventListener("input",event=>{applyReaderSize(event.target.value);markReaderCustom();});
 const lineControl=document.getElementById("readerLineHeightSelect");
