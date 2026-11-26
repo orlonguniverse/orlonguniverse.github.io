@@ -58,7 +58,7 @@ This grants moderation and private analytics access to that account only. Do not
 - The author's unique-reader figure counts distinct accounts that have completed at least one chapter. It is not a count of all website visitors.
 - Chapter completion is a reader-declared milestone, not proof that the chapter was read in full.
 - Duplicate prevention is per account, not a guarantee of one account per human. Do not use browser fingerprinting.
-- Display names may appear beside approved comments; email addresses and account IDs do not.
+- Public comments are labelled generically as “Reader”; display names, email addresses and account IDs are not shown in public discussions.
 - Readers can read the novel without participating.
 
 ## Security
