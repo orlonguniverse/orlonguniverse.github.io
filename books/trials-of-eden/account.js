@@ -34,7 +34,7 @@ function activityCard(title,detail,body){
 }
 async function loadPersonalDashboard(user){
  const [profile,completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult]=await Promise.all([
-  accountClient.from("reader_profiles").select("display_name").eq("user_id",user.id).maybeSingle(),
+  accountClient.from("reader_profiles").select("display_name,avatar_url").eq("user_id",user.id).maybeSingle(),
   accountClient.from("chapter_completions").select("chapter_id,completed_at").eq("user_id",user.id).order("completed_at",{ascending:false}),
   accountClient.from("chapter_reactions").select("chapter_id,reaction,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
   accountClient.from("chapter_comments").select("id,chapter_id,body,moderation_status,created_at,contains_spoiler").eq("user_id",user.id).order("created_at",{ascending:false}),
@@ -45,6 +45,9 @@ async function loadPersonalDashboard(user){
  if(errors.length){setAuthMessage("We couldn't load all your statistics. Please refresh and try again.");console.error(errors);return;}
  const completions=completionsResult.data||[],reactions=reactionsResult.data||[],comments=commentsResult.data||[],preferences=preferencesResult.data||[],quizAttempts=quizResult.data||[];
  accountById("profileName").textContent=(profile.data?.display_name||"Reader").toUpperCase();
+ const avatarPreview=accountById("accountAvatarPreview");
+ if(avatarPreview){if(profile.data?.avatar_url){avatarPreview.src=profile.data.avatar_url;avatarPreview.hidden=false;}else{avatarPreview.removeAttribute("src");avatarPreview.hidden=true;}}
+
  const approved=comments.filter(x=>x.moderation_status==="approved").length,pending=comments.filter(x=>x.moderation_status==="pending").length,hidden=comments.filter(x=>x.moderation_status==="hidden").length;
  const reactionCounts=reactions.reduce((counts,item)=>{counts[item.reaction]=(counts[item.reaction]||0)+1;return counts;},{});
  const stats=[[completions.length,"CHAPTERS COMPLETED"],[quizAttempts.length,"QUIZ ATTEMPTS"],[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"],[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]];
@@ -136,6 +139,30 @@ async function loadPersonalDashboard(user){
     wrap.appendChild(remove);container.appendChild(wrap);
   });
 }
+
+async function uploadProfilePicture(){
+ const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
+ const file=input?.files?.[0];
+ if(!file){if(message)message.textContent="Choose an image first.";return;}
+ if(!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)){message.textContent="Please choose a JPG, PNG, WebP or GIF image.";return;}
+ if(file.size>2*1024*1024){message.textContent="That image is larger than 2 MB. Please choose a smaller file.";return;}
+ const result=await accountClient.auth.getUser();
+ const user=result.data.user;
+ if(!user){message.textContent="Please sign in again before uploading.";return;}
+ button.disabled=true;message.textContent="Uploading your profile picture...";
+ try{
+  const uploaded=await accountClient.storage.from("reader-avatars").upload(user.id+"/avatar",file,{upsert:true,contentType:file.type,cacheControl:"3600"});
+  if(uploaded.error)throw uploaded.error;
+  const urlResult=accountClient.storage.from("reader-avatars").getPublicUrl(user.id+"/avatar");
+  const publicUrl=urlResult.data.publicUrl;
+  const updated=await accountClient.from("reader_profiles").update({avatar_url:publicUrl}).eq("user_id",user.id);
+  if(updated.error)throw updated.error;
+  const preview=accountById("accountAvatarPreview");preview.src=publicUrl+"?v="+Date.now();preview.hidden=false;
+  input.value="";message.textContent="Your profile picture has been updated.";
+ }catch(error){console.error("Profile picture upload failed:",error);message.textContent=error.message||"We couldn't upload that picture. Please try again.";}
+ finally{button.disabled=false;}
+}
+
 async function showSession(session){
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
  if(signedIn)await loadPersonalDashboard(session.user);
@@ -150,7 +177,7 @@ async function submitAccount(event){
 async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
- accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);setMode("signin");
+ accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);setMode("signin");
  const {data}=await accountClient.auth.getSession();await showSession(data.session);
  accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
 });
