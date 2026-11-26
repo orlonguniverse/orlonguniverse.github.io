@@ -412,3 +412,7 @@ body.light .companion-trigger {
   .account-dialog { padding:22px; }
   .public-breakdown-row { grid-template-columns:minmax(90px,1fr) minmax(55px,1.3fr) 28px; gap:7px; }
 }
+
+
+/* Keep the reading interface uncluttered while Focus Mode is active. */
+body.focus-mode .engagement-section { display:none !important; }
