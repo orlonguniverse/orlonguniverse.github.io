@@ -38,7 +38,18 @@ values ('YOUR-AUTH-USER-UUID')
 on conflict (user_id) do nothing;
 ```
 
-This grants moderation and private analytics access to that account only. Do not add ordinary reader accounts as moderators. After signing out and back in, your **AUTHOR MODERATION** panel will appear below the discussion area.
+This grants moderation and private analytics access to that account only. Do not add ordinary reader accounts as moderators.
+
+### How to approve comments
+
+1. Open the Reading Room and sign in using the same email account whose UID you added above.
+2. Scroll down past the chapter text and the **CHAPTER DISCUSSION** section.
+3. You should see a separate **AUTHOR MODERATION** panel. It is intentionally invisible to ordinary readers.
+4. Each pending submission appears with its chapter ID and comment text.
+5. Click **APPROVE** to publish the comment in that chapter's discussion. Click **HIDE** to keep it unpublished.
+6. The list refreshes after each decision. Approved comments will then appear in the public discussion.
+
+If you cannot see **AUTHOR MODERATION**, check that the UID was copied exactly, that the SQL command ran successfully, and that you are signed into that same account. Sign out and back in after granting the role.
 
 ## 4. What the Reading Room now supports
 
