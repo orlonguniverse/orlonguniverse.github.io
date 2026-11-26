@@ -957,11 +957,21 @@ body.focus-mode .reader {
         <p id="reactionMessage" class="engagement-small" aria-live="polite"></p>
       </section>
 
-      <section class="engagement-card" id="seriesInterestCard">
-        <h3>WHAT WOULD YOU LIKE TO READ NEXT?</h3>
-        <p class="engagement-muted">Register your interest in the other main Orlong series. You can change your answer at any time.</p>
-        <div id="seriesInterestControls"></div>
-        <p id="seriesInterestMessage" class="engagement-small" aria-live="polite">Sign in to register your interest.</p>
+      <section class="engagement-card" id="contentInterestCard">
+        <h3>WHAT WOULD YOU LIKE TO SEE MORE OF?</h3>
+        <p class="engagement-muted">Choose as many as you like. Your answers help shape what we share across the Orlong Universe.</p>
+        <div id="contentInterestControls" class="content-interest-controls">
+          <label class="content-interest-option"><input type="checkbox" value="characters"><span><strong>Characters</strong><small>Character development, backstories and personalities</small></span></label>
+          <label class="content-interest-option"><input type="checkbox" value="plot"><span><strong>Plot and twists</strong><small>Mysteries, reveals, surprises and story developments</small></span></label>
+          <label class="content-interest-option"><input type="checkbox" value="worldbuilding"><span><strong>Worldbuilding and lore</strong><small>Locations, history, abilities and the wider universe</small></span></label>
+          <label class="content-interest-option"><input type="checkbox" value="relationships"><span><strong>Relationships</strong><small>Friendships, rivalries, family and character dynamics</small></span></label>
+          <label class="content-interest-option"><input type="checkbox" value="action"><span><strong>Action and challenges</strong><small>Trials, conflicts, suspense and high-stakes moments</small></span></label>
+          <label class="content-interest-option"><input type="checkbox" value="other"><span><strong>Other</strong><small>Something else you'd love to see more of</small></span></label>
+        </div>
+        <label class="other-interest-label" for="otherInterestDetail">Anything specific? (Optional)</label>
+        <textarea id="otherInterestDetail" rows="2" maxlength="500" placeholder="Tell us what you'd like to see more of..."></textarea>
+        <button type="button" id="saveContentInterestsButton" disabled>SAVE MY PREFERENCES</button>
+        <p id="contentInterestMessage" class="engagement-small" aria-live="polite">Sign in to share what interests you.</p>
       </section>
     </div>
 
