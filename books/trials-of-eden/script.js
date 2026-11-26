@@ -56,6 +56,11 @@ function getCompanionTriggers(reference) {
   return [...new Set(triggers.filter(trigger => typeof trigger === "string" && trigger.trim()))];
 }
 
+// Escape punctuation so trigger phrases are treated as literal text in a regular expression.
+function escapeCompanionTrigger(trigger) {
+  return trigger.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
+}
+
 // Automatically turn matching manuscript phrases into Companion links.
 // Longer phrases are checked first, so "Maya Garcia" is linked as one phrase
 // rather than being split into "Maya" and "Garcia".
@@ -67,7 +72,9 @@ function applyChapterCompanionTriggers(chapter) {
   const text = reader.textContent || "";
   const matchingReferences = references.filter(reference => {
     const triggers = getCompanionTriggers(reference);
-    return triggers.some(trigger => new RegExp("\\\\b" + trigger.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&") + "\\\\b", "i").test(text));
+    return triggers.some(trigger =>
+      new RegExp("\\b" + escapeCompanionTrigger(trigger) + "\\b", "i").test(text)
+    );
   });
 
   const triggerMap = [];
@@ -80,20 +87,17 @@ function applyChapterCompanionTriggers(chapter) {
 
   if (!triggerMap.length) return matchingReferences;
 
-  const escapedTriggers = triggerMap.map(item =>
-    item.trigger.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")
-  );
-  const matcher = new RegExp("\\\\b(" + escapedTriggers.join("|") + ")\\\\b", "gi");
+  const escapedTriggers = triggerMap.map(item => escapeCompanionTrigger(item.trigger));
+  const matcher = new RegExp("\\b(" + escapedTriggers.join("|") + ")\\b", "gi");
   const walker = document.createTreeWalker(reader, NodeFilter.SHOW_TEXT);
   const textNodes = [];
+
   while (walker.nextNode()) {
     const node = walker.currentNode;
     const parent = node.parentElement;
     if (!parent || parent.closest("button, a, script, style, textarea, .companion-trigger")) continue;
-    if (node.nodeValue && matcher.test(node.nodeValue)) {
-      textNodes.push(node);
-    }
     matcher.lastIndex = 0;
+    if (node.nodeValue && matcher.test(node.nodeValue)) textNodes.push(node);
   }
 
   textNodes.forEach(node => {
