@@ -66,15 +66,19 @@ footer a { color:var(--blue-light); }
   .contents-chapter-status { font-size:8px; }
 }
 </style>
+<link rel="stylesheet" href="../../site-nav.css">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
   <a href="../../index.html" class="logo">ORLONG</a>
-  <div class="top-actions">
-    <a href="../../index.html">MAIN WEBSITE</a>
-    <a href="index.html">READING ROOM</a>
-    <a href="account.html">MY ACCOUNT</a>
-    <button id="contentsThemeButton" type="button" onclick="toggleContentsTheme()">LIGHT MODE</button>
+  <div class="topbar-right">
+    <a href="../../index.html">HOME</a>
+    <a href="#bookContents">BOOK CONTENTS</a>
+    <a href="index.html#directory">CHAPTERS</a>
+    <a href="account.html" class="nav-account-button">MY ACCOUNT</a>
+    <a href="account.html">MY STATISTICS</a>
+    <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+    <a href="index.html#companion">COMPANION</a>
   </div>
 </nav>
 <header class="hero">
@@ -83,7 +87,7 @@ footer a { color:var(--blue-light); }
   <p>BOOK CONTENTS</p>
   <div class="hero-actions"><a class="primary-button" id="startReading" href="index.html">START READING</a></div>
 </header>
-<main class="contents-wrap">
+<main class="contents-wrap" id="bookContents">
   <div class="contents-intro">
     <h2>EXPLORE THE BOOK</h2>
     <p>Browse the Parts and chapters below. A free confirmed reader account is required to open released chapters.</p>
@@ -109,6 +113,7 @@ footer a { color:var(--blue-light); }
   <p><a href="../../index.html">Return to the Orlong Universe</a></p>
   <p>© 2026 Callum Macann. All rights reserved.</p>
 </footer>
+<script src="../../site-nav.js"></script>
 <script src="chapters.js"></script>
 <script src="contents.js"></script>
 </body>
