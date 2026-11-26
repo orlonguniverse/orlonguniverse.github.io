@@ -296,10 +296,12 @@ applyTheme(savedTheme);
 const initialReader = document.getElementById("chapterText");
 if (initialReader) initialReader.style.fontSize = fontSize + "px";
 
+// The script is loaded after the HTML controls, so they can be connected here.
 setReadingWidgetState();
 
 const pinButton = document.getElementById("pinReadingWidget");
 const collapseButton = document.getElementById("collapseReadingWidget");
+
 if (pinButton) pinButton.addEventListener("click", toggleReadingWidgetPin);
 if (collapseButton) collapseButton.addEventListener("click", toggleReadingWidgetCollapse);
 
@@ -310,8 +312,7 @@ window.addEventListener("scroll", () => {
 
 window.addEventListener("resize", updateProgress);
 
-document.addEventListener("DOMContentLoaded", () => {
-  renderChapterDirectory();
-  updateChapterNavigation();
-  loadChapter(getChapterIdFromUrl());
-});
+// Build the chapter menu and load the selected chapter.
+renderChapterDirectory();
+updateChapterNavigation();
+loadChapter(getChapterIdFromUrl());
