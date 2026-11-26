@@ -103,3 +103,12 @@ The updated Reading Room includes optional three-question quizzes configured per
 Each submission is stored in `chapter_quiz_attempts` as a separate attempt. Readers can review previous results and submit a new attempt, but existing submissions cannot be updated or deleted through the reader account. The table is private to the signed-in reader.
 
 **Database update required:** run the complete current `supabase/schema.sql` file in the Supabase SQL Editor to create the quiz-attempt table and its row-level security policies. This is safe to rerun; the schema uses idempotent table/policy creation where applicable.
+
+
+### Uploading Chapter 01 — important distinction
+
+The Storage location must be the private bucket **eden-chapters**, with the object named exactly **chapter-01.html** at the bucket's top level. In the Supabase Storage browser, the object path is just `chapter-01.html` (not `files/buckets/eden-chapters/chapter-01.html`; that is only the dashboard's breadcrumb/location description).
+
+The object must contain the completed Chapter One manuscript, not the public `chapter-template.html` starter file. Replace all sample text such as `Your first paragraph goes here.` before uploading. The Reading Room now detects this placeholder and displays a specific explanation rather than presenting it as a real chapter.
+
+Chapter 01 is configured as available in `books/trials-of-eden/chapters.js`, with the title **The Show**. After uploading the real manuscript, sign in to a reader account and open the Reading Room. If Storage still cannot retrieve it, the page will now show the specific Supabase error instead of a generic loading message.
