@@ -7,13 +7,12 @@ THIS FILE CONTROLS BOTH the Reading Room chapter menu and
 the Book Contents page.
 
 HOW TO ADD A CHAPTER
-1. Create a new HTML file inside the "chapters" folder.
-2. Copy the layout from chapter-01.html.
-3. Rename it to match the id below.
-   Example: id "chapter-08" = chapters/chapter-08.html
-4. Change the chapter number, title and manuscript.
-5. Add an entry to EDEN_CHAPTERS under the correct Part.
-6. Set available: true when the chapter is ready to read.
+1. Copy the public template file "chapter-template.html" as your working draft.
+2. Complete the manuscript in your local editor.
+3. In Supabase Dashboard → Storage → eden-chapters, upload it as <chapter-id>.html (e.g. chapter-08.html).
+4. Add its entry to EDEN_CHAPTERS under the correct Part.
+5. Set available: true only after the file is uploaded to the private bucket.
+Never put a finished manuscript HTML file in the public GitHub chapters folder.
 
 HOW TO ADD A NEW PART
 1. Add a Part object to EDEN_PARTS below.
@@ -93,7 +92,7 @@ window.EDEN_CHAPTERS = [
     number: "Chapter 01",
     title: "Your Chapter Title",
     partId: "part-01",
-    available: true,
+    available: false,
     companionTerms: [
       {
         id: "maya-garcia",
