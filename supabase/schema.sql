@@ -298,6 +298,7 @@ create policy "Readers remove their own content preferences"
   on public.reader_content_interests for delete to authenticated using (auth.uid() = user_id);
 grant select, insert, delete on public.reader_content_interests to authenticated;
 
+-- Public anonymous dashboard: aggregate totals only; no user IDs, emails or free-text suggestions.
 create or replace function public.get_public_engagement_stats()
 returns jsonb
 language sql
@@ -325,10 +326,21 @@ as $$
         ) c
       ) totals
     ), '[]'::jsonb),
-    'series', '[]'::jsonb,
+    'reactions', coalesce((
+      select jsonb_agg(jsonb_build_object('reaction', reaction, 'responses', responses) order by reaction)
+      from (
+        select reaction, count(*) as responses
+        from public.chapter_reactions
+        group by reaction
+      ) reaction_totals
+    ), '[]'::jsonb),
     'content_interests', coalesce((
       select jsonb_agg(jsonb_build_object('interest_id',interest_id,'responses',responses) order by interest_id)
-      from (select interest_id,count(*) as responses from public.reader_content_interests group by interest_id) preferences
+      from (
+        select interest_id,count(*) as responses
+        from public.reader_content_interests
+        group by interest_id
+      ) preferences
     ), '[]'::jsonb)
   );
 $$;
