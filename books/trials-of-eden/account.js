@@ -26,22 +26,51 @@ function activityCard(title,detail,body){
  if(body){const paragraph=document.createElement("p");paragraph.textContent=body;card.appendChild(paragraph);}return card;
 }
 async function loadPersonalDashboard(user){
- const [profile,completionsResult,reactionsResult,commentsResult,preferencesResult]=await Promise.all([
+ const [profile,completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult]=await Promise.all([
   accountClient.from("reader_profiles").select("display_name").eq("user_id",user.id).maybeSingle(),
   accountClient.from("chapter_completions").select("chapter_id,completed_at").eq("user_id",user.id).order("completed_at",{ascending:false}),
   accountClient.from("chapter_reactions").select("chapter_id,reaction,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
   accountClient.from("chapter_comments").select("id,chapter_id,body,moderation_status,created_at,contains_spoiler").eq("user_id",user.id).order("created_at",{ascending:false}),
-  accountClient.from("reader_content_interests").select("interest_id,other_detail,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false})
+  accountClient.from("reader_content_interests").select("interest_id,other_detail,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
+  accountClient.from("chapter_quiz_attempts").select("id,chapter_id,answers,score,total_questions,submitted_at").eq("user_id",user.id).order("submitted_at",{ascending:false})
  ]);
- const errors=[completionsResult,reactionsResult,commentsResult,preferencesResult].filter(result=>result.error);
+ const errors=[completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult].filter(result=>result.error);
  if(errors.length){setAuthMessage("We couldn't load all your statistics. Please refresh and try again.");console.error(errors);return;}
- const completions=completionsResult.data||[],reactions=reactionsResult.data||[],comments=commentsResult.data||[],preferences=preferencesResult.data||[];
+ const completions=completionsResult.data||[],reactions=reactionsResult.data||[],comments=commentsResult.data||[],preferences=preferencesResult.data||[],quizAttempts=quizResult.data||[];
  accountById("profileName").textContent=(profile.data?.display_name||"Reader").toUpperCase();
  const approved=comments.filter(x=>x.moderation_status==="approved").length,pending=comments.filter(x=>x.moderation_status==="pending").length,hidden=comments.filter(x=>x.moderation_status==="hidden").length;
  const reactionCounts=reactions.reduce((counts,item)=>{counts[item.reaction]=(counts[item.reaction]||0)+1;return counts;},{});
- const stats=[[completions.length,"CHAPTERS COMPLETED"],[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"],[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]];
+ const stats=[[completions.length,"CHAPTERS COMPLETED"],[quizAttempts.length,"QUIZ ATTEMPTS"],[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"],[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]];
  accountById("personalStats").replaceChildren();
  stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="stat";const number=document.createElement("strong");number.textContent=value.toLocaleString();const caption=document.createElement("span");caption.textContent=label;card.append(number,caption);accountById("personalStats").appendChild(card);});
+ const released=(window.EDEN_CHAPTERS||[]).filter(chapter=>chapter.available);
+ const completedIds=new Set(completions.map(item=>item.chapter_id));
+ const percent=released.length?Math.round(released.filter(chapter=>completedIds.has(chapter.id)).length/released.length*100):0;
+ const progressText=accountById("progressSummary");
+ if(progressText)progressText.textContent=released.length?completedIds.size+" of "+released.length+" released chapters completed · "+percent+"%":"No chapters have been released yet.";
+ const progressFill=accountById("accountProgressFill");
+ if(progressFill)progressFill.style.width=percent+"%";
+ const progressTrack=accountById("accountProgressTrack");
+ if(progressTrack)progressTrack.setAttribute("aria-valuenow",String(percent));
+ const progressList=accountById("releasedChapterProgress");
+ if(progressList){
+  progressList.replaceChildren();
+  if(!released.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="Released chapters will appear here.";progressList.appendChild(empty);}
+  released.forEach(chapter=>{
+   const card=activityCard(chapter.number+" — "+chapter.title,completedIds.has(chapter.id)?"COMPLETED":"NOT YET COMPLETED");
+   const action=document.createElement("button");action.type="button";action.className="personal-remove-button";
+   action.textContent=completedIds.has(chapter.id)?"UNMARK COMPLETE":"MARK COMPLETE";
+   action.addEventListener("click",async()=>{
+    action.disabled=true;
+    const result=completedIds.has(chapter.id)
+     ? await accountClient.from("chapter_completions").delete().eq("user_id",user.id).eq("chapter_id",chapter.id)
+     : await accountClient.from("chapter_completions").upsert({user_id:user.id,chapter_id:chapter.id},{onConflict:"user_id,chapter_id",ignoreDuplicates:true});
+    if(result.error){setAuthMessage("We couldn't update that chapter milestone. Please try again.");action.disabled=false;return;}
+    await loadPersonalDashboard(user);
+   });
+   card.appendChild(action);progressList.appendChild(card);
+  });
+ }
  addActivity("completedList",completions,"You haven't marked any chapters as completed yet.",item=>{const c=chapterInfo(item.chapter_id);return activityCard(c?c.number+" — "+c.title:item.chapter_id,"Completed "+safeDate(item.completed_at));});
   const reactionLabels={like:"👍 Like",love:"❤️ Love",shocked:"😮 Shocked",sad:"😢 Sad",excited:"⚡ Excited"};
   addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{
@@ -54,6 +83,11 @@ async function loadPersonalDashboard(user){
   Object.entries(reactionCounts).sort((a,b)=>b[1]-a[1]).forEach(([key,count])=>{const row=document.createElement("div");row.className="activity-item";const label=document.createElement("strong");label.textContent=(reactionLabels[key]||key)+" — "+count;const note=document.createElement("small");note.textContent="Across your chapter reactions";row.append(label,note);breakdown.appendChild(row);});
   if(!Object.keys(reactionCounts).length){const empty=document.createElement("div");empty.className="empty";empty.textContent="Your reaction breakdown will appear here once you react to chapters.";breakdown.appendChild(empty);}
  addActivity("commentList",comments,"You haven't submitted any comments yet.",item=>{const c=chapterInfo(item.chapter_id),status={approved:"APPROVED",pending:"AWAITING REVIEW",hidden:"HIDDEN"}[item.moderation_status]||item.moderation_status.toUpperCase();return activityCard(c?c.number+" — "+c.title:item.chapter_id,status+" · "+safeDate(item.created_at),item.body);});
+ addActivity("quizAttemptList",quizAttempts,"You haven't completed any chapter challenges yet.",item=>{
+  const c=chapterInfo(item.chapter_id);
+  const card=activityCard(c?c.number+" — "+c.title:item.chapter_id,"SCORE: "+item.score+" / "+item.total_questions+" · "+safeDate(item.submitted_at),"Your submitted answers are saved as a locked attempt.");
+  return card;
+ });
  const labels={characters:"Characters",plot:"Plot and twists",worldbuilding:"Worldbuilding and lore",relationships:"Relationships",action:"Action and challenges",other:"Other"},container=accountById("preferenceList");container.replaceChildren();
  if(!preferences.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="You haven't saved any content preferences yet.";container.appendChild(empty);}
   preferences.forEach(item=>{
