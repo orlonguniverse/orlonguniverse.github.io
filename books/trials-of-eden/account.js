@@ -77,7 +77,24 @@ async function loadPersonalDashboard(user){
   addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{
     const c=chapterInfo(item.chapter_id),card=activityCard(c?c.number+" — "+c.title:item.chapter_id,(reactionLabels[item.reaction]||item.reaction)+" · "+safeDate(item.updated_at));
     const remove=document.createElement("button");remove.type="button";remove.className="personal-remove-button";remove.textContent="REMOVE REACTION";
-    remove.addEventListener("click",async()=>{const {error}=await accountClient.from("chapter_reactions").delete().eq("user_id",user.id).eq("chapter_id",item.chapter_id);if(error){setAuthMessage("We couldn't remove that reaction. Please try again.");return;}await loadPersonalDashboard(user);});
+    remove.addEventListener("click",async()=>{
+      if(remove.disabled)return;
+      remove.disabled=true;
+      remove.textContent="REMOVING…";
+      try{
+        const {error}=await accountClient.from("chapter_reactions")
+          .delete()
+          .eq("user_id",user.id)
+          .eq("chapter_id",item.chapter_id);
+        if(error)throw error;
+        await loadPersonalDashboard(user);
+      }catch(error){
+        console.error("Could not remove chapter reaction:",error);
+        setAuthMessage("We couldn't remove that reaction. Please try again.");
+        remove.disabled=false;
+        remove.textContent="REMOVE REACTION";
+      }
+    });
     card.appendChild(remove);return card;
   });
   const breakdown=accountById("reactionBreakdown");breakdown.replaceChildren();
