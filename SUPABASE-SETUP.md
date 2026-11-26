@@ -1,6 +1,6 @@
 # The Trials of Eden — reader engagement setup
 
-The Reading Room now has a Supabase-powered community interface. Reading stays free and does not require an account. A confirmed email account is needed only to save milestones, vote, react or comment.
+The Reading Room now has a Supabase-powered community interface. All reading and participation are free. A confirmed email account is required to open chapter manuscripts; public visitors can still browse the book contents and site.
 
 ## 1. Database setup
 
@@ -20,7 +20,7 @@ This creates the reader tables, duplicate-prevention constraints, Row Level Secu
    `https://orlonguniverse.github.io`
 4. Add this Redirect URL:
    `https://orlonguniverse.github.io/books/trials-of-eden/*`
-5. The Reading Room has a **SIGN IN** button in the top navigation. The account window switches between **SIGN IN** and **CREATE ACCOUNT**, so display name is only shown during sign-up. Both use email and password; readers must confirm their email address before signing in.
+5. The Reading Room has a **SIGN IN** button in the top navigation. The account window switches between **SIGN IN** and **CREATE ACCOUNT**. Readers must confirm their email address before signing in. All registered readers have free access; there are no paid tiers or subscriptions.
 6. For a public launch, configure a reliable SMTP provider. Supabase's built-in email service has sending limits and is intended for testing.
 
 ## 3. Make your own account a moderator
@@ -53,7 +53,7 @@ If you cannot see **AUTHOR MODERATION**, check that the UID was copied exactly, 
 
 ## 4. What the Reading Room now supports
 
-- Free reading without an account.
+- Free account required to access private chapter manuscripts; the site and contents page remain publicly browsable.
 - A private **My Reading Statistics** page at `books/trials-of-eden/account.html`, showing each signed-in reader their own completed chapter milestones, saved reactions, submitted comments and moderation statuses, and saved content preferences.
 - Account access from the main website, book contents page and Reading Room navigation.
 - Email-confirmed sign-up, sign-in and sign-out.
@@ -79,3 +79,18 @@ If you cannot see **AUTHOR MODERATION**, check that the UID was copied exactly, 
 ## Security
 
 The website uses the Supabase **publishable** key. That key is intended for browser use when Row Level Security is enabled. Never put a service-role/secret key, database password or SMTP password in website code or share them in chat.
+
+
+## 6. Private chapter library (required for chapter access)
+
+The Reading Room now retrieves manuscript HTML from a **private Supabase Storage bucket** named `eden-chapters`. The bucket is created as private by the updated `supabase/schema.sql`; a Storage Row Level Security policy allows downloads only for authenticated users.
+
+1. Open the Supabase SQL Editor and run the complete updated `supabase/schema.sql` again. This creates the private bucket and its authenticated-read policy without deleting reader records.
+2. Open **Storage → eden-chapters**. Upload each released chapter HTML file using the exact object name matching its chapter ID, for example `chapter-01.html`.
+3. In `books/trials-of-eden/chapters.js`, set that chapter's `available` value to `true` only after its file has been uploaded to the private bucket.
+4. Keep finished manuscript files out of GitHub. The public `chapters` folder is for the blank `chapter-template.html` only.
+5. Test in a private/incognito window: the chapter must not load until a reader signs in. Also test with a confirmed reader account.
+
+**Important:** the current `chapter-01.html` in the repository was only a sample template, not a finished manuscript. It has been replaced by `chapter-template.html` and Chapter 01 remains marked unavailable until you upload the real chapter to the private bucket. This avoids publishing placeholder text as a chapter and ensures no manuscript is exposed by a public GitHub URL.
+
+The Storage policy permits authenticated downloads only. The bucket must remain private; do not change its visibility to Public.
