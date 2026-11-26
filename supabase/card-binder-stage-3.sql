@@ -79,7 +79,8 @@ as $$
   group by
     c.card_id, c.card_number, c.name, c.rarity,
     cat.label, cat.category_code,
-    c.spoiler_safe_description, c.artwork_url
+    c.spoiler_safe_description, c.artwork_url,
+    cat.sort_order, c.category_number
   order by cat.sort_order, c.category_number;
 $$;
 
