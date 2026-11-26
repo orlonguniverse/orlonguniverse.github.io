@@ -914,6 +914,84 @@ body.focus-mode .reader {
 </main>
 
 
+
+<!-- READER COMMUNITY -->
+<section class="engagement-section" id="reader-community" aria-labelledby="communityHeading">
+  <div class="engagement-inner">
+    <p class="engagement-eyebrow">THE ORLONG COMMUNITY</p>
+    <h2 id="communityHeading">YOUR READING JOURNEY</h2>
+    <p class="engagement-intro">Reading is always free. Sign in only if you'd like to save chapter milestones, share your reactions or join the discussion.</p>
+
+    <div class="engagement-grid">
+      <section class="engagement-card" id="accountCard">
+        <h3>READER ACCOUNT</h3>
+        <p id="accountMessage" class="engagement-muted" aria-live="polite">Sign in or create a free account to take part.</p>
+        <form id="accountForm">
+          <label for="readerDisplayName">Display name</label>
+          <input id="readerDisplayName" name="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?">
+          <label for="readerEmail">Email address</label>
+          <input id="readerEmail" name="email" type="email" autocomplete="email" required>
+          <label for="readerPassword">Password</label>
+          <input id="readerPassword" name="password" type="password" autocomplete="current-password" minlength="8" required>
+          <div class="engagement-actions">
+            <button type="submit" id="signInButton">SIGN IN</button>
+            <button type="button" id="signUpButton" class="secondary">CREATE ACCOUNT</button>
+          </div>
+        </form>
+        <button type="button" id="signOutButton" class="secondary" hidden>SIGN OUT</button>
+        <p class="engagement-small">Email confirmation is required. Your email address is never displayed publicly.</p>
+      </section>
+
+      <section class="engagement-card" id="chapterEngagementCard">
+        <h3>THIS CHAPTER</h3>
+        <p class="engagement-muted" id="chapterEngagementTitle">Chapter activity will appear here.</p>
+        <button type="button" id="completeChapterButton" disabled>MARK CHAPTER COMPLETE</button>
+        <p id="completionMessage" class="engagement-small" aria-live="polite">Sign in to save your chapter milestones.</p>
+        <div class="engagement-reactions" aria-label="Chapter reactions">
+          <button type="button" data-reaction="like" disabled>👍 <span>Like</span></button>
+          <button type="button" data-reaction="love" disabled>❤️ <span>Love</span></button>
+          <button type="button" data-reaction="shocked" disabled>😮 <span>Shocked</span></button>
+          <button type="button" data-reaction="sad" disabled>😢 <span>Sad</span></button>
+          <button type="button" data-reaction="excited" disabled>⚡ <span>Excited</span></button>
+        </div>
+        <p id="reactionMessage" class="engagement-small" aria-live="polite"></p>
+      </section>
+
+      <section class="engagement-card" id="seriesInterestCard">
+        <h3>WHAT WOULD YOU LIKE TO READ NEXT?</h3>
+        <p class="engagement-muted">Register your interest in the other main Orlong series. You can change your answer at any time.</p>
+        <div id="seriesInterestControls"></div>
+        <p id="seriesInterestMessage" class="engagement-small" aria-live="polite">Sign in to register your interest.</p>
+      </section>
+    </div>
+
+    <section class="engagement-card engagement-stats" id="publicStatsCard">
+      <h3>READERS' MILESTONES</h3>
+      <p class="engagement-muted">A community snapshot based on saved chapter activity.</p>
+      <div id="publicStats" class="public-stats" aria-live="polite"><p>Loading community statistics…</p></div>
+    </section>
+
+    <section class="engagement-card discussion-card" id="chapterDiscussion">
+      <h3>CHAPTER DISCUSSION</h3>
+      <p class="engagement-muted">Share your thoughts about this chapter. Comments are reviewed before appearing publicly. Please avoid posting personal information.</p>
+      <form id="commentForm">
+        <label for="commentBody">Your comment</label>
+        <textarea id="commentBody" maxlength="2000" rows="4" placeholder="What did you think of this chapter?" required></textarea>
+        <label class="spoiler-option"><input type="checkbox" id="commentSpoiler"> This comment contains spoilers</label>
+        <button type="submit" id="submitCommentButton" disabled>SUBMIT FOR REVIEW</button>
+      </form>
+      <p id="commentMessage" class="engagement-small" aria-live="polite">Sign in to join the discussion.</p>
+      <div id="chapterComments" class="chapter-comments"><p class="engagement-muted">Approved comments will appear here.</p></div>
+    </section>
+
+    <section class="engagement-card moderator-card" id="moderatorPanel" hidden>
+      <h3>AUTHOR MODERATION</h3>
+      <p class="engagement-muted">Pending comments are visible only to authorised moderators.</p>
+      <div id="pendingComments"></div>
+    </section>
+  </div>
+</section>
+
 <!-- FOOTER -->
 
 <footer>
@@ -956,8 +1034,10 @@ body.focus-mode .reader {
 </section>
 
 <!-- Scripts must load AFTER the floating panel so PIN and collapse controls are available. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="chapters.js"></script>
 <script src="script.js"></script>
+<script src="engagement.js"></script>
 
 </body>
 </html>
