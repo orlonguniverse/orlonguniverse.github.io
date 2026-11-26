@@ -45,9 +45,10 @@ async function loadPersonalDashboard(user){
  stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="stat";const number=document.createElement("strong");number.textContent=value.toLocaleString();const caption=document.createElement("span");caption.textContent=label;card.append(number,caption);accountById("personalStats").appendChild(card);});
  const released=(window.EDEN_CHAPTERS||[]).filter(chapter=>chapter.available);
  const completedIds=new Set(completions.map(item=>item.chapter_id));
- const percent=released.length?Math.round(released.filter(chapter=>completedIds.has(chapter.id)).length/released.length*100):0;
+ const completedReleased=released.filter(chapter=>completedIds.has(chapter.id)).length;
+ const percent=released.length?Math.round(completedReleased/released.length*100):0;
  const progressText=accountById("progressSummary");
- if(progressText)progressText.textContent=released.length?completedIds.size+" of "+released.length+" released chapters completed · "+percent+"%":"No chapters have been released yet.";
+ if(progressText)progressText.textContent=released.length?completedReleased+" of "+released.length+" released chapters completed · "+percent+"%":"No chapters have been released yet.";
  const progressFill=accountById("accountProgressFill");
  if(progressFill)progressFill.style.width=percent+"%";
  const progressTrack=accountById("accountProgressTrack");
@@ -71,7 +72,7 @@ async function loadPersonalDashboard(user){
    card.appendChild(action);progressList.appendChild(card);
   });
  }
- addActivity("completedList",completions,"You haven't marked any chapters as completed yet.",item=>{const c=chapterInfo(item.chapter_id);return activityCard(c?c.number+" — "+c.title:item.chapter_id,"Completed "+safeDate(item.completed_at));});
+
   const reactionLabels={like:"👍 Like",love:"❤️ Love",shocked:"😮 Shocked",sad:"😢 Sad",excited:"⚡ Excited"};
   addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{
     const c=chapterInfo(item.chapter_id),card=activityCard(c?c.number+" — "+c.title:item.chapter_id,(reactionLabels[item.reaction]||item.reaction)+" · "+safeDate(item.updated_at));
