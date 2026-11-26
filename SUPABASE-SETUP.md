@@ -10,7 +10,7 @@ The Reading Room now has a Supabase-powered community interface. Reading stays f
 4. Copy the entire file into the SQL Editor and run it.
 5. If you previously ran an earlier version, run the complete latest file again. It is designed to add the new moderation/reporting features without deleting existing reader activity.
 
-This creates the reader tables, duplicate-prevention constraints, Row Level Security policies, public aggregate statistics, reporting and moderator-only analytics.
+This creates the reader tables, duplicate-prevention constraints, Row Level Security policies, public aggregate statistics, reporting, content-preference collection and moderator-only analytics.
 
 ## 2. Email authentication
 
@@ -45,12 +45,13 @@ This grants moderation and private analytics access to that account only. Do not
 - Free reading without an account.
 - Email-confirmed sign-up, sign-in and sign-out.
 - One saved completion per account and chapter.
-- One changeable interest choice per account and series (Bitsy, Evalon, Varex and Arcanet).
+- Multiple saved content preferences per account: characters, plot and twists, worldbuilding and lore, relationships, action and challenges, and other suggestions.
 - One changeable reaction per account and chapter.
 - Chapter comments and replies, held for approval before public display.
 - Spoiler-marked comments hidden behind a reveal control.
 - Comment reporting and a moderator panel to approve or hide comments.
 - Public aggregate totals that do not display email addresses or account IDs.
+- Content-interest responses are aggregated by category; optional text entered under Other is kept out of public statistics.
 - Private author statistics available only to the moderator account.
 
 ## 5. Measurement and privacy notes
