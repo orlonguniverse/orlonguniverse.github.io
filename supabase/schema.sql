@@ -360,3 +360,30 @@ create policy "Authenticated readers can download Eden chapters"
 
 -- Storage downloads are authenticated-only. Upload manuscript files through the
 -- Supabase Dashboard as the project owner; do not make this bucket public.
+
+
+-- Immutable chapter quiz attempts. Readers may submit multiple attempts,
+-- but each submission is a separate row and cannot be edited or deleted.
+create table if not exists public.chapter_quiz_attempts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  chapter_id text not null check (chapter_id ~ '^[a-z0-9-]{1,80}$'),
+  quiz_version text not null default '1',
+  answers jsonb not null check (jsonb_typeof(answers) = 'array' and jsonb_array_length(answers) = 3),
+  score integer not null check (score between 0 and 3),
+  total_questions integer not null default 3 check (total_questions = 3),
+  submitted_at timestamptz not null default now()
+);
+create index if not exists chapter_quiz_attempts_reader_chapter
+  on public.chapter_quiz_attempts (user_id, chapter_id, submitted_at desc);
+alter table public.chapter_quiz_attempts enable row level security;
+drop policy if exists "Readers view their own quiz attempts" on public.chapter_quiz_attempts;
+create policy "Readers view their own quiz attempts"
+  on public.chapter_quiz_attempts for select to authenticated
+  using (auth.uid() = user_id);
+drop policy if exists "Readers submit their own quiz attempts" on public.chapter_quiz_attempts;
+create policy "Readers submit their own quiz attempts"
+  on public.chapter_quiz_attempts for insert to authenticated
+  with check (auth.uid() = user_id);
+revoke all on public.chapter_quiz_attempts from anon, authenticated;
+grant select, insert on public.chapter_quiz_attempts to authenticated;
