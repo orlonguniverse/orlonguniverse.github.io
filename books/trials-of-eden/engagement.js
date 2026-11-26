@@ -15,6 +15,9 @@ let currentCompletion = false;
 let quizDraftEnabled = false;
 let replyToComment = null;
 let accountMode = "signin";
+let lastHandledEngagementUserId = undefined;
+let lastEngagementChapterLoaded = null;
+let chapterEngagementTimer = null;
 
 const CONTENT_INTERESTS = [
   { id:"characters", title:"Characters" },
@@ -454,7 +457,9 @@ async function loadModeratorPanel() {
 }
 
 async function refreshEngagement() {
-  await Promise.all([loadChapterActivity(),loadContentInterests(),loadChapterComments(),loadModeratorPanel(),loadChapterQuiz()]);
+  // Chapter-specific data is loaded only after a chapter has actually rendered.
+  // This avoids querying the same activity/comments/quiz both before and after chapter loading.
+  await Promise.all([loadContentInterests(),loadModeratorPanel()]);
 }
 
 // CHAPTER CHALLENGE — each submission is a new immutable database row.
@@ -650,6 +655,10 @@ function openAccountDialog() {
 }
 
 async function handleAuthState(session) {
+  const nextUserId = session && session.user ? session.user.id : null;
+  if (lastHandledEngagementUserId === nextUserId) return;
+  lastHandledEngagementUserId = nextUserId;
+  lastEngagementChapterLoaded = null;
   engagementUser = session && session.user ? session.user : null;
   window.engagementUser = engagementUser;
   engagementProfile = null;
@@ -750,7 +759,13 @@ function initialiseEngagement() {
   const chapterTarget = byId("chapterContent");
   if (chapterTarget) {
     new MutationObserver(() => {
-      window.setTimeout(() => { loadChapterActivity(); loadChapterComments(); loadChapterQuiz(); },150);
+      window.clearTimeout(chapterEngagementTimer);
+      chapterEngagementTimer = window.setTimeout(() => {
+        const chapterId = engagementChapterId();
+        if (!engagementUser || !chapterId || chapterId === lastEngagementChapterLoaded) return;
+        lastEngagementChapterLoaded = chapterId;
+        Promise.all([loadChapterActivity(),loadChapterComments(),loadChapterQuiz()]);
+      },100);
     }).observe(chapterTarget,{childList:true,subtree:true});
   }
 }
