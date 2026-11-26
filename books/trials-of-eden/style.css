@@ -518,3 +518,93 @@ body[data-reader-theme="midnight"] .reader .chapter-text p:first-child {
     padding: 30px 20px;
   }
 }
+
+
+/* Reader companion stays in view while the manuscript scrolls. */
+@media(min-width:1101px) {
+  .reading-layout { align-items:start; }
+  .companion {
+    position:sticky !important;
+    top:88px;
+    align-self:start;
+    max-height:calc(100vh - 104px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+  }
+}
+@media(max-width:1100px) {
+  .companion {
+    max-height:68vh;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+}
+.reader-setting-range { display:block; width:100%; margin:10px 0 16px; accent-color:var(--blue); cursor:pointer; }
+.reader-setting-label span { float:right; color:var(--text); letter-spacing:0; }
+#companionFocusButton { margin-top:15px; border-color:var(--blue); color:var(--blue-light); }
+.reader { max-width:100%; }
+body[data-reader-mode="book"] .reader {
+  max-width:900px;
+  min-height:780px;
+  padding:clamp(38px,5vw,76px) clamp(28px,6vw,86px);
+  box-shadow:0 18px 55px rgba(0,0,0,.22);
+}
+body[data-reader-mode="scroll"] .reader {
+  max-width:1120px;
+  min-height:0;
+  padding:clamp(28px,4vw,55px);
+}
+body[data-reader-width="narrow"] .reader .chapter-text { max-width:520px; }
+body[data-reader-width="standard"] .reader .chapter-text { max-width:650px; }
+body[data-reader-width="wide"] .reader .chapter-text { max-width:780px; }
+.reader .chapter-text {
+  font-size:var(--reader-font-size,16px);
+  line-height:var(--reader-line-height,1.9);
+}
+.reader .chapter-text p { margin-bottom:var(--reader-paragraph-spacing,1.6em); }
+.reader .chapter-heading {
+  position:relative;
+  padding:clamp(65px,9vw,110px) 0 65px;
+  margin-bottom:35px;
+}
+.reader .chapter-heading::after {
+  content:"";
+  display:block;
+  width:54px;
+  height:1px;
+  margin:32px auto 0;
+  background:currentColor;
+  opacity:.35;
+}
+.reader .chapter-heading .chapter-number {
+  letter-spacing:4px;
+  text-transform:uppercase;
+}
+.reader .chapter-heading h2 {
+  font-size:clamp(27px,4vw,39px);
+  letter-spacing:3px;
+  line-height:1.35;
+}
+.reader .chapter-text p:first-of-type:first-letter {
+  float:left;
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:3.4em;
+  line-height:.78;
+  padding:.08em .12em 0 0;
+  color:var(--blue-light);
+}
+body[data-reader-theme="paper"] .reader .chapter-text p:first-of-type:first-letter,
+body[data-reader-theme="sepia"] .reader .chapter-text p:first-of-type:first-letter {
+  color:#8b6a3e;
+}
+.reader .reader-top { margin-bottom:10px; }
+.reader .chapter-end { margin-top:95px; padding-bottom:20px; letter-spacing:4px; }
+body.focus-mode .companion { display:none !important; }
+body.focus-mode .reader { max-width:900px; margin:0 auto; min-height:calc(100vh - 70px); }
+body.focus-mode .reader .chapter-text { max-width:700px; }
+body.focus-mode .focus-exit { display:block; }
+@media(max-width:700px) {
+  body[data-reader-mode="book"] .reader { min-height:0; padding:35px 22px; }
+  .reader .chapter-heading { padding:55px 0 38px; }
+}
