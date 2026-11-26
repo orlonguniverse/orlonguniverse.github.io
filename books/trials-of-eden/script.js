@@ -594,11 +594,11 @@ if(presetSelect)presetSelect.addEventListener("change",event=>applyReaderPreset(
 
 const readerThemeSelect = document.getElementById("readerThemeSelect");
 if (readerThemeSelect) {
-  readerThemeSelect.addEventListener("change", event => applyReaderTheme(event.target.value));
+  readerThemeSelect.addEventListener("change", event => { applyReaderTheme(event.target.value); markReaderCustom(); });
 }
 const readerFontSelect = document.getElementById("readerFontSelect");
 if (readerFontSelect) {
-  readerFontSelect.addEventListener("change", event => applyReaderFont(event.target.value));
+  readerFontSelect.addEventListener("change", event => { applyReaderFont(event.target.value); markReaderCustom(); });
 }
 const referenceLinesToggle = document.getElementById("referenceLinesToggle");
 if (referenceLinesToggle) {
