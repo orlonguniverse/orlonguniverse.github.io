@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "catalogueVersion": 1,
+  "universe": "orlong",
+  "rarityTiers": [
+    { "id": "common", "label": "Common", "sortOrder": 1 },
+    { "id": "uncommon", "label": "Uncommon", "sortOrder": 2 },
+    { "id": "rare", "label": "Rare", "sortOrder": 3 },
+    { "id": "epic", "label": "Epic", "sortOrder": 4 },
+    { "id": "legendary", "label": "Legendary", "sortOrder": 5 }
+  ],
+  "categories": [
+    { "id": "characters", "label": "Characters", "code": "CHR", "sortOrder": 1 },
+    { "id": "creatures", "label": "Creatures", "code": "CRE", "sortOrder": 2 },
+    { "id": "locations", "label": "Locations", "code": "LOC", "sortOrder": 3 },
+    { "id": "objects", "label": "Objects", "code": "OBJ", "sortOrder": 4 },
+    { "id": "organisations", "label": "Organisations", "code": "ORG", "sortOrder": 5 },
+    { "id": "technology", "label": "Technology", "code": "TEC", "sortOrder": 6 },
+    { "id": "events", "label": "Events & History", "code": "EVT", "sortOrder": 7 },
+    { "id": "concepts", "label": "Concepts & Abilities", "code": "CON", "sortOrder": 8 }
+  ],
+  "sets": [
+    {
+      "id": "eden-chapter-01",
+      "title": "The Show",
+      "universe": "orlong",
+      "series": "eden",
+      "book": "trials-of-eden",
+      "unlockChapterId": "chapter-01",
+      "description": "The first character cards introduced in The Trials of Eden."
+    }
+  ],
+  "cards": [
+    {
+      "id": "maya-garcia",
+      "categoryId": "characters",
+      "categoryNumber": 1,
+      "cardNumber": "CHR-001",
+      "name": "Maya Garcia",
+      "rarity": "common",
+      "setId": "eden-chapter-01",
+      "unlockChapterId": "chapter-01",
+      "spoilerSafeDescription": null,
+      "artworkUrl": null,
+      "duplicateExchangeValue": null,
+      "active": true
+    },
+    {
+      "id": "elena-strix",
+      "categoryId": "characters",
+      "categoryNumber": 2,
+      "cardNumber": "CHR-002",
+      "name": "Elena Strix",
+      "rarity": "common",
+      "setId": "eden-chapter-01",
+      "unlockChapterId": "chapter-01",
+      "spoilerSafeDescription": null,
+      "artworkUrl": null,
+      "duplicateExchangeValue": null,
+      "active": true
+    },
+    {
+      "id": "mrs-finch",
+      "categoryId": "characters",
+      "categoryNumber": 3,
+      "cardNumber": "CHR-003",
+      "name": "Mrs Finch",
+      "rarity": "common",
+      "setId": "eden-chapter-01",
+      "unlockChapterId": "chapter-01",
+      "spoilerSafeDescription": null,
+      "artworkUrl": null,
+      "duplicateExchangeValue": null,
+      "active": true
+    }
+  ]
+}
