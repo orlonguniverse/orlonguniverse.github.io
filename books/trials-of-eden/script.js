@@ -463,7 +463,7 @@ function renderChapterSource(source, chapter) {
   const reader = document.getElementById("chapterText");
   applyReaderSize(localStorage.getItem("edenFontSize") || 16);
   applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
-  chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\\s+/).length : 0;
+  chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\s+/).length : 0;
 
   const part = (window.EDEN_PARTS || []).find(item => item.id === chapter.partId);
   const partLabel = document.getElementById("currentPartLabel");
