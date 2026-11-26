@@ -102,6 +102,13 @@ window.EDEN_CHAPTERS = [
         category: "CHARACTER",
         description: "The protagonist of the story."
       }
+      {
+        id: "xantheon",
+        term: "Xantheon
+        triggers: ["Xantheon"],
+        category: "SECTION",
+        description: "The section of which Eden is located within."
+      }
     ]
   },
   { id: "chapter-02", number: "Chapter 02", title: "Chapter title to be added", partId: "part-01", available: false },
