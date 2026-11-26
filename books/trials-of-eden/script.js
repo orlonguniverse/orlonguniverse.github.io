@@ -45,15 +45,54 @@ function toggleCompanion() {
   if (companion) companion.classList.toggle("companion-hidden");
 }
 
-function showCompanion(category) {
-  const panel = document.getElementById("companionContent");
-  if (!panel) return;
-  const content = {
-    characters: ["CHARACTER REFERENCES", "Character information connected to this chapter will appear here."],
-    locations: ["LOCATION REFERENCES", "Locations and places mentioned in this chapter will appear here."],
-    notes: ["AUTHOR NOTES", "Additional commentary from Callum Macann will appear here."]
-  }[category];
-  if (content) panel.innerHTML = "<h3>" + content[0] + "</h3><p>" + content[1] + "</p>";
+// =====================================
+// INTERACTIVE READING COMPANION
+// Reference definitions live beside each chapter in chapters.js.
+// =====================================
+function renderCompanion(chapter) {
+  const list = document.getElementById("companionTermList");
+  const details = document.getElementById("companionDetails");
+  if (!list || !details) return;
+  list.innerHTML = "";
+  details.innerHTML = "<h3>CHAPTER REFERENCES</h3><p>Select a reference to read its description. You can also select highlighted words in the manuscript.</p>";
+  const references = Array.isArray(chapter.companionTerms) ? chapter.companionTerms : [];
+  if (!references.length) {
+    const note = document.createElement("p");
+    note.className = "companion-empty";
+    note.textContent = "There are no companion references for this chapter yet.";
+    list.appendChild(note);
+    return;
+  }
+  references.forEach(reference => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "companion-reference-button";
+    button.textContent = reference.term;
+    button.dataset.companionTerm = reference.id;
+    button.setAttribute("aria-label", "Show reference: " + reference.term);
+    list.appendChild(button);
+  });
+}
+function showCompanionTerm(termId) {
+  const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === currentChapter);
+  const details = document.getElementById("companionDetails");
+  if (!chapter || !details) return;
+  const reference = (chapter.companionTerms || []).find(item => item.id === termId);
+  if (!reference) return;
+  details.innerHTML = "";
+  const category = document.createElement("span");
+  category.className = "companion-category";
+  category.textContent = reference.category || "CHAPTER REFERENCE";
+  const heading = document.createElement("h3");
+  heading.textContent = reference.term;
+  const description = document.createElement("p");
+  description.textContent = reference.description;
+  details.append(category, heading, description);
+  document.querySelectorAll(".companion-reference-button").forEach(button => {
+    const selected = button.dataset.companionTerm === termId;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
 }
 
 
@@ -157,6 +196,14 @@ async function loadChapter(chapterId) {
     const reader = document.getElementById("chapterText");
     if (reader) reader.style.fontSize = fontSize + "px";
     chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\s+/).length : 0;
+
+    // Show the Part name alongside the chapter currently being read.
+    const part = (window.EDEN_PARTS || []).find(item => item.id === chapter.partId);
+    const partLabel = document.getElementById("currentPartLabel");
+    if (partLabel) partLabel.textContent = part ? part.title.toUpperCase() : "BOOK SECTION";
+
+    // Refresh the Companion index for this chapter.
+    renderCompanion(chapter);
 
     renderChapterDirectory();
     updateChapterNavigation();
@@ -325,6 +372,12 @@ window.addEventListener("scroll", () => {
 }, { passive: true });
 
 window.addEventListener("resize", updateProgress);
+
+// Connect highlighted manuscript words and Companion index entries.
+document.addEventListener("click", event => {
+  const trigger = event.target.closest("[data-companion-term]");
+  if (trigger) showCompanionTerm(trigger.dataset.companionTerm);
+});
 
 // Build the chapter menu and load the selected chapter.
 renderChapterDirectory();
