@@ -578,8 +578,7 @@ function renderQuizForm(quiz) {
 async function loadChapterQuiz() {
   const target = byId("chapterQuiz");
   if (!target) return;
-  const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === engagementChapterId());
-  const quiz = chapter && chapter.quiz;
+  const quiz = window.EDEN_ACTIVE_CHAPTER_QUIZ || null;
   if (!quiz || !Array.isArray(quiz.questions) || quiz.questions.length !== 3 ||
       quiz.questions.some(q => !q.question || !Array.isArray(q.options) || q.options.length < 2 ||
       !Number.isInteger(q.answer) || q.answer < 0 || q.answer >= q.options.length)) {
