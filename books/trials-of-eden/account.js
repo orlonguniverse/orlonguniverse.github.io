@@ -154,10 +154,10 @@ async function uploadProfilePicture(){
   const uploaded=await accountClient.storage.from("reader-avatars").upload(user.id+"/avatar",file,{upsert:true,contentType:file.type,cacheControl:"3600"});
   if(uploaded.error)throw uploaded.error;
   const urlResult=accountClient.storage.from("reader-avatars").getPublicUrl(user.id+"/avatar");
-  const publicUrl=urlResult.data.publicUrl;
+  const publicUrl=urlResult.data.publicUrl+"?v="+Date.now();
   const updated=await accountClient.from("reader_profiles").update({avatar_url:publicUrl}).eq("user_id",user.id);
   if(updated.error)throw updated.error;
-  const preview=accountById("accountAvatarPreview");preview.src=publicUrl+"?v="+Date.now();preview.hidden=false;
+  const preview=accountById("accountAvatarPreview");preview.src=publicUrl;preview.hidden=false;
   input.value="";message.textContent="Your profile picture has been updated.";
  }catch(error){console.error("Profile picture upload failed:",error);message.textContent=error.message||"We couldn't upload that picture. Please try again.";}
  finally{button.disabled=false;}
