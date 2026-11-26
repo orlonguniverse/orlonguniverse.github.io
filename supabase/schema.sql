@@ -11,6 +11,9 @@ create table if not exists public.reader_profiles (
   created_at timestamptz not null default now()
 );
 
+alter table public.reader_profiles
+  add column if not exists avatar_url text;
+
 create or replace function public.create_reader_profile()
 returns trigger
 language plpgsql
