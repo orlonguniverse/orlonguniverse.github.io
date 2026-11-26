@@ -181,6 +181,7 @@ async function uploadProfilePicture(){
 }
 
 async function showSession(session){
+ window.updateOrlongAccountLabel?.(session?.user||null);
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
  const userId=signedIn?session.user.id:null;
  if(userId===lastDashboardUserId)return;
@@ -206,7 +207,7 @@ async function submitAccount(event){
  const {data,error}=await accountClient.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:window.location.origin+window.location.pathname}});
  if(error){setAuthMessage(error.message);return;}if(data.session)await showSession(data.session);else setAuthMessage("Account created! Check your email and confirm your address before signing in.");
 }
-async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
+async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}window.updateOrlongAccountLabel?.(null);lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
  accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);setMode("signin");
