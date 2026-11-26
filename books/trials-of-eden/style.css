@@ -429,3 +429,92 @@ body.focus-mode .engagement-section { display:none !important; }
 .reader-access-gate h2 { font-family:Cinzel,serif; font-size:19px; letter-spacing:2px; }
 .reader-access-gate p { color:var(--muted); line-height:1.9; }
 .reader-access-gate button { margin-top:14px; padding:13px 20px; color:white; background:#236bd2; border:1px solid #65adff; cursor:pointer; letter-spacing:1px; font-size:10px; }
+
+
+/* =====================================
+   BOOK-LIKE READING PAGE THEMES
+   These themes affect the manuscript page only.
+===================================== */
+.reader {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.reader .chapter-text {
+  transition: color .25s ease;
+}
+body[data-reader-theme="paper"] .reader {
+  background: #f7f2e8;
+  color: #302b25;
+  border: 1px solid #d9cfbd;
+  box-shadow: 0 14px 42px rgba(0,0,0,.18);
+}
+body[data-reader-theme="paper"] .reader .chapter-heading h2,
+body[data-reader-theme="paper"] .reader .chapter-text {
+  color: #302b25;
+}
+body[data-reader-theme="paper"] .reader .chapter-heading p,
+body[data-reader-theme="paper"] .reader .reader-book-location > span:first-child {
+  color: #766b5c;
+}
+body[data-reader-theme="paper"] .reader .chapter-end {
+  color: #8a7d6b;
+  border-color: #d9cfbd;
+}
+body[data-reader-theme="sepia"] .reader {
+  background: #eee0c5;
+  color: #493824;
+  border: 1px solid #cbb48e;
+  box-shadow: 0 14px 42px rgba(0,0,0,.16);
+}
+body[data-reader-theme="sepia"] .reader .chapter-heading h2,
+body[data-reader-theme="sepia"] .reader .chapter-text {
+  color: #493824;
+}
+body[data-reader-theme="sepia"] .reader .chapter-heading p,
+body[data-reader-theme="sepia"] .reader .reader-book-location > span:first-child {
+  color: #80694b;
+}
+body[data-reader-theme="sepia"] .reader .chapter-end {
+  color: #80694b;
+  border-color: #cbb48e;
+}
+body[data-reader-theme="midnight"] .reader {
+  background: #17191e;
+  color: #e0e2e7;
+  border: 1px solid #343943;
+  box-shadow: 0 14px 42px rgba(0,0,0,.25);
+}
+body[data-reader-theme="midnight"] .reader .chapter-heading h2,
+body[data-reader-theme="midnight"] .reader .chapter-text {
+  color: #e0e2e7;
+}
+body[data-reader-theme="midnight"] .reader .chapter-heading p,
+body[data-reader-theme="midnight"] .reader .reader-book-location > span:first-child,
+body[data-reader-theme="midnight"] .reader .chapter-end {
+  color: #a4aab5;
+}
+body[data-reader-theme="midnight"] .reader .chapter-end {
+  border-color: #343943;
+}
+body[data-reader-theme="paper"] .reader .chapter-text,
+body[data-reader-theme="sepia"] .reader .chapter-text,
+body[data-reader-theme="midnight"] .reader .chapter-text {
+  line-height: 2.15;
+}
+body[data-reader-theme="paper"] .reader .chapter-text p,
+body[data-reader-theme="sepia"] .reader .chapter-text p,
+body[data-reader-theme="midnight"] .reader .chapter-text p {
+  margin-bottom: 1.8em;
+  text-indent: 1.25em;
+}
+body[data-reader-theme="paper"] .reader .chapter-text p:first-child,
+body[data-reader-theme="sepia"] .reader .chapter-text p:first-child,
+body[data-reader-theme="midnight"] .reader .chapter-text p:first-child {
+  text-indent: 0;
+}
+@media(max-width:700px) {
+  body[data-reader-theme="paper"] .reader,
+  body[data-reader-theme="sepia"] .reader,
+  body[data-reader-theme="midnight"] .reader {
+    padding: 30px 20px;
+  }
+}
