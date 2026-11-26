@@ -75,8 +75,8 @@ footer a { color:var(--blue-light); }
     <a href="../../index.html">HOME</a>
     <a href="#bookContents">BOOK CONTENTS</a>
     <a href="index.html#directory">CHAPTERS</a>
-    <a href="account.html" class="nav-account-button">MY ACCOUNT</a>
-    <a href="account.html">MY STATISTICS</a>
+    <button type="button" id="openAccountButton" class="nav-account-button" data-account-href="account.html">SIGN IN</button>
+    <a href="account.html#dashboard">MY STATISTICS</a>
     <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
     <a href="index.html#companion">COMPANION</a>
   </div>
@@ -113,6 +113,7 @@ footer a { color:var(--blue-light); }
   <p><a href="../../index.html">Return to the Orlong Universe</a></p>
   <p>© 2026 Callum Macann. All rights reserved.</p>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../site-nav.js"></script>
 <script src="chapters.js"></script>
 <script src="contents.js"></script>
