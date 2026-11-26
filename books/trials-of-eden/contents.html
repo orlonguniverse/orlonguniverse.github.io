@@ -86,7 +86,7 @@ footer a { color:var(--blue-light); }
 <main class="contents-wrap">
   <div class="contents-intro">
     <h2>EXPLORE THE BOOK</h2>
-    <p>Browse the Parts and chapters below. Available chapters can be opened directly; chapters still in preparation are listed so you can see how the book is organised.</p>
+    <p>Browse the Parts and chapters below. A free confirmed reader account is required to open released chapters.</p>
   </div>
   <div id="bookContents" aria-live="polite">
     <!-- Fallback content shown if JavaScript is unavailable.
@@ -94,10 +94,10 @@ footer a { color:var(--blue-light); }
     <section class="part-section">
       <div class="part-heading"><h2>Part One</h2><span class="part-count">3 CHAPTERS</span></div>
       <div class="contents-chapter-list">
-        <a class="contents-chapter is-available" href="index.html?chapter=chapter-01" aria-label="Read Chapter 01: Your Chapter Title">
+        <div class="contents-chapter is-unavailable" aria-disabled="true">
           <span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 01</span><span class="contents-chapter-title">Your Chapter Title</span></span>
-          <span class="contents-chapter-status">READ CHAPTER</span>
-        </a>
+          <span class="contents-chapter-status">COMING SOON</span>
+        </div>
         <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 02</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
         <div class="contents-chapter is-unavailable" aria-disabled="true"><span class="contents-chapter-details"><span class="contents-chapter-number">Chapter 03</span><span class="contents-chapter-title">Chapter title to be added</span></span><span class="contents-chapter-status">COMING SOON</span></div>
       </div>
