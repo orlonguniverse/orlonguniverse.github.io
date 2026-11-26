@@ -92,7 +92,7 @@ window.EDEN_CHAPTERS = [
     number: "Chapter 01",
     title: "Your Chapter Title",
     partId: "part-01",
-    available: false,
+    available: true,
     companionTerms: [
       {
         id: "maya-garcia",
