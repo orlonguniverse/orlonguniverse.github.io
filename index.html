@@ -658,6 +658,15 @@ footer a {
 
 }
 
+
+.main-account-button { cursor:pointer; font:inherit; }
+.main-account-dialog { width:min(420px,calc(100% - 32px)); padding:28px; color:#e9edf5; background:#101a2a; border:1px solid #398cff66; }
+.main-account-dialog::backdrop { background:#02060dcc; backdrop-filter:blur(5px); }
+.main-account-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:15px; }
+.main-account-dialog-head h2 { margin:8px 0; font-family:Cinzel,serif; font-weight:500; }
+.main-account-dialog-head button { color:inherit; background:none; border:1px solid #ffffff33; padding:8px 12px; cursor:pointer; }
+.main-account-dialog > p { color:#aab7c9; font-size:13px; line-height:1.7; }
+.main-account-dialog > a,.main-account-dialog > button { display:block; width:100%; margin-top:12px; text-align:center; }
 </style>
 </head>
 
@@ -673,11 +682,10 @@ footer a {
     <a href="#read">READ</a>
     <a href="#explore">EXPLORE EDEN</a>
     <a href="#community">COMMUNITY</a>
-    <a href="#archives">ARCHIVES</a>
-    <a href="#membership" class="join-link">JOIN</a>
-    <a href="books/trials-of-eden/account.html" class="join-link">MY ACCOUNT</a>
+    <button type="button" id="mainAccountButton" class="join-link main-account-button">MY ACCOUNT</button>
   </div>
 </nav>
+<dialog id="mainAccountDialog" class="main-account-dialog" aria-labelledby="mainAccountHeading"><div class="main-account-dialog-head"><div><p class="eyebrow">YOUR ORLONG ACCOUNT</p><h2 id="mainAccountHeading">WELCOME BACK</h2></div><button type="button" id="closeMainAccount" aria-label="Close account menu">×</button></div><p id="mainAccountGreeting">You are signed in.</p><a href="books/trials-of-eden/account.html" class="button">VIEW MY PROFILE &amp; STATISTICS</a><button type="button" id="mainAccountSignOut" class="button">SIGN OUT</button></dialog>
 
 
 <!-- HERO -->
@@ -705,7 +713,7 @@ footer a {
         Enter the story
       </a>
 
-      <a href="#membership" class="button">
+      <a href="books/trials-of-eden/account.html" class="button">
         Become a member
       </a>
     </div>
@@ -798,11 +806,11 @@ footer a {
 
     <p>
       Follow the story of Maya Garcia as she enters
-      the Trials. Join the community to stay informed
+      the Trials. Create a free reader account to stay informed
       about upcoming chapter releases.
     </p>
 
-    <a href="#membership" class="button">
+    <a href="books/trials-of-eden/account.html" class="button">
       Follow the releases
     </a>
 
@@ -929,169 +937,9 @@ footer a {
 
     </div>
 
-    <a href="#membership" class="button">
-      Join the community
+    <a href="books/trials-of-eden/account.html" class="button">
+      Create a free reader account
     </a>
-
-  </div>
-
-</section>
-
-
-<!-- THE ARCHIVES -->
-
-<section class="archives" id="archives">
-
-  <div class="archive-content">
-
-    <div class="eyebrow">Behind the story</div>
-
-    <h2 style="font-family:Cinzel,serif;font-weight:500">
-      THE ARCHIVES
-    </h2>
-
-    <p style="color:var(--muted);line-height:2;font-size:14px">
-      Every story has a history beyond its pages.
-      Explore the development, decisions, discarded ideas
-      and creative process behind The Trials of Eden.
-    </p>
-
-    <div class="archive-grid">
-
-      <div class="archive-item">
-        <h3>Deleted Scenes</h3>
-        <p>Discover moments that never made the final manuscript.</p>
-      </div>
-
-      <div class="archive-item">
-        <h3>Character Files</h3>
-        <p>Explore character development and original concepts.</p>
-      </div>
-
-      <div class="archive-item">
-        <h3>Original Drafts</h3>
-        <p>Compare earlier versions with the finished story.</p>
-      </div>
-
-      <div class="archive-item">
-        <h3>Worldbuilding</h3>
-        <p>Discover the ideas and details behind Eden.</p>
-      </div>
-
-    </div>
-
-    <a href="#membership" class="button">
-      Unlock the archives
-    </a>
-
-  </div>
-
-</section>
-
-
-<!-- MEMBERSHIP -->
-
-<section class="membership" id="membership">
-
-  <div class="section-heading">
-
-    <div class="eyebrow">Choose your experience</div>
-
-    <h2>YOUR PLACE IN EDEN</h2>
-
-    <p>
-      Whether you're here to follow the story,
-      experience more of the competition,
-      or discover everything behind its creation,
-      there's a place for you.
-    </p>
-
-  </div>
-
-
-  <div class="membership-grid">
-
-
-    <!-- THE READER -->
-
-    <div class="tier">
-
-      <div class="tier-label">Free membership</div>
-
-      <h3>The Reader</h3>
-
-      <p class="tier-description">
-        Begin your journey into the world of Eden.
-      </p>
-
-      <ul>
-        <li>Monthly chapter releases</li>
-        <li>Community polls</li>
-        <li>Reader questions and suggestions</li>
-        <li>Announcements and updates</li>
-        <li>Selected community activities</li>
-      </ul>
-
-      <a href="https://www.patreon.com/" class="button">
-        Join for free
-      </a>
-
-    </div>
-
-
-    <!-- THE INITIATE -->
-
-    <div class="tier featured-tier">
-
-      <div class="tier-label">Paid membership · Tier one</div>
-
-      <h3>The Initiate</h3>
-
-      <p class="tier-description">
-        Experience more of the story, more frequently.
-      </p>
-
-      <ul>
-        <li>Everything in The Reader</li>
-        <li>More frequent chapter releases</li>
-        <li>Additional member activities</li>
-        <li>Exclusive community opportunities</li>
-        <li>Additional member content</li>
-      </ul>
-
-      <a href="https://www.patreon.com/" class="button button-filled">
-        Become an Initiate
-      </a>
-
-    </div>
-
-
-    <!-- THE ARCHIVIST -->
-
-    <div class="tier">
-
-      <div class="tier-label">Paid membership · Tier two</div>
-
-      <h3>The Archivist</h3>
-
-      <p class="tier-description">
-        Discover the story beyond the pages.
-      </p>
-
-      <ul>
-        <li>Everything in The Initiate</li>
-        <li>Early chapter access</li>
-        <li>Deleted and alternative scenes</li>
-        <li>Original drafts and comparisons</li>
-        <li>Character and creature development</li>
-        <li>Detailed behind-the-scenes content</li>
-      </ul>
-
-      <a href="https://www.patreon.com/" class="button">
-        Become an Archivist
-      </a>
-
-    </div>
 
   </div>
 
@@ -1172,5 +1020,7 @@ document.getElementById("year").textContent =
 
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="main-account.js"></script>
 </body>
 </html>
