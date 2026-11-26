@@ -676,3 +676,23 @@ body[data-reader-mode="scroll"] .reader { max-width: 100%; min-height: 0; }
 
 /* Reader profile pictures in account settings and chapter discussions. */
 .comment-author{display:flex;align-items:center;gap:8px;min-height:34px}.comment-author strong{color:var(--blue-light);font-weight:600}.comment-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover;border:1px solid var(--blue);background:var(--surface-2)}.comment-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;color:var(--blue-light);font-size:12px;font-weight:700}
+
+
+/* Orlong / Eden trilogy scene-break dinkus: three electric eels. */
+.orlong-scene-break {
+  display:flex; align-items:center; justify-content:center; width:100%;
+  margin:2.4em auto; color:var(--blue-light, #65adff); clear:both;
+  break-inside:avoid;
+}
+.orlong-scene-break svg { display:block; width:min(170px, 42%); height:auto; overflow:visible; }
+.orlong-scene-break .eel-body {
+  fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round;
+}
+.orlong-scene-break .eel-eye { fill:currentColor; }
+.orlong-scene-break .eel-spark {
+  fill:none; stroke:#8cc8ff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+}
+body[data-reader-theme="paper"] .orlong-scene-break,
+body[data-reader-theme="sepia"] .orlong-scene-break { color:#8b6a3e; }
+body[data-reader-theme="paper"] .orlong-scene-break .eel-spark,
+body[data-reader-theme="sepia"] .orlong-scene-break .eel-spark { stroke:#b18a4d; }
