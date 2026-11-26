@@ -8,7 +8,7 @@ The Reading Room now has a Supabase-powered community interface. Reading stays f
 2. Choose **SQL Editor → New query**.
 3. Open [the latest schema.sql file](https://github.com/orlonguniverse/orlonguniverse.github.io/blob/main/supabase/schema.sql).
 4. Copy the entire file into the SQL Editor and run it.
-5. If you previously ran an earlier version, run the complete latest file again. It is designed to add the new moderation/reporting features without deleting existing reader activity.
+5. If you previously ran an earlier version, run the complete latest file again. It is designed to add the new moderation/reporting features and updated public Reader Insights statistics without deleting existing reader activity.
 
 This creates the reader tables, duplicate-prevention constraints, Row Level Security policies, public aggregate statistics, reporting, content-preference collection and moderator-only analytics.
 
@@ -20,7 +20,7 @@ This creates the reader tables, duplicate-prevention constraints, Row Level Secu
    `https://orlonguniverse.github.io`
 4. Add this Redirect URL:
    `https://orlonguniverse.github.io/books/trials-of-eden/*`
-5. The Reading Room account form uses email and password. Readers must confirm their email address before signing in.
+5. The Reading Room has a **SIGN IN** button in the top navigation. The account window switches between **SIGN IN** and **CREATE ACCOUNT**, so display name is only shown during sign-up. Both use email and password; readers must confirm their email address before signing in.
 6. For a public launch, configure a reliable SMTP provider. Supabase's built-in email service has sending limits and is intended for testing.
 
 ## 3. Make your own account a moderator
@@ -61,6 +61,7 @@ If you cannot see **AUTHOR MODERATION**, check that the UID was copied exactly, 
 - Chapter comments and replies, held for approval before public display.
 - Spoiler-marked comments hidden behind a reveal control.
 - Comment reporting and a moderator panel to approve or hide comments.
+- Public Reader Insights showing aggregate chapter milestones, total reactions, approved comments, reaction breakdowns and content-preference rankings. Anyone can view these without an account.
 - Public aggregate totals that do not display email addresses or account IDs.
 - Content-interest responses are aggregated by category; optional text entered under Other is kept out of public statistics.
 - Private author statistics available only to the moderator account.
