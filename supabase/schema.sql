@@ -1,0 +1,202 @@
+-- THE TRIALS OF EDEN — reader engagement schema
+-- Run this entire file in Supabase SQL Editor.
+-- Public website access uses the publishable/anon key + these RLS policies.
+-- NEVER put a service_role/secret key in website code.
+
+create extension if not exists pgcrypto;
+
+create table if not exists public.reader_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null default 'Reader' check (char_length(display_name) between 1 and 40),
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.create_reader_profile()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.reader_profiles (user_id, display_name)
+  values (
+    new.id,
+    coalesce(nullif(left(trim(new.raw_user_meta_data ->> 'display_name'), 40), ''), 'Reader')
+  )
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_reader_profile on auth.users;
+create trigger on_auth_user_created_reader_profile
+after insert on auth.users
+for each row execute procedure public.create_reader_profile();
+
+create table if not exists public.chapter_completions (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  chapter_id text not null check (chapter_id ~ '^[a-z0-9-]{1,80}$'),
+  completed_at timestamptz not null default now(),
+  primary key (user_id, chapter_id)
+);
+
+create table if not exists public.series_interest (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  series_id text not null check (series_id ~ '^[a-z0-9-]{1,80}$'),
+  interest text not null check (interest in ('interested', 'maybe', 'not_now')),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, series_id)
+);
+
+create table if not exists public.chapter_reactions (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  chapter_id text not null check (chapter_id ~ '^[a-z0-9-]{1,80}$'),
+  reaction text not null check (reaction in ('like', 'love', 'shocked', 'sad', 'excited')),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, chapter_id)
+);
+
+create table if not exists public.chapter_comments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  chapter_id text not null check (chapter_id ~ '^[a-z0-9-]{1,80}$'),
+  parent_id uuid references public.chapter_comments(id) on delete cascade,
+  body text not null check (char_length(trim(body)) between 1 and 2000),
+  contains_spoiler boolean not null default false,
+  moderation_status text not null default 'pending'
+    check (moderation_status in ('pending', 'approved', 'hidden')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists chapter_comments_chapter_status_created
+  on public.chapter_comments (chapter_id, moderation_status, created_at desc);
+
+alter table public.reader_profiles enable row level security;
+alter table public.chapter_completions enable row level security;
+alter table public.series_interest enable row level security;
+alter table public.chapter_reactions enable row level security;
+alter table public.chapter_comments enable row level security;
+
+-- Reader display names are public; readers can only change their own.
+drop policy if exists "Reader profiles are viewable" on public.reader_profiles;
+create policy "Reader profiles are viewable"
+  on public.reader_profiles for select using (true);
+drop policy if exists "Readers create their own profile" on public.reader_profiles;
+create policy "Readers create their own profile"
+  on public.reader_profiles for insert with check (auth.uid() = user_id);
+drop policy if exists "Readers update their own profile" on public.reader_profiles;
+create policy "Readers update their own profile"
+  on public.reader_profiles for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Completion is private to the signed-in reader; the unique key prevents duplicates.
+drop policy if exists "Readers view their own completions" on public.chapter_completions;
+create policy "Readers view their own completions"
+  on public.chapter_completions for select using (auth.uid() = user_id);
+drop policy if exists "Readers record their own completions" on public.chapter_completions;
+create policy "Readers record their own completions"
+  on public.chapter_completions for insert with check (auth.uid() = user_id);
+drop policy if exists "Readers remove their own completions" on public.chapter_completions;
+create policy "Readers remove their own completions"
+  on public.chapter_completions for delete using (auth.uid() = user_id);
+
+-- One interest choice per reader and series; later choices update the existing row.
+drop policy if exists "Readers view their own series interests" on public.series_interest;
+create policy "Readers view their own series interests"
+  on public.series_interest for select using (auth.uid() = user_id);
+drop policy if exists "Readers set their own series interests" on public.series_interest;
+create policy "Readers set their own series interests"
+  on public.series_interest for insert with check (auth.uid() = user_id);
+drop policy if exists "Readers update their own series interests" on public.series_interest;
+create policy "Readers update their own series interests"
+  on public.series_interest for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- One reaction per reader per chapter. A new choice replaces the previous one.
+drop policy if exists "Readers view their own reactions" on public.chapter_reactions;
+create policy "Readers view their own reactions"
+  on public.chapter_reactions for select using (auth.uid() = user_id);
+drop policy if exists "Readers add their own reactions" on public.chapter_reactions;
+create policy "Readers add their own reactions"
+  on public.chapter_reactions for insert with check (auth.uid() = user_id);
+drop policy if exists "Readers change their own reactions" on public.chapter_reactions;
+create policy "Readers change their own reactions"
+  on public.chapter_reactions for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+drop policy if exists "Readers remove their own reactions" on public.chapter_reactions;
+create policy "Readers remove their own reactions"
+  on public.chapter_reactions for delete using (auth.uid() = user_id);
+
+-- Only approved comments are public. Authors can see their own pending/hidden comments.
+drop policy if exists "Approved comments and own submissions are visible" on public.chapter_comments;
+create policy "Approved comments and own submissions are visible"
+  on public.chapter_comments for select
+  using (moderation_status = 'approved' or auth.uid() = user_id);
+drop policy if exists "Signed-in readers submit pending comments" on public.chapter_comments;
+create policy "Signed-in readers submit pending comments"
+  on public.chapter_comments for insert
+  with check (auth.uid() = user_id and moderation_status = 'pending');
+drop policy if exists "Readers delete their own pending comments" on public.chapter_comments;
+create policy "Readers delete their own pending comments"
+  on public.chapter_comments for delete
+  using (auth.uid() = user_id and moderation_status = 'pending');
+
+-- Public-facing statistics contain totals only, never account IDs or email addresses.
+create or replace function public.get_public_engagement_stats()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'chapters', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'chapter_id', chapter_id,
+        'completions', completion_count,
+        'reactions', reaction_count,
+        'comments', comment_count
+      ) order by chapter_id)
+      from (
+        select chapter_id,
+          (select count(*) from public.chapter_completions cc where cc.chapter_id = c.chapter_id) as completion_count,
+          (select count(*) from public.chapter_reactions cr where cr.chapter_id = c.chapter_id) as reaction_count,
+          (select count(*) from public.chapter_comments cm where cm.chapter_id = c.chapter_id and cm.moderation_status = 'approved') as comment_count
+        from (
+          select chapter_id from public.chapter_completions
+          union select chapter_id from public.chapter_reactions
+          union select chapter_id from public.chapter_comments where moderation_status = 'approved'
+        ) c
+      ) totals
+    ), '[]'::jsonb),
+    'series', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'series_id', series_id,
+        'interested', interested_count,
+        'maybe', maybe_count
+      ) order by series_id)
+      from (
+        select series_id,
+          count(*) filter (where interest = 'interested') as interested_count,
+          count(*) filter (where interest = 'maybe') as maybe_count
+        from public.series_interest
+        group by series_id
+      ) series_totals
+    ), '[]'::jsonb)
+  );
+$$;
+
+revoke all on function public.get_public_engagement_stats() from public;
+grant execute on function public.get_public_engagement_stats() to anon, authenticated;
+
+grant select, insert, update on public.reader_profiles to authenticated;
+grant select, insert, delete on public.chapter_completions to authenticated;
+grant select, insert, update on public.series_interest to authenticated;
+grant select, insert, update, delete on public.chapter_reactions to authenticated;
+grant select, insert, delete on public.chapter_comments to authenticated;
+
+-- Existing users created before this schema get a profile row too.
+insert into public.reader_profiles (user_id, display_name)
+select id, coalesce(nullif(left(trim(raw_user_meta_data ->> 'display_name'), 40), ''), 'Reader')
+from auth.users
+on conflict (user_id) do nothing;
