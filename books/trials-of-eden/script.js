@@ -311,23 +311,133 @@ function updateChapterNavigation() {
   }
 }
 
-// Keep a private, per-browser copy so returning readers see the chapter
-// immediately. Supabase is still checked in the background for updates.
-function getCachedChapterSource(chapterId) {
+// Store chapter manuscripts in IndexedDB rather than localStorage.
+// IndexedDB can hold much larger files, so full-length chapters are cached reliably.
+const CHAPTER_CACHE_DATABASE = "eden-reader-chapters";
+const CHAPTER_CACHE_STORE = "chapters";
+let chapterCacheDatabasePromise = null;
+const chapterLoadsInProgress = new Map();
+
+function openChapterCacheDatabase() {
+  if (!("indexedDB" in window)) return Promise.reject(new Error("IndexedDB is unavailable."));
+  if (!chapterCacheDatabasePromise) {
+    chapterCacheDatabasePromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(CHAPTER_CACHE_DATABASE, 1);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(CHAPTER_CACHE_STORE)) {
+          database.createObjectStore(CHAPTER_CACHE_STORE, { keyPath: "chapterId" });
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error("Could not open the chapter cache."));
+    });
+  }
+  return chapterCacheDatabasePromise;
+}
+
+async function getCachedChapterSource(chapterId) {
   try {
-    return localStorage.getItem("edenChapterCache:" + chapterId) || null;
+    const database = await openChapterCacheDatabase();
+    const record = await new Promise((resolve, reject) => {
+      const request = database.transaction(CHAPTER_CACHE_STORE, "readonly")
+        .objectStore(CHAPTER_CACHE_STORE).get(chapterId);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+    if (record && record.source) return record.source;
   } catch (error) {
-    console.warn("Could not read the local chapter cache:", error);
-    return null;
+    console.warn("IndexedDB chapter cache is unavailable; checking the older browser cache.", error);
+  }
+
+  // Migrate any earlier, smaller localStorage cache into IndexedDB.
+  try {
+    const legacySource = localStorage.getItem("edenChapterCache:" + chapterId);
+    if (legacySource) {
+      await saveCachedChapterSource(chapterId, legacySource);
+      try { localStorage.removeItem("edenChapterCache:" + chapterId); } catch (_) {}
+      return legacySource;
+    }
+  } catch (error) {
+    console.warn("Could not read the older chapter cache:", error);
+  }
+  return null;
+}
+
+async function saveCachedChapterSource(chapterId, source) {
+  try {
+    const database = await openChapterCacheDatabase();
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(CHAPTER_CACHE_STORE, "readwrite");
+      transaction.objectStore(CHAPTER_CACHE_STORE).put({
+        chapterId,
+        source,
+        savedAt: Date.now()
+      });
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error || new Error("Chapter cache write was cancelled."));
+    });
+  } catch (error) {
+    // The chapter remains readable online even if browser storage is disabled.
+    console.warn("Could not save the chapter in IndexedDB:", error);
   }
 }
 
-function saveCachedChapterSource(chapterId, source) {
-  try {
-    localStorage.setItem("edenChapterCache:" + chapterId, source);
-  } catch (error) {
-    // A full or unavailable browser store must never prevent online reading.
-    console.warn("Could not save the local chapter cache:", error);
+function validateChapterSource(source) {
+  const parsed = new DOMParser().parseFromString(source, "text/html");
+  const chapterDocument = parsed.querySelector(".chapter-document");
+  const manuscript = chapterDocument?.querySelector("#chapterText, .chapter-text");
+  const manuscriptText = manuscript?.textContent.trim() || "";
+  if (!chapterDocument || !manuscript || !manuscriptText ||
+      manuscriptText.includes("Your first paragraph goes here.") ||
+      manuscriptText.includes("Your second paragraph goes here.") ||
+      manuscriptText.includes("Your third paragraph goes here.")) {
+    throw new Error("The chapter file is incomplete or still contains the blank template text.");
+  }
+  return source;
+}
+
+async function downloadChapterSource(chapterId) {
+  const { data, error } = await window.engagementClient.storage
+    .from("eden-chapters").download(chapterId + ".html");
+  if (error || !data) throw error || new Error("This chapter has not been uploaded to the private reading library yet.");
+  return validateChapterSource(await data.text());
+}
+
+// Refresh cached content quietly. The current reading session is never interrupted.
+async function refreshChapterCache(chapter) {
+  if (chapterLoadsInProgress.has(chapter.id)) return chapterLoadsInProgress.get(chapter.id);
+  const task = (async () => {
+    try {
+      const freshSource = await downloadChapterSource(chapter.id);
+      await saveCachedChapterSource(chapter.id, freshSource);
+    } catch (error) {
+      console.warn("Background chapter refresh was skipped:", error);
+    } finally {
+      chapterLoadsInProgress.delete(chapter.id);
+    }
+  })();
+  chapterLoadsInProgress.set(chapter.id, task);
+  return task;
+}
+
+// Preload the next released chapter during browser idle time, never in the reader's critical path.
+function preloadNextChapter(chapterId) {
+  const chapters = (window.EDEN_CHAPTERS || []).filter(item => item.available);
+  const index = chapters.findIndex(item => item.id === chapterId);
+  const nextChapter = index >= 0 ? chapters[index + 1] : null;
+  if (!nextChapter || chapterLoadsInProgress.has(nextChapter.id)) return;
+
+  const preload = async () => {
+    const cached = await getCachedChapterSource(nextChapter.id);
+    if (cached || chapterLoadsInProgress.has(nextChapter.id)) return;
+    await refreshChapterCache(nextChapter);
+  };
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(preload, { timeout: 2500 });
+  } else {
+    window.setTimeout(preload, 1200);
   }
 }
 
@@ -335,11 +445,9 @@ function renderChapterSource(source, chapter) {
   const target = document.getElementById("chapterContent");
   const parsed = new DOMParser().parseFromString(source, "text/html");
   const chapterDocument = parsed.querySelector(".chapter-document");
-  if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
-
-  const manuscript = chapterDocument.querySelector("#chapterText, .chapter-text");
-  const manuscriptText = manuscript ? manuscript.textContent.trim() : "";
-  if (!manuscript || !manuscriptText ||
+  const manuscript = chapterDocument?.querySelector("#chapterText, .chapter-text");
+  const manuscriptText = manuscript?.textContent.trim() || "";
+  if (!chapterDocument || !manuscript || !manuscriptText ||
       manuscriptText.includes("Your first paragraph goes here.") ||
       manuscriptText.includes("Your second paragraph goes here.") ||
       manuscriptText.includes("Your third paragraph goes here.")) {
@@ -353,11 +461,9 @@ function renderChapterSource(source, chapter) {
   if (number) number.textContent = chapter.number.toUpperCase();
 
   const reader = document.getElementById("chapterText");
-  // Do not set an inline font-size here: it overrides the user's live
-  // Reading Options CSS variable and makes the size control appear broken.
   applyReaderSize(localStorage.getItem("edenFontSize") || 16);
   applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
-  chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\s+/).length : 0;
+  chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\\s+/).length : 0;
 
   const part = (window.EDEN_PARTS || []).find(item => item.id === chapter.partId);
   const partLabel = document.getElementById("currentPartLabel");
@@ -387,56 +493,37 @@ async function loadChapter(chapterId) {
     return;
   }
 
-  let cachedSource = getCachedChapterSource(chapter.id);
+  target.innerHTML = '<p class="placeholder">Opening your chapter...</p>';
+  let cachedSource = null;
+  try {
+    cachedSource = await getCachedChapterSource(chapter.id);
+  } catch (error) {
+    console.warn("Could not read the saved chapter:", error);
+  }
+  if (currentChapter !== chapter.id) return;
+
   if (cachedSource) {
     try {
       renderChapterSource(cachedSource, chapter);
+      // Show the saved copy immediately. Network refresh and next-chapter preload
+      // happen separately and never delay the reading experience.
+      refreshChapterCache(chapter);
+      preloadNextChapter(chapter.id);
+      return;
     } catch (cacheError) {
       console.warn("The saved chapter copy was invalid; fetching a fresh copy.", cacheError);
-      try { localStorage.removeItem("edenChapterCache:" + chapter.id); } catch (_) {}
-      cachedSource = null;
-      target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
     }
-  } else {
-    target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
   }
 
   try {
-    const { data: chapterFile, error: chapterError } =
-      await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
-    if (chapterError || !chapterFile) {
-      if (cachedSource) {
-        console.warn("Using the saved chapter copy because the online refresh failed:", chapterError);
-        return;
-      }
-      throw new Error("This chapter has not been uploaded to the private reading library yet.");
-    }
-
-    const freshSource = await chapterFile.text();
-    // Validate before caching so a bad upload cannot replace a working copy.
-    const validation = new DOMParser().parseFromString(freshSource, "text/html");
-    const validationDocument = validation.querySelector(".chapter-document");
-    const validationText = validationDocument?.querySelector("#chapterText, .chapter-text");
-    const validationManuscript = validationText?.textContent.trim() || "";
-    if (!validationDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
-    if (!validationText || !validationManuscript ||
-        validationManuscript.includes("Your first paragraph goes here.") ||
-        validationManuscript.includes("Your second paragraph goes here.") ||
-        validationManuscript.includes("Your third paragraph goes here.")) {
-      throw new Error("The online chapter file is incomplete or still contains the blank template text.");
-    }
-    saveCachedChapterSource(chapter.id, freshSource);
-
-    if (freshSource !== cachedSource) {
-      renderChapterSource(freshSource, chapter);
-    }
+    const freshSource = await downloadChapterSource(chapter.id);
+    await saveCachedChapterSource(chapter.id, freshSource);
+    if (currentChapter !== chapter.id) return;
+    renderChapterSource(freshSource, chapter);
+    preloadNextChapter(chapter.id);
   } catch (error) {
     console.error("The Trials of Eden chapter could not be loaded:", error);
-    if (cachedSource) {
-      // A previously validated chapter remains readable even if the network
-      // or Supabase is temporarily unavailable.
-      return;
-    }
+    if (currentChapter !== chapter.id) return;
     const message = document.createElement("p");
     message.className = "placeholder";
     message.textContent = error && error.message
