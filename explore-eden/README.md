@@ -9,7 +9,7 @@ This folder is the authoring foundation for the Orlong collectible-card system.
 - Categories organise the master binder. Sets are separate themed groupings and may contain cards from more than one category.
 - Rarity belongs to a card edition, not its category number. The initial tiers are Common, Uncommon, Rare, Epic and Legendary. Drop rates will be designed with the reward system in a later stage.
 - Artwork and spoiler-safe descriptions are intentionally blank until approved. Do not invent details or add plot information ahead of its chapter unlock.
-- The catalogue is for card definitions only. It does not record who owns a card, how it was earned, duplicates, currency, trades or public/private collection settings.
+- The catalogue is for card definitions only. It does not record who owns a card, how it was earned, duplicates, currency, trades or public/private collection settings. Card-front artwork is stored separately in `explore-eden/cards/`.
 
 ## Current starter catalogue
 
@@ -21,7 +21,7 @@ The first set is **The Show**, tied to Chapter One of *The Trials of Eden*. Its 
 | CHR-002 | Elena Strix | Characters | Common |
 | CHR-003 | Mrs Finch | Characters | Common |
 
-These are catalogue entries, not rewards already granted to readers. The later reward stage will decide which activity can award each card and will enforce one reward claim per eligible activity.
+These are catalogue entries, not rewards already granted to readers. Stage 2 now defines the activity pools and secure one-time reward claims in `supabase/card-reward-engine.sql`.
 
 ## Adding a card
 
@@ -55,3 +55,30 @@ The catalogue deliberately leaves room for:
 - public/private binders and reader-to-reader trade offers.
 
 Those systems will be added in their own stages rather than mixed into the card definitions.
+
+
+## Stage 2 — reward engine
+
+The Stage 2 migration is `supabase/card-reward-engine.sql`. Run it in the Supabase SQL Editor after Stage 1.
+
+For Chapter One (`chapter-01`), it configures four independent reward activities:
+- first chapter completion;
+- first chapter reaction;
+- first saved chapter challenge attempt;
+- first approved discussion comment.
+
+Each activity currently has the same three-card starter pool (Maya, Elena and Mrs Finch). One card is selected randomly for each qualifying activity. A reader can therefore receive duplicates, and each duplicate is stored as its own card copy.
+
+The database triggers award cards automatically. Removing and re-adding a completion or reaction, changing a reaction, retaking the challenge, or having further comments approved will not issue another reward for the same activity and chapter. Existing qualifying Chapter One activity is also backfilled when the migration runs. The unique reward-claim constraint makes rerunning the migration safe.
+
+The Stage 2 tables are not directly readable or writable by website visitors. The later binder stage will add controlled collection-reading functions and the reader-facing interface.
+
+## Card artwork
+
+Upload public, spoiler-safe PNG card fronts to `explore-eden/cards/`. Keep the editable Canva masters separately. Use the permanent card number in each filename:
+
+- `CHR-001-maya-garcia.png`
+- `CHR-002-elena-strix.png`
+- `CHR-003-mrs-finch.png`
+
+After the files are uploaded, set the corresponding `artworkUrl` fields in `card-catalogue.json` to their site paths. Artwork is not required for the reward engine to issue card copies.
