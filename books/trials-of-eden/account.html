@@ -20,6 +20,19 @@ label{display:block;margin:14px 0 6px;color:var(--muted);font-size:11px}input{wi
 footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:10px;line-height:2}
 @media(max-width:700px){.topbar{flex-direction:column}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:40px 14px 65px}.panel{padding:18px}}
 .profile-picture-editor{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}.account-avatar{width:104px;height:104px;flex:0 0 104px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);background:var(--surface2)}.profile-picture-fields{flex:1;min-width:220px}.profile-picture-fields label{display:block;margin-bottom:8px;color:var(--blue-light);font-size:10px;letter-spacing:1px}.profile-picture-fields input{display:block;width:100%;color:var(--text);font-size:12px}.profile-picture-fields button{margin-top:12px}@media(max-width:560px){.profile-picture-editor{flex-direction:column}}
+
+.card-collection-summary{margin:0 0 16px;color:var(--blue-light);font-size:11px;letter-spacing:1px}
+.card-collection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.owned-card{min-width:0;padding:12px;background:var(--surface2);border:1px solid var(--border)}
+.owned-card-image{display:block;width:100%;aspect-ratio:5/7;object-fit:contain;background:#080d16;border:1px solid var(--border)}
+.owned-card-number{margin:12px 0 5px;color:var(--blue-light);font-size:9px;letter-spacing:1.2px}
+.owned-card h3{margin:0;color:var(--text);font-family:Cinzel,serif;font-size:13px;font-weight:500;line-height:1.5}
+.owned-card-meta{margin:6px 0 0;color:var(--muted);font-size:9px;letter-spacing:.8px;text-transform:uppercase}
+.owned-card-description{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+.owned-card-count{display:inline-block;margin-top:10px;padding:5px 8px;border:1px solid var(--blue);color:var(--blue-light);font-size:9px;letter-spacing:1px}
+@media(max-width:700px){.card-collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.card-collection-grid{grid-template-columns:1fr 1fr;gap:9px}.owned-card{padding:8px}.owned-card h3{font-size:11px}}
+
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -49,6 +62,12 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <button class="primary" id="uploadAvatarButton" type="button">UPLOAD PROFILE PICTURE</button>
 <p id="avatarUploadMessage" class="muted" role="status" aria-live="polite"></p></div></div></section>
 <div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
+<section class="panel" aria-labelledby="cardCollectionHeading">
+<h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
+<p class="muted">Every card you've earned is kept here. Duplicate copies are counted separately and remain yours.</p>
+<p id="cardCollectionSummary" class="card-collection-summary" aria-live="polite">Loading your collection...</p>
+<div id="cardCollectionGrid" class="card-collection-grid"><div class="empty">Loading your cards...</div></div>
+</section>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
 <section class="panel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
