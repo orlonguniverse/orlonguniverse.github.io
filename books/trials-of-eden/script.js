@@ -434,13 +434,14 @@ async function loadChapter(chapterId) {
     return;
   }
 
-  const cachedSource = getCachedChapterSource(chapter.id);
+  let cachedSource = getCachedChapterSource(chapter.id);
   if (cachedSource) {
     try {
       renderChapterSource(cachedSource, chapter);
     } catch (cacheError) {
       console.warn("The saved chapter copy was invalid; fetching a fresh copy.", cacheError);
       try { localStorage.removeItem("edenChapterCache:" + chapter.id); } catch (_) {}
+      cachedSource = null;
       target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
     }
   } else {
@@ -461,8 +462,15 @@ async function loadChapter(chapterId) {
     const freshSource = await chapterFile.text();
     // Validate before caching so a bad upload cannot replace a working copy.
     const validation = new DOMParser().parseFromString(freshSource, "text/html");
-    if (!validation.querySelector(".chapter-document")) {
-      throw new Error("Chapter file is missing its chapter-document wrapper.");
+    const validationDocument = validation.querySelector(".chapter-document");
+    const validationText = validationDocument?.querySelector("#chapterText, .chapter-text");
+    const validationManuscript = validationText?.textContent.trim() || "";
+    if (!validationDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
+    if (!validationText || !validationManuscript ||
+        validationManuscript.includes("Your first paragraph goes here.") ||
+        validationManuscript.includes("Your second paragraph goes here.") ||
+        validationManuscript.includes("Your third paragraph goes here.")) {
+      throw new Error("The online chapter file is incomplete or still contains the blank template text.");
     }
     saveCachedChapterSource(chapter.id, freshSource);
 
