@@ -281,8 +281,28 @@ function createCommentElement(comment, profileName) {
   article.className = "comment-item";
   const meta = document.createElement("div");
   meta.className = "comment-meta";
+  const author = document.createElement("div");
+  author.className = "comment-author";
+  if (profileName && profileName.avatar_url) {
+    const avatar = document.createElement("img");
+    avatar.className = "comment-avatar";
+    avatar.src = profileName.avatar_url;
+    avatar.alt = "";
+    avatar.loading = "lazy";
+    author.appendChild(avatar);
+  } else {
+    const fallback = document.createElement("span");
+    fallback.className = "comment-avatar comment-avatar-fallback";
+    fallback.textContent = (profileName && profileName.display_name ? profileName.display_name : "R").trim().charAt(0).toUpperCase();
+    author.appendChild(fallback);
+  }
+  const name = document.createElement("strong");
+  name.textContent = profileName && profileName.display_name ? profileName.display_name : "Reader";
   const date = new Date(comment.created_at);
-  meta.textContent = (profileName || "Reader") + " · " + date.toLocaleDateString();
+  const timestamp = document.createElement("span");
+  timestamp.textContent = " · " + date.toLocaleDateString();
+  author.append(name,timestamp);
+  meta.appendChild(author);
   const body = document.createElement("p");
   body.className = "comment-body";
   if (comment.contains_spoiler) {
@@ -344,10 +364,16 @@ async function loadChapterComments() {
     container.appendChild(note);
     return;
   }
+  const userIds=[...new Set(data.map(comment=>comment.user_id).filter(Boolean))];
+  const profileMap=new Map();
+  if(userIds.length){
+    const {data:profiles}=await engagementClient.from("reader_profiles").select("user_id,display_name,avatar_url").in("user_id",userIds);
+    (profiles||[]).forEach(profile=>profileMap.set(profile.user_id,profile));
+  }
   data.filter(comment => !comment.parent_id).forEach(comment => {
-    container.appendChild(createCommentElement(comment,"Reader"));
+    container.appendChild(createCommentElement(comment,profileMap.get(comment.user_id)));
     data.filter(reply => reply.parent_id === comment.id).forEach(reply => {
-      const replyElement = createCommentElement(reply,"Reader");
+      const replyElement = createCommentElement(reply,profileMap.get(reply.user_id));
       replyElement.style.marginLeft = "22px";
       container.appendChild(replyElement);
     });
