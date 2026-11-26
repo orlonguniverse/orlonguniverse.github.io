@@ -387,3 +387,11 @@ create policy "Readers submit their own quiz attempts"
   with check (auth.uid() = user_id);
 revoke all on public.chapter_quiz_attempts from anon, authenticated;
 grant select, insert on public.chapter_quiz_attempts to authenticated;
+
+
+-- Ensure signed-in readers can remove only their own chapter reactions.
+-- Safe to run more than once in the Supabase SQL Editor.
+drop policy if exists "Readers remove their own reactions" on public.chapter_reactions;
+create policy "Readers remove their own reactions"
+  on public.chapter_reactions for delete
+  using (auth.uid() = user_id);
