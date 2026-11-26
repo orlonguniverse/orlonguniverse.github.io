@@ -7,13 +7,20 @@ function renderBookContents() {
   if (!container) return;
   const parts = window.EDEN_PARTS || [];
   const chapters = window.EDEN_CHAPTERS || [];
+  const visibleChapters = window.getVisibleEdenChapters
+    ? window.getVisibleEdenChapters()
+    : chapters;
   const special = window.EDEN_BOOK_SECTIONS || {};
   container.innerHTML = "";
 
   if (special.prologue && special.prologue.enabled) renderSpecialSection(container, special.prologue);
 
   parts.forEach(part => {
-    const entries = chapters.filter(chapter => chapter.partId === part.id);
+    const entries = visibleChapters.filter(chapter => chapter.partId === part.id);
+
+    // Do not display Parts that have no visible chapters yet.
+    if (!entries.length) return;
+
     const section = document.createElement("section");
     section.className = "part-section";
     const heading = document.createElement("div");
