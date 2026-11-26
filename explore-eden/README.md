@@ -82,3 +82,18 @@ Upload public, spoiler-safe PNG card fronts to `explore-eden/cards/`. Keep the e
 - `CHR-003-mrs-finch.png`
 
 After the files are uploaded, set the corresponding `artworkUrl` fields in `card-catalogue.json` to their site paths. Artwork is not required for the reward engine to issue card copies.
+
+
+## Stage 3 — personal card binder
+
+The Stage 3 database migration is `supabase/card-binder-stage-3.sql`. Run it in the Supabase SQL Editor after Stage 2.
+
+The migration:
+- connects the three uploaded starter PNGs to their catalogue records;
+- keeps Chapter One completion as the only active reward pool until separate reaction, challenge and approved-comment card pools are configured;
+- removes any Chapter One reaction, challenge or comment cards previously issued from the temporary shared starter pool;
+- adds a private `get_my_card_collection()` function that returns only the signed-in reader's own cards.
+
+The My Account page now includes a personal card binder. It displays the cards a reader owns, their permanent card numbers, category, rarity and number of copies. Readers cannot directly query or edit the underlying ownership tables.
+
+The binder currently displays earned cards only. Public binders, trading, duplicate exchange, achievements and card-set completion are later features.
