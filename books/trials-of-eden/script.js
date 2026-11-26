@@ -291,9 +291,10 @@ async function loadChapter(chapterId) {
   target.innerHTML = '<p class="placeholder">Loading chapter...</p>';
 
   try {
-    const response = await fetch(chapterUrl(chapter.id));
-    if (!response.ok) throw new Error("Chapter file could not be loaded.");
-    const source = await response.text();
+    if (!window.engagementClient || !window.engagementUser) throw new Error("Please sign in to read this chapter.");
+    const { data: chapterFile, error: chapterError } = await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
+    if (chapterError || !chapterFile) throw new Error("This chapter has not been uploaded to the private reading library yet.");
+    const source = await chapterFile.text();
     const parsed = new DOMParser().parseFromString(source, "text/html");
     const chapterDocument = parsed.querySelector(".chapter-document");
     if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
@@ -518,7 +519,19 @@ document.addEventListener("click", event => {
   }
 });
 
-// Build the chapter menu and load the selected chapter.
+// Build the chapter menu, but do not load manuscript content until Supabase confirms a signed-in session.
 renderChapterDirectory();
 updateChapterNavigation();
-loadChapter(getChapterIdFromUrl());
+window.startEdenReader = function (session) {
+  const target = document.getElementById("chapterContent");
+  if (!target) return;
+  if (!session || !session.user) {
+    currentChapter = null;
+    chapterTotalWords = 0;
+    target.innerHTML = '<div class="reader-access-gate"><h2>READER ACCOUNT REQUIRED</h2><p>The Trials of Eden chapters are available to registered readers. Sign in or create a free account to continue reading.</p><button type="button" id="readerAccessSignIn">SIGN IN / CREATE FREE ACCOUNT</button></div>';
+    document.getElementById("readerAccessSignIn")?.addEventListener("click", () => document.getElementById("openAccountButton")?.click());
+    updateChapterNavigation();
+    return;
+  }
+  loadChapter(getChapterIdFromUrl());
+};
