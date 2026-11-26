@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Reading Statistics | The Trials of Eden</title>
+<meta name="description" content="Your personal reading progress and activity in The Trials of Eden Reading Room.">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--background:#090e18;--surface:#101a2a;--surface2:#162338;--text:#e9edf5;--muted:#9ca9bc;--border:#ffffff18;--blue:#398cff;--blue-light:#8bbdff}
+*{box-sizing:border-box}body{margin:0;background:var(--background);color:var(--text);font-family:Inter,sans-serif}a{color:inherit;text-decoration:none}button,input{font:inherit}
+.topbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px 6%;background:#101a2af2;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.logo{font-family:Cinzel,serif;letter-spacing:3px}.top-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.top-actions a{padding:10px 12px;border:1px solid var(--border);color:var(--muted);font-size:10px;letter-spacing:1px}.top-actions a:hover{color:var(--blue-light);border-color:var(--blue)}
+main{max-width:1050px;margin:0 auto;padding:65px 22px 90px}.eyebrow{color:var(--blue-light);font-size:10px;letter-spacing:3px}.page-heading{text-align:center;margin-bottom:36px}.page-heading h1{font-family:Cinzel,serif;font-size:clamp(25px,4vw,38px);font-weight:400;letter-spacing:3px;margin:15px 0}.page-heading p{color:var(--muted);font-size:12px;line-height:1.8}
+.panel{padding:25px;margin:18px 0;background:var(--surface);border:1px solid var(--border)}.panel h2{font-family:Cinzel,serif;font-weight:400;font-size:15px;letter-spacing:2px;margin:0 0 18px}.muted{color:var(--muted);font-size:12px;line-height:1.8}
+.auth-panel{max-width:470px;margin:30px auto}.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:18px 0;padding:4px;background:var(--surface2)}.mode-switch button{padding:11px;color:var(--muted);background:transparent;border:1px solid transparent;font-size:10px;letter-spacing:1px;cursor:pointer}.mode-switch button.active{color:var(--text);border-color:var(--blue);background:var(--surface)}
+label{display:block;margin:14px 0 6px;color:var(--muted);font-size:11px}input{width:100%;padding:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border)}.primary{width:100%;margin-top:18px;padding:13px;color:white;background:#1557a6;border:1px solid #398cff;font-size:10px;letter-spacing:1.5px;cursor:pointer}.secondary{padding:10px 14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);cursor:pointer}
+#dashboard[hidden],#authPanel[hidden]{display:none}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat{padding:18px;background:var(--surface2);border:1px solid var(--border)}.stat strong{display:block;color:var(--blue-light);font-size:25px;font-weight:500}.stat span{display:block;margin-top:8px;color:var(--muted);font-size:9px;letter-spacing:1px;line-height:1.5}
+.activity-list{display:grid;gap:10px}.activity-item{padding:13px;background:var(--surface2);border:1px solid var(--border)}.activity-item strong{display:block;font-size:12px;font-weight:500}.activity-item small{display:block;margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6}.activity-item p{margin:9px 0 0;font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.pill{display:inline-block;margin:5px 5px 0 0;padding:5px 8px;border:1px solid var(--border);color:var(--blue-light);font-size:9px;letter-spacing:.5px}
+.section-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.empty{padding:15px;background:var(--surface2);color:var(--muted);font-size:11px}
+footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:10px;line-height:2}
+@media(max-width:700px){.topbar{flex-direction:column}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:40px 14px 65px}.panel{padding:18px}}
+</style></head><body>
+<nav class="topbar" aria-label="Main navigation"><a href="../../index.html" class="logo">ORLONG</a><div class="top-actions"><a href="../../index.html">MAIN WEBSITE</a><a href="contents.html">BOOK CONTENTS</a><a href="index.html">READING ROOM</a><a href="account.html">MY ACCOUNT</a></div></nav>
+<main>
+<header class="page-heading"><p class="eyebrow">YOUR PERSONAL READING PROFILE</p><h1>MY READING STATISTICS</h1><p>Track the chapters you've marked complete, your reactions, your comments and your contribution to the reader community.</p></header>
+<section class="panel auth-panel" id="authPanel"><h2 id="authHeading">YOUR READER ACCOUNT</h2><p class="muted" id="authMessage" aria-live="polite">Sign in to see your personal reading statistics, or create a free account to start tracking your activity.</p>
+<div class="mode-switch" role="group" aria-label="Account action"><button type="button" class="active" data-mode="signin">SIGN IN</button><button type="button" data-mode="signup">CREATE ACCOUNT</button></div>
+<form id="authForm"><div id="nameField" hidden><label for="displayName">Display name (optional)</label><input id="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?"></div><label for="email">Email address</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com"><label for="password">Password</label><input id="password" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters"><button class="primary" id="authSubmit" type="submit">SIGN IN</button></form><p class="muted">Your statistics are private to your account. Your email address is never shown publicly.</p></section>
+<section id="dashboard" hidden>
+<div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
+<section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Chapters you have explicitly marked as completed in the Reading Room.</p><div class="activity-list" id="completedList"></div></section>
+<section class="panel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Choosing a new reaction replaces the previous one.</p><div class="activity-list" id="reactionList"></div></section>
+<section class="panel"><h2>YOUR COMMENTS</h2><p class="muted">Your submissions, including whether each one is awaiting review, approved or hidden.</p><div class="activity-list" id="commentList"></div></section>
+<section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
+</section></main>
+<footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="chapters.js"></script><script src="account.js"></script>
+</body></html>
