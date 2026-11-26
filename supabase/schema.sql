@@ -219,7 +219,7 @@ as $$
   select exists(select 1 from public.reader_moderators where user_id = auth.uid());
 $$;
 revoke all on function public.is_reader_moderator() from public;
-grant execute on function public.is_reader_moderator() to authenticated;
+grant execute on function public.is_reader_moderator() to anon, authenticated;
 
 drop policy if exists "Moderators can view all comments" on public.chapter_comments;
 create policy "Moderators can view all comments" on public.chapter_comments
@@ -272,3 +272,6 @@ grant execute on function public.get_author_engagement_stats() to authenticated;
 -- after creating your own reader account, replacing the UUID with your auth.users.id:
 -- insert into public.reader_moderators (user_id) values ('YOUR-AUTH-USER-UUID')
 -- on conflict (user_id) do nothing;
+
+-- Approved discussions are readable without an account; RLS still hides pending/hidden submissions.
+grant select on public.chapter_comments to anon;
