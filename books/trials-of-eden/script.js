@@ -78,7 +78,13 @@ function renderChapterDirectory() {
   window.EDEN_CHAPTERS.forEach(chapter => {
     const item = document.createElement(chapter.available ? "a" : "div");
     item.className = "chapter-item" + (chapter.id === currentChapter ? " active" : "");
-    if (chapter.available) item.href = "?chapter=" + encodeURIComponent(chapter.id);
+    if (chapter.available) {
+      item.href = "?chapter=" + encodeURIComponent(chapter.id);
+      if (chapter.id === currentChapter) item.setAttribute("aria-current", "page");
+      item.setAttribute("aria-label", chapter.number + ": " + chapter.title);
+    } else {
+      item.setAttribute("aria-disabled", "true");
+    }
     const number = document.createElement("span");
     number.className = "chapter-number";
     number.textContent = chapter.number;
@@ -100,16 +106,24 @@ function updateChapterNavigation() {
   const next = document.getElementById("nextChapter");
 
   if (previous) {
+    // The first available chapter has no previous chapter, so hide this control.
+    previous.hidden = index <= 0;
     previous.disabled = index <= 0;
     previous.onclick = () => {
       if (index > 0) window.location.href = "?chapter=" + encodeURIComponent(chapters[index - 1].id);
     };
+    if (index > 0) {
+      previous.setAttribute("aria-label", "Go to previous chapter: " + chapters[index - 1].title);
+    }
   }
   if (next) {
     next.disabled = index < 0 || index >= chapters.length - 1;
     next.onclick = () => {
       if (index >= 0 && index < chapters.length - 1) window.location.href = "?chapter=" + encodeURIComponent(chapters[index + 1].id);
     };
+    if (index >= 0 && index < chapters.length - 1) {
+      next.setAttribute("aria-label", "Go to next chapter: " + chapters[index + 1].title);
+    }
   }
 }
 
