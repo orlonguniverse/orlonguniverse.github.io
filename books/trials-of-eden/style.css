@@ -199,3 +199,118 @@
   border-radius: 2px;
 }
 @media(max-width:700px) { .reader-book-location { width:100%; } }
+
+
+/* =====================================
+   READER ACCESSIBILITY + PERSONALISATION
+===================================== */
+
+/* Font selection changes only the chapter manuscript. */
+body[data-reader-font="literary"] .chapter-text { font-family: 'Libre Baskerville', Georgia, serif; }
+body[data-reader-font="atkinson"] .chapter-text { font-family: 'Atkinson Hyperlegible', Arial, sans-serif; }
+body[data-reader-font="arial"] .chapter-text { font-family: Arial, Helvetica, sans-serif; }
+body[data-reader-font="roboto"] .chapter-text { font-family: 'Roboto', Arial, sans-serif; }
+body[data-reader-font="lora"] .chapter-text { font-family: 'Lora', Georgia, serif; }
+body[data-reader-font="merriweather"] .chapter-text { font-family: 'Merriweather', Georgia, serif; }
+body[data-reader-font="orlong"] .chapter-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.12em;
+  letter-spacing: .015em;
+}
+body[data-reader-font="handwritten"] .chapter-text {
+  font-family: 'Caveat', cursive;
+  font-size: 1.45em;
+  line-height: 1.55;
+}
+
+.reader-setting-label {
+  display: block;
+  margin: 20px 0 8px;
+  color: var(--blue-light);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+}
+
+.reader-setting-select {
+  display: block;
+  width: 100%;
+  padding: 11px 10px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 11px;
+}
+
+.reader-setting-select:focus-visible,
+.reference-lines-setting input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.reader-setting-note {
+  margin-top: 8px;
+  font-size: 10px !important;
+}
+
+.reference-lines-setting {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-size: 10px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.reference-lines-setting input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--blue);
+  flex: 0 0 auto;
+}
+
+/* The reference remains clickable when its dotted underline is hidden. */
+body.hide-reference-lines .companion-trigger {
+  border-bottom-color: transparent;
+}
+
+body.hide-reference-lines .companion-trigger:hover,
+body.hide-reference-lines .companion-trigger:focus-visible {
+  border-bottom-color: var(--blue-light);
+}
+
+/* Keep blue interface text legible in light mode. */
+body.light .book-label,
+body.light .chapter-number,
+body.light .current-part-label,
+body.light .companion-category,
+body.light .reader-setting-label,
+body.light .chapter-progress-heading #chapterProgressPercent,
+body.light .chapter-progress-heading span,
+body.light footer a,
+body.light .companion-trigger:hover,
+body.light .companion-trigger:focus-visible {
+  color: var(--blue-light);
+}
+
+body.light .current-part-label {
+  border-color: var(--blue);
+}
+
+body.light .chapter-item:hover,
+body.light .chapter-item.active,
+body.light .companion-reference-button:hover,
+body.light .companion-reference-button.selected {
+  border-color: var(--blue);
+}
+
+body.light .companion-trigger {
+  border-bottom-color: var(--blue-light);
+}
