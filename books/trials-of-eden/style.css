@@ -626,3 +626,50 @@ body[data-reader-font="lora"] .reader .chapter-text { font-family: 'Lora', Georg
 /* "Book page" previously only changed width; true pagination is not offered yet. */
 body[data-reader-mode="book"] .reader,
 body[data-reader-mode="scroll"] .reader { max-width: 100%; min-height: 0; }
+
+
+/* Full-width, predictable text-size slider. */
+.reader-setting-range {
+  display: block;
+  width: 100% !important;
+  max-width: 100%;
+  height: 24px;
+  margin: 10px 0 16px;
+  padding: 0;
+  box-sizing: border-box;
+  background: transparent;
+  cursor: pointer;
+  accent-color: var(--blue);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.reader-setting-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--muted);
+  border-radius: 4px;
+}
+.reader-setting-range::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.reader-setting-range::-moz-range-track {
+  height: 4px;
+  background: var(--muted);
+  border-radius: 4px;
+}
+.reader-setting-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+}
+.reader .chapter-text { line-height: 1.8 !important; }
