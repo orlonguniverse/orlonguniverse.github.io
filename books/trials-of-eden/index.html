@@ -737,6 +737,42 @@ body.focus-mode .reader {
 .quiz-review-item strong{display:block;color:var(--text);}
 .quiz-review-item p{margin:5px 0;color:var(--muted);}
 .quiz-review-item small{color:var(--blue-light);}
+
+/* Final Reading Room control fixes: independent, always-available Companion scrolling. */
+@media (min-width: 1101px) {
+  .reading-layout { align-items: start; }
+  .reading-layout > .companion {
+    position: sticky !important;
+    top: 86px !important;
+    align-self: start !important;
+    height: calc(100vh - 104px) !important;
+    max-height: calc(100vh - 104px) !important;
+    min-height: 0 !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue) var(--surface-2);
+    padding-right: 5px;
+  }
+}
+@media (max-width: 1100px) {
+  .reading-layout > .companion {
+    position: relative !important;
+    height: auto !important;
+    max-height: 62vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue) var(--surface-2);
+  }
+}
+.reading-layout > .companion::-webkit-scrollbar { width: 9px; }
+.reading-layout > .companion::-webkit-scrollbar-track { background: var(--surface-2); border-radius: 8px; }
+.reading-layout > .companion::-webkit-scrollbar-thumb { background: var(--blue); border: 2px solid var(--surface-2); border-radius: 8px; }
+.reader .chapter-text { font-size: var(--reader-font-size, 16px) !important; }
+
 </style>
 <link rel="stylesheet" href="../../site-nav.css">
 </head>
@@ -750,7 +786,7 @@ body.focus-mode .reader {
   <div class="topbar-right">
     <a href="../../index.html">HOME</a>
     <a href="contents.html">BOOK CONTENTS</a>
-    <a href="#directory">CHAPTERS</a>
+    <a href="#chapter">READING ROOM</a>
     <button type="button" id="openAccountButton" class="nav-account-button">SIGN IN</button>
     <a href="account.html">MY STATISTICS</a>
     <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
