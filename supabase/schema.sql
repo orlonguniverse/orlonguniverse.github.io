@@ -346,3 +346,17 @@ as $$
 $$;
 revoke all on function public.get_public_engagement_stats() from public;
 grant execute on function public.get_public_engagement_stats() to anon, authenticated;
+
+
+-- Private manuscript delivery. Chapter HTML must never be stored in the public GitHub Pages folder.
+insert into storage.buckets (id, name, public)
+values ('eden-chapters', 'eden-chapters', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "Authenticated readers can download Eden chapters" on storage.objects;
+create policy "Authenticated readers can download Eden chapters"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'eden-chapters');
+
+-- Storage downloads are authenticated-only. Upload manuscript files through the
+-- Supabase Dashboard as the project owner; do not make this bucket public.
