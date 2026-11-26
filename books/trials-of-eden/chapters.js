@@ -90,7 +90,7 @@ window.EDEN_CHAPTERS = [
   {
     id: "chapter-01",
     number: "Chapter 01",
-    title: "Your Chapter Title",
+    title: "The Show",
     partId: "part-01",
     available: true,
     // CHAPTER CHALLENGE TEMPLATE — replace the sample text with three questions
