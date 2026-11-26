@@ -58,7 +58,7 @@ function getCompanionTriggers(reference) {
 
 // Escape punctuation so trigger phrases are treated as literal text in a regular expression.
 function escapeCompanionTrigger(trigger) {
-  return trigger.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
+  return trigger.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
 }
 
 // Automatically turn matching manuscript phrases into Companion links.
