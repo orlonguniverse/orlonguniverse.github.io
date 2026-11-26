@@ -295,14 +295,20 @@ async function loadChapter(chapterId) {
     const { data: chapterFile, error: chapterError } = await window.engagementClient.storage.from("eden-chapters").download(chapter.id + ".html");
     if (chapterError || !chapterFile) throw new Error("This chapter has not been uploaded to the private reading library yet.");
     const source = await chapterFile.text();
-    if (source.includes("Your first paragraph goes here.") ||
-        source.includes("Your second paragraph goes here.") ||
-        source.includes("Replace these examples with your own paragraphs.")) {
-      throw new Error("The file in the eden-chapters bucket is still the blank chapter template. Replace its sample paragraphs with your actual Chapter One manuscript, then upload the finished HTML again as chapter-01.html.");
-    }
     const parsed = new DOMParser().parseFromString(source, "text/html");
     const chapterDocument = parsed.querySelector(".chapter-document");
     if (!chapterDocument) throw new Error("Chapter file is missing its chapter-document wrapper.");
+
+    // Check only visible manuscript text, not instructional HTML comments.
+    // This lets authors keep the helpful template notes in uploaded files.
+    const manuscript = chapterDocument.querySelector("#chapterText, .chapter-text");
+    const manuscriptText = manuscript ? manuscript.textContent.trim() : "";
+    if (!manuscript || !manuscriptText ||
+        manuscriptText.includes("Your first paragraph goes here.") ||
+        manuscriptText.includes("Your second paragraph goes here.") ||
+        manuscriptText.includes("Your third paragraph goes here.")) {
+      throw new Error("This chapter still contains the blank template text. Replace the sample paragraphs with your manuscript, then upload the finished HTML again.");
+    }
 
     target.innerHTML = chapterDocument.innerHTML;
     const heading = target.querySelector(".chapter-heading h2");
