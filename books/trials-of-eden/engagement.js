@@ -39,6 +39,8 @@ function setEngagementEnabled(enabled) {
   document.querySelectorAll("#contentInterestControls input, #otherInterestDetail").forEach(input => input.disabled = !enabled);
   const interestSave = byId("saveContentInterestsButton");
   if (interestSave) interestSave.disabled = !enabled;
+  const clearInterests = byId("clearContentInterestsButton");
+  if (clearInterests) clearInterests.disabled = !enabled;
 }
 
 function renderContentInterests(interests = []) {
@@ -78,7 +80,11 @@ async function saveContentInterests() {
   const selected = [...document.querySelectorAll("#contentInterestControls input[type='checkbox']:checked")].map(input => input.value);
   const otherDetail = byId("otherInterestDetail").value.trim();
   if (!selected.length) {
-    setMessage("contentInterestMessage","Please select at least one topic before saving.");
+    const { error } = await engagementClient.from("reader_content_interests").delete().eq("user_id",engagementUser.id);
+    if (error) { setMessage("contentInterestMessage","We could not clear your preferences. Please try again."); return; }
+    renderContentInterests([]);
+    setMessage("contentInterestMessage","Your content preferences have been cleared.");
+    loadPublicStats();
     return;
   }
   if (!selected.includes("other") && otherDetail) {
@@ -158,15 +164,19 @@ async function markChapterComplete() {
 
 async function saveReaction(reaction) {
   if (!engagementUser) return;
-  const { error } = await engagementClient.from("chapter_reactions").upsert({
-    user_id: engagementUser.id, chapter_id: engagementChapterId(), reaction, updated_at: new Date().toISOString()
-  }, { onConflict: "user_id,chapter_id" });
-  if (error) { setMessage("reactionMessage", "We couldn't save your reaction. Please try again."); return; }
-  currentReaction = reaction;
-  document.querySelectorAll(".engagement-reactions button").forEach(button => {
-    button.classList.toggle("selected", button.dataset.reaction === reaction);
-  });
-  setMessage("reactionMessage", "Your reaction has been saved.");
+  if (currentReaction === reaction) {
+    const { error } = await engagementClient.from("chapter_reactions").delete().eq("user_id",engagementUser.id).eq("chapter_id",engagementChapterId());
+    if (error) { setMessage("reactionMessage","We could not remove your reaction. Please try again."); return; }
+    currentReaction = null;
+    document.querySelectorAll(".engagement-reactions button").forEach(button => button.classList.remove("selected"));
+    setMessage("reactionMessage","Your reaction has been removed. Choose another whenever you like.");
+  } else {
+    const { error } = await engagementClient.from("chapter_reactions").upsert({user_id:engagementUser.id,chapter_id:engagementChapterId(),reaction,updated_at:new Date().toISOString()},{onConflict:"user_id,chapter_id"});
+    if (error) { setMessage("reactionMessage","We could not save your reaction. Please try again."); return; }
+    currentReaction = reaction;
+    document.querySelectorAll(".engagement-reactions button").forEach(button => button.classList.toggle("selected",button.dataset.reaction === reaction));
+    setMessage("reactionMessage","Your reaction is saved. Select it again to remove it, or choose another to change it.");
+  }
   loadPublicStats();
 }
 
@@ -424,9 +434,14 @@ function setAccountMode(mode) {
 }
 
 function openAccountDialog() {
+  if (engagementUser) {
+    const actions = byId("accountActionsDialog");
+    if (actions && !actions.open) actions.showModal();
+    return;
+  }
   const dialog = byId("accountDialog");
   if (!dialog) return;
-  if (!engagementUser) setAccountMode("signin");
+  setAccountMode("signin");
   if (!dialog.open) dialog.showModal();
   window.setTimeout(() => (byId("readerEmail") || byId("closeAccountDialog")).focus(), 30);
 }
@@ -439,26 +454,18 @@ async function handleAuthState(session) {
     engagementProfile = data || null;
   }
   const form = byId("accountForm");
-  const signOut = byId("signOutButton");
   const displayName = engagementProfile && engagementProfile.display_name ? engagementProfile.display_name : "Reader";
   if (form) form.hidden = Boolean(engagementUser);
-  if (signOut) signOut.hidden = !engagementUser;
   if (engagementUser) {
     const message = "Signed in as " + displayName + ". Your participation is connected to this account.";
     setMessage("accountMessage",message);
-    setMessage("accountStatusMessage",message);
     const navButton = byId("openAccountButton");
-    if (navButton) navButton.textContent = displayName.toUpperCase();
-    const cardButton = byId("accountCardButton");
-    if (cardButton) cardButton.hidden = true;
+    if (navButton) navButton.textContent = "MY ACCOUNT";
+    setMessage("accountActionsName",message);
   } else {
-    const message = "You can read without an account. Sign in or create one to save milestones and join discussions.";
-    setMessage("accountMessage",message);
-    setMessage("accountStatusMessage",message);
+    setMessage("accountMessage","You can read without an account. Sign in or create one to save milestones and join discussions.");
     const navButton = byId("openAccountButton");
     if (navButton) navButton.textContent = "SIGN IN";
-    const cardButton = byId("accountCardButton");
-    if (cardButton) cardButton.hidden = false;
   }
   setEngagementEnabled(Boolean(engagementUser));
   await refreshEngagement();
@@ -509,12 +516,13 @@ function initialiseEngagement() {
   byId("accountForm")?.addEventListener("submit",submitAccountForm);
   document.querySelectorAll("[data-account-mode]").forEach(button => button.addEventListener("click",() => setAccountMode(button.dataset.accountMode)));
   byId("openAccountButton")?.addEventListener("click",openAccountDialog);
-  byId("accountCardButton")?.addEventListener("click",openAccountDialog);
   byId("closeAccountDialog")?.addEventListener("click",() => byId("accountDialog")?.close());
   byId("accountDialog")?.addEventListener("click",event => {
     if (event.target === byId("accountDialog")) byId("accountDialog").close();
   });
-  byId("signOutButton")?.addEventListener("click",signOut);
+  byId("accountActionsSignOut")?.addEventListener("click",async () => { await signOut(); byId("accountActionsDialog")?.close(); });
+  byId("closeAccountActions")?.addEventListener("click",() => byId("accountActionsDialog")?.close());
+  byId("accountActionsDialog")?.addEventListener("click",event => { if(event.target === byId("accountActionsDialog")) byId("accountActionsDialog").close(); });
   setAccountMode("signin");
   byId("completeChapterButton")?.addEventListener("click",markChapterComplete);
   byId("commentForm")?.addEventListener("submit",submitComment);
@@ -523,6 +531,11 @@ function initialiseEngagement() {
   });
   document.querySelectorAll("#contentInterestControls input").forEach(input => input.addEventListener("change",() => setMessage("contentInterestMessage","Remember to save your updated preferences.")));
   byId("saveContentInterestsButton")?.addEventListener("click",saveContentInterests);
+  byId("clearContentInterestsButton")?.addEventListener("click",() => {
+    document.querySelectorAll("#contentInterestControls input[type=checkbox]").forEach(input => { input.checked = false; });
+    if (byId("otherInterestDetail")) byId("otherInterestDetail").value = "";
+    saveContentInterests();
+  });
   loadPublicStats();
   engagementClient.auth.onAuthStateChange((_event,session) => {
     // Defer database work out of the auth callback to avoid blocking token refresh.
