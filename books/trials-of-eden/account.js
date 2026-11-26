@@ -6,7 +6,14 @@ let accountMode="signin";
 const accountById=id=>document.getElementById(id);
 const chapterInfo=id=>(window.EDEN_CHAPTERS||[]).find(chapter=>chapter.id===id);
 const safeDate=value=>value?new Date(value).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"";
-const setAuthMessage=message=>{accountById("authMessage").textContent=message;};
+const setAuthMessage=message=>{
+ const dashboardMessage=accountById("dashboardMessage");
+ const authMessage=accountById("authMessage");
+ if(dashboardMessage && !accountById("dashboard").hidden){
+  dashboardMessage.textContent=message;
+  dashboardMessage.hidden=false;
+ }else if(authMessage){authMessage.textContent=message;}
+};
 function setMode(mode){
  accountMode=mode==="signup"?"signup":"signin";accountById("nameField").hidden=accountMode!=="signup";
  accountById("password").autocomplete=accountMode==="signup"?"new-password":"current-password";
@@ -81,16 +88,38 @@ async function loadPersonalDashboard(user){
       if(remove.disabled)return;
       remove.disabled=true;
       remove.textContent="REMOVING…";
+      setAuthMessage("Removing your reaction…");
       try{
-        const {error}=await accountClient.from("chapter_reactions")
+        const {data:deletedRows,error}=await accountClient
+          .from("chapter_reactions")
           .delete()
           .eq("user_id",user.id)
-          .eq("chapter_id",item.chapter_id);
+          .eq("chapter_id",item.chapter_id)
+          .select("user_id,chapter_id");
         if(error)throw error;
+
+        // PostgREST can return no error when row-level security filters out
+        // a DELETE. Verify that an actual row was removed before refreshing.
+        if(!deletedRows || deletedRows.length===0){
+          const {data:stillSaved,error:checkError}=await accountClient
+            .from("chapter_reactions")
+            .select("chapter_id")
+            .eq("user_id",user.id)
+            .eq("chapter_id",item.chapter_id)
+            .maybeSingle();
+          if(checkError)throw checkError;
+          if(stillSaved){
+            throw new Error("Supabase did not delete the reaction. Check the chapter_reactions DELETE policy for the signed-in reader.");
+          }
+        }
+
         await loadPersonalDashboard(user);
+        setAuthMessage("Your reaction has been removed.");
       }catch(error){
         console.error("Could not remove chapter reaction:",error);
-        setAuthMessage("We couldn't remove that reaction. Please try again.");
+        setAuthMessage(error && error.message && error.message.includes("DELETE policy")
+          ? "Supabase blocked the deletion. Please run the reaction-removal policy SQL supplied with this website update."
+          : "We couldn't remove that reaction. Your other statistics are still safe. Please try again.");
         remove.disabled=false;
         remove.textContent="REMOVE REACTION";
       }
