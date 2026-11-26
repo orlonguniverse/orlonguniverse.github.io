@@ -15,6 +15,7 @@ let latestProgress = 0;
 
 // =====================================
 // 1. THEME, TYPE AND READER SETTINGS
+// Only settings with a direct, visible effect are offered.
 // =====================================
 
 function applyTheme(theme) {
@@ -30,98 +31,59 @@ function toggleTheme() {
 }
 
 function changeFontSize(amount) {
-  applyReaderSize(Math.max(14, Math.min(24, fontSize + amount)));
-  localStorage.setItem("edenReaderPreset","custom");
-  const preset=document.getElementById("readerPresetSelect");
-  if(preset)preset.value="custom";
+  applyReaderSize(fontSize + amount);
 }
 
-// Reader font choices affect only the manuscript, never the interface text.
 function applyReaderTheme(theme) {
-  const validThemes = ["classic", "paper", "sepia", "midnight"];
-  const selectedTheme = validThemes.includes(theme) ? theme : "classic";
-  document.body.dataset.readerTheme = selectedTheme;
-  const selector = document.getElementById("readerThemeSelect");
-  if (selector) selector.value = selectedTheme;
-  localStorage.setItem("edenReaderTheme", selectedTheme);
+  const valid = ["classic", "paper", "sepia", "midnight"];
+  const selected = valid.includes(theme) ? theme : "classic";
+  document.body.dataset.readerTheme = selected;
+  const control = document.getElementById("readerThemeSelect");
+  if (control) control.value = selected;
+  localStorage.setItem("edenReaderTheme", selected);
 }
 
 function applyReaderFont(font) {
-  const validFonts = ["literary", "atkinson", "arial", "roboto", "lora", "merriweather", "orlong", "handwritten"];
-  const selectedFont = validFonts.includes(font) ? font : "literary";
-  document.body.dataset.readerFont = selectedFont;
-  const selector = document.getElementById("readerFontSelect");
-  if (selector) selector.value = selectedFont;
-  localStorage.setItem("edenReaderFont", selectedFont);
+  const valid = ["literary", "atkinson", "arial", "lora"];
+  const selected = valid.includes(font) ? font : "literary";
+  document.body.dataset.readerFont = selected;
+  const control = document.getElementById("readerFontSelect");
+  if (control) control.value = selected;
+  localStorage.setItem("edenReaderFont", selected);
 }
-
-const readerPreferences = {
-  size: { key:"edenFontSize", min:14, max:24, fallback:16 },
-  lineHeight: { key:"edenLineHeight", allowed:["1.7","1.9","2.1","2.3"], fallback:"1.9" },
-  paragraph: { key:"edenParagraphSpacing", allowed:["1.1","1.6","2"], fallback:"1.6" },
-  width: { key:"edenTextWidth", allowed:["narrow","standard","wide"], fallback:"standard" },
-  mode: { key:"edenReadingMode", allowed:["book","scroll"], fallback:"book" }
-};
 
 function applyReaderSize(value) {
-  const size=Math.max(14,Math.min(24,Number(value)||16));
-  fontSize=size;
-  document.body.style.setProperty("--reader-font-size",size+"px");
-  const slider=document.getElementById("readerTextSize");
-  const label=document.getElementById("readerTextSizeValue");
-  if(slider)slider.value=String(size);
-  if(label)label.textContent=size+"px";
-  localStorage.setItem("edenFontSize",String(size));
-}
-function applyReaderLineHeight(value) {
-  const setting=readerPreferences.lineHeight;
-  const selected=setting.allowed.includes(String(value))?String(value):setting.fallback;
-  document.body.style.setProperty("--reader-line-height",selected);
-  const control=document.getElementById("readerLineHeightSelect");
-  if(control)control.value=selected;
-  localStorage.setItem(setting.key,selected);
-}
-function applyReaderParagraphSpacing(value) {
-  const setting=readerPreferences.paragraph;
-  const selected=setting.allowed.includes(String(value))?String(value):setting.fallback;
-  document.body.style.setProperty("--reader-paragraph-spacing",selected+"em");
-  const control=document.getElementById("readerParagraphSelect");
-  if(control)control.value=selected;
-  localStorage.setItem(setting.key,selected);
-}
-function applyReaderWidth(value) {
-  const setting=readerPreferences.width;
-  const selected=setting.allowed.includes(value)?value:setting.fallback;
-  document.body.dataset.readerWidth=selected;
-  const control=document.getElementById("readerWidthSelect");
-  if(control)control.value=selected;
-  localStorage.setItem(setting.key,selected);
-}
-function applyReaderMode(value) {
-  const setting=readerPreferences.mode;
-  const selected=setting.allowed.includes(value)?value:setting.fallback;
-  document.body.dataset.readerMode=selected;
-  const control=document.getElementById("readerModeSelect");
-  if(control)control.value=selected;
-  localStorage.setItem(setting.key,selected);
-}
-function applyReaderPreset(preset) {
-  const presets={
-    print:{theme:"paper",font:"literary",size:17,line:"2.1",paragraph:"1.6",width:"standard",mode:"book"},
-    night:{theme:"midnight",font:"lora",size:17,line:"2.1",paragraph:"1.6",width:"standard",mode:"book"},
-    accessible:{theme:"paper",font:"atkinson",size:19,line:"2.3",paragraph:"2",width:"wide",mode:"scroll"}
-  };
-  const choice=presets[preset];
-  if(choice){
-    applyReaderTheme(choice.theme);applyReaderFont(choice.font);applyReaderSize(choice.size);
-    applyReaderLineHeight(choice.line);applyReaderParagraphSpacing(choice.paragraph);
-    applyReaderWidth(choice.width);applyReaderMode(choice.mode);
-  }
-  const selector=document.getElementById("readerPresetSelect");
-  if(selector)selector.value=choice?preset:"custom";
-  localStorage.setItem("edenReaderPreset",choice?preset:"custom");
+  const size = Math.max(14, Math.min(30, Number(value) || 16));
+  fontSize = size;
+  document.body.style.setProperty("--reader-font-size", size + "px");
+  const slider = document.getElementById("readerTextSize");
+  const label = document.getElementById("readerTextSizeValue");
+  if (slider) slider.value = String(size);
+  if (label) label.textContent = size + "px";
+  localStorage.setItem("edenFontSize", String(size));
 }
 
+function applyReaderLineHeight(value) {
+  const valid = ["1.6", "1.8", "2", "2.2"];
+  const selected = valid.includes(String(value)) ? String(value) : "1.8";
+  document.body.style.setProperty("--reader-line-height", selected);
+  const control = document.getElementById("readerLineHeightSelect");
+  if (control) control.value = selected;
+  localStorage.setItem("edenLineHeight", selected);
+}
+
+function toggleFocus() {
+  const active = document.body.classList.toggle("focus-mode");
+  const button = document.getElementById("readingFocusButton");
+  if (button) button.textContent = active ? "EXIT FOCUS MODE" : "ENTER FOCUS MODE";
+  const exit = document.querySelector(".focus-exit");
+  if (exit) exit.setAttribute("aria-pressed", String(active));
+}
+
+function toggleCompanion() {
+  const companion = document.getElementById("companion");
+  if (companion) companion.classList.toggle("companion-hidden");
+}
 
 function applyReferenceLinePreference(showLines) {
   document.body.classList.toggle("hide-reference-lines", !showLines);
@@ -634,41 +596,19 @@ applyTheme(savedTheme);
 applyReaderTheme(localStorage.getItem("edenReaderTheme") || "classic");
 applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
 applyReaderSize(localStorage.getItem("edenFontSize") || 16);
-applyReaderLineHeight(localStorage.getItem("edenLineHeight") || "1.9");
-applyReaderParagraphSpacing(localStorage.getItem("edenParagraphSpacing") || "1.6");
-applyReaderWidth(localStorage.getItem("edenTextWidth") || "standard");
-applyReaderMode(localStorage.getItem("edenReadingMode") || "book");
-applyReferenceLinePreference(localStorage.getItem("edenReferenceLines") !== "false");
-const presetSelect=document.getElementById("readerPresetSelect");
-if(presetSelect)presetSelect.value=localStorage.getItem("edenReaderPreset")||"custom";
-function markReaderCustom(){
-  localStorage.setItem("edenReaderPreset","custom");
-  if(presetSelect)presetSelect.value="custom";
-}
-const sizeControl=document.getElementById("readerTextSize");
-if(sizeControl)sizeControl.addEventListener("input",event=>{applyReaderSize(event.target.value);markReaderCustom();});
-const lineControl=document.getElementById("readerLineHeightSelect");
-if(lineControl)lineControl.addEventListener("change",event=>{applyReaderLineHeight(event.target.value);markReaderCustom();});
-const paragraphControl=document.getElementById("readerParagraphSelect");
-if(paragraphControl)paragraphControl.addEventListener("change",event=>{applyReaderParagraphSpacing(event.target.value);markReaderCustom();});
-const widthControl=document.getElementById("readerWidthSelect");
-if(widthControl)widthControl.addEventListener("change",event=>{applyReaderWidth(event.target.value);markReaderCustom();});
-const modeControl=document.getElementById("readerModeSelect");
-if(modeControl)modeControl.addEventListener("change",event=>{applyReaderMode(event.target.value);markReaderCustom();});
-if(presetSelect)presetSelect.addEventListener("change",event=>applyReaderPreset(event.target.value));
+applyReaderLineHeight(localStorage.getItem("edenLineHeight") || "1.8");
 
-const readerThemeSelect = document.getElementById("readerThemeSelect");
-if (readerThemeSelect) {
-  readerThemeSelect.addEventListener("change", event => { applyReaderTheme(event.target.value); markReaderCustom(); });
-}
-const readerFontSelect = document.getElementById("readerFontSelect");
-if (readerFontSelect) {
-  readerFontSelect.addEventListener("change", event => { applyReaderFont(event.target.value); markReaderCustom(); });
-}
-const referenceLinesToggle = document.getElementById("referenceLinesToggle");
-if (referenceLinesToggle) {
-  referenceLinesToggle.addEventListener("change", event => applyReferenceLinePreference(event.target.checked));
-}
+const themeControl = document.getElementById("readerThemeSelect");
+if (themeControl) themeControl.addEventListener("change", event => applyReaderTheme(event.target.value));
+
+const fontControl = document.getElementById("readerFontSelect");
+if (fontControl) fontControl.addEventListener("change", event => applyReaderFont(event.target.value));
+
+const sizeControl = document.getElementById("readerTextSize");
+if (sizeControl) sizeControl.addEventListener("input", event => applyReaderSize(event.target.value));
+
+const lineControl = document.getElementById("readerLineHeightSelect");
+if (lineControl) lineControl.addEventListener("change", event => applyReaderLineHeight(event.target.value));
 
 // The script is loaded after the HTML controls, so they can be connected here.
 setReadingWidgetState();
