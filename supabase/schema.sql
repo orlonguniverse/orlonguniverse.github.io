@@ -200,3 +200,75 @@ insert into public.reader_profiles (user_id, display_name)
 select id, coalesce(nullif(left(trim(raw_user_meta_data ->> 'display_name'), 40), ''), 'Reader')
 from auth.users
 on conflict (user_id) do nothing;
+
+
+-- Moderation and reporting extension.
+create table if not exists public.reader_moderators (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table public.reader_moderators enable row level security;
+drop policy if exists "Moderators can see their own role" on public.reader_moderators;
+create policy "Moderators can see their own role" on public.reader_moderators
+  for select to authenticated using (auth.uid() = user_id);
+
+create or replace function public.is_reader_moderator()
+returns boolean language sql stable security definer
+set search_path = public
+as $$
+  select exists(select 1 from public.reader_moderators where user_id = auth.uid());
+$$;
+revoke all on function public.is_reader_moderator() from public;
+grant execute on function public.is_reader_moderator() to authenticated;
+
+drop policy if exists "Moderators can view all comments" on public.chapter_comments;
+create policy "Moderators can view all comments" on public.chapter_comments
+  for select to authenticated using (public.is_reader_moderator());
+drop policy if exists "Moderators can moderate comments" on public.chapter_comments;
+create policy "Moderators can moderate comments" on public.chapter_comments
+  for update to authenticated using (public.is_reader_moderator())
+  with check (public.is_reader_moderator());
+
+create table if not exists public.chapter_comment_reports (
+  id uuid primary key default gen_random_uuid(),
+  comment_id uuid not null references public.chapter_comments(id) on delete cascade,
+  reporter_id uuid not null references auth.users(id) on delete cascade,
+  reason text not null check (char_length(trim(reason)) between 3 and 500),
+  created_at timestamptz not null default now(),
+  unique (comment_id, reporter_id)
+);
+alter table public.chapter_comment_reports enable row level security;
+drop policy if exists "Readers report comments once" on public.chapter_comment_reports;
+create policy "Readers report comments once" on public.chapter_comment_reports
+  for insert to authenticated with check (auth.uid() = reporter_id);
+drop policy if exists "Moderators review reports" on public.chapter_comment_reports;
+create policy "Moderators review reports" on public.chapter_comment_reports
+  for select to authenticated using (public.is_reader_moderator());
+grant select, insert on public.chapter_comment_reports to authenticated;
+
+create or replace function public.get_author_engagement_stats()
+returns jsonb language plpgsql stable security definer
+set search_path = public
+as $$
+begin
+  if not public.is_reader_moderator() then
+    raise exception 'Not authorised';
+  end if;
+  return jsonb_build_object(
+    'unique_readers', (select count(distinct user_id) from public.chapter_completions),
+    'chapter_completions', (select count(*) from public.chapter_completions),
+    'pending_comments', (select count(*) from public.chapter_comments where moderation_status = 'pending'),
+    'approved_comments', (select count(*) from public.chapter_comments where moderation_status = 'approved'),
+    'series_interest', (select count(*) from public.series_interest where interest = 'interested'),
+    'chapter_activity', coalesce((select jsonb_agg(jsonb_build_object('chapter_id', chapter_id, 'completions', total) order by chapter_id)
+      from (select chapter_id, count(*) as total from public.chapter_completions group by chapter_id) activity), '[]'::jsonb)
+  );
+end;
+$$;
+revoke all on function public.get_author_engagement_stats() from public;
+grant execute on function public.get_author_engagement_stats() to authenticated;
+
+-- To grant the author moderation access, run this separately in the SQL Editor
+-- after creating your own reader account, replacing the UUID with your auth.users.id:
+-- insert into public.reader_moderators (user_id) values ('YOUR-AUTH-USER-UUID')
+-- on conflict (user_id) do nothing;
