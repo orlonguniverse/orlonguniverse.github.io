@@ -175,6 +175,27 @@
 #companionDetails h3 { margin:9px 0 10px; color:var(--text); font-family:'Cinzel',serif; font-size:14px; letter-spacing:1px; }
 #companionDetails p { color:var(--muted); font-size:11px; line-height:1.9; overflow-wrap:anywhere; }
 .companion-category { color:var(--blue-light); font-size:9px; letter-spacing:1.6px; }
-.companion-trigger { display:inline; padding:0; color:var(--blue-light); background:transparent; border:0; border-bottom:1px dotted currentColor; font:inherit; text-align:inherit; cursor:pointer; }
-.companion-trigger:hover,.companion-trigger:focus-visible { color:var(--blue); outline-offset:3px; }
+.companion-trigger {
+  display: inline;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dotted var(--blue-light);
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease;
+}
+.companion-trigger:hover,
+.companion-trigger:focus-visible {
+  color: var(--blue-light);
+  background: rgba(57, 140, 255, .08);
+  border-bottom-style: solid;
+  outline-offset: 3px;
+}
+.companion-trigger:focus-visible {
+  outline: 2px solid var(--blue);
+  border-radius: 2px;
+}
 @media(max-width:700px) { .reader-book-location { width:100%; } }
