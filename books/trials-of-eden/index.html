@@ -773,6 +773,9 @@ body.focus-mode .reader {
 .reading-layout > .companion::-webkit-scrollbar-thumb { background: var(--blue); border: 2px solid var(--surface-2); border-radius: 8px; }
 .reader .chapter-text { font-size: var(--reader-font-size, 16px) !important; }
 
+/* Keep manuscript line spacing consistent; no separate control is offered. */
+.reader .chapter-text { line-height: 1.8 !important; }
+
 </style>
 <link rel="stylesheet" href="../../site-nav.css">
 </head>
@@ -978,14 +981,6 @@ body.focus-mode .reader {
 
       <label class="reader-setting-label" for="readerTextSize">TEXT SIZE <span id="readerTextSizeValue">16px</span></label>
       <input id="readerTextSize" class="reader-setting-range" type="range" min="14" max="30" step="1" value="16">
-
-      <label class="reader-setting-label" for="readerLineHeightSelect">LINE SPACING</label>
-      <select id="readerLineHeightSelect" class="reader-setting-select">
-        <option value="1.6">Compact</option>
-        <option value="1.8">Comfortable</option>
-        <option value="2">Relaxed</option>
-        <option value="2.2">Spacious</option>
-      </select>
 
       <button type="button" id="readingFocusButton" onclick="toggleFocus()">ENTER FOCUS MODE</button>
       <p class="reader-setting-note">Focus Mode hides surrounding page elements and centres the manuscript.</p>
