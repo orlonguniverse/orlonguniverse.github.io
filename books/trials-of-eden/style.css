@@ -673,3 +673,6 @@ body[data-reader-mode="scroll"] .reader { max-width: 100%; min-height: 0; }
   box-shadow: 0 0 0 1px var(--blue);
 }
 .reader .chapter-text { line-height: 1.8 !important; }
+
+/* Reader profile pictures in account settings and chapter discussions. */
+.comment-author{display:flex;align-items:center;gap:8px;min-height:34px}.comment-author strong{color:var(--blue-light);font-weight:600}.comment-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover;border:1px solid var(--blue);background:var(--surface-2)}.comment-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;color:var(--blue-light);font-size:12px;font-weight:700}
