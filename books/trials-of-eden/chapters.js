@@ -36,6 +36,15 @@ Use commas between entries.
 // THE TEN PARTS OF THE BOOK
 window.EDEN_PARTS = [
   { id: "part-01", title: "Part One" },
+   { id: "part-02", title: "Part Two" },
+   { id: "part-03", title: "Part Three" },
+   { id: "part-04", title: "Part Four" },
+   { id: "part-05", title: "Part Five" },
+   { id: "part-06", title: "Part Six" },
+   { id: "part-07", title: "Part Seven" },
+   { id: "part-08", title: "Part Eight" },
+   { id: "part-09", title: "Part Nine" },
+   { id: "part-10", title: "Part Ten" },
 ];
 
 // OPTIONAL OPENING / CLOSING SECTIONS
