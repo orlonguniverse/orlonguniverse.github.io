@@ -34,6 +34,16 @@ These are catalogue entries, not rewards already granted to readers. The later r
 
 Do not renumber cards to fill gaps. Do not put unreleased character names, artwork, descriptions or reward pools in public files. The Supabase card tables created in Stage 1 have row-level security enabled and no reader-facing read policy yet; later stages will add carefully gated access.
 
+## Collection and duplicate rules already decided
+
+These are product rules for the later binder and trading stages:
+
+- A reader keeps a duplicate card by default. They may choose to exchange an unwanted duplicate for in-game currency; duplicates are never automatically converted.
+- The exchange currency name and card values have not been set yet. Keep those values configurable rather than hard-coding an economy now.
+- Each reader's collection can be switched between private and public.
+- A public collection lets other readers view the cards owned and make trade offers. It does not grant visitors the owner's rewards, achievements, currency, activity history or other account benefits.
+- Collection visibility and card ownership are separate. Viewing a card never grants ownership, and a trade changes ownership only after the trade is explicitly accepted and completed.
+
 ## Future systems kept separate
 
 The catalogue deliberately leaves room for:
