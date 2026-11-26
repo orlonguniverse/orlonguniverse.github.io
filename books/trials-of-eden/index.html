@@ -801,7 +801,10 @@ body.focus-mode .reader {
 
     <div class="reader-top">
 
-      <span>THE TRIALS OF EDEN</span>
+      <div class="reader-book-location">
+        <span>THE TRIALS OF EDEN</span>
+        <span class="current-part-label" id="currentPartLabel">PART ONE</span>
+      </div>
 
       <div class="reader-controls">
 
@@ -852,37 +855,18 @@ body.focus-mode .reader {
     <div class="companion-box">
 
       <h3>READING COMPANION</h3>
-
-      <p>
-        An optional companion to your reading experience.
-        Explore additional information without interrupting
-        the main chapter.
-      </p>
-
-      <button onclick="showCompanion('characters')">
-        Character references
-      </button>
-
-      <button onclick="showCompanion('locations')">
-        Location references
-      </button>
-
-      <button onclick="showCompanion('notes')">
-        Author notes
-      </button>
+      <p>Explore the people, places, concepts and other references connected to this chapter. Select a highlighted word in the manuscript, or choose an entry below.</p>
+      <h3 class="companion-subheading">CHAPTER REFERENCES</h3>
+      <div id="companionTermList" class="companion-term-list" aria-label="All references in this chapter">
+        <p class="companion-empty">Loading chapter references...</p>
+      </div>
 
     </div>
 
 
-    <div class="companion-box" id="companionContent">
-
-      <h3>WELCOME TO EDEN</h3>
-
-      <p>
-        Select one of the categories above to explore
-        supplementary reading material.
-      </p>
-
+    <div class="companion-box" id="companionDetails" aria-live="polite" aria-atomic="true">
+      <h3>CHAPTER REFERENCES</h3>
+      <p>Select a reference to see its description.</p>
     </div>
 
     <div class="companion-box">
