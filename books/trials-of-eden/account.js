@@ -43,11 +43,27 @@ async function loadPersonalDashboard(user){
  accountById("personalStats").replaceChildren();
  stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="stat";const number=document.createElement("strong");number.textContent=value.toLocaleString();const caption=document.createElement("span");caption.textContent=label;card.append(number,caption);accountById("personalStats").appendChild(card);});
  addActivity("completedList",completions,"You haven't marked any chapters as completed yet.",item=>{const c=chapterInfo(item.chapter_id);return activityCard(c?c.number+" — "+c.title:item.chapter_id,"Completed "+safeDate(item.completed_at));});
- addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{const c=chapterInfo(item.chapter_id),label={like:"👍 Like",love:"❤️ Love",shocked:"😮 Shocked",sad:"😢 Sad",excited:"⚡ Excited"}[item.reaction]||item.reaction;return activityCard(c?c.number+" — "+c.title:item.chapter_id,label+" · "+safeDate(item.updated_at));});
+  const reactionLabels={like:"👍 Like",love:"❤️ Love",shocked:"😮 Shocked",sad:"😢 Sad",excited:"⚡ Excited"};
+  addActivity("reactionList",reactions,"You haven't reacted to any chapters yet.",item=>{
+    const c=chapterInfo(item.chapter_id),card=activityCard(c?c.number+" — "+c.title:item.chapter_id,(reactionLabels[item.reaction]||item.reaction)+" · "+safeDate(item.updated_at));
+    const remove=document.createElement("button");remove.type="button";remove.className="personal-remove-button";remove.textContent="REMOVE REACTION";
+    remove.addEventListener("click",async()=>{const {error}=await accountClient.from("chapter_reactions").delete().eq("user_id",user.id).eq("chapter_id",item.chapter_id);if(error){setAuthMessage("We couldn't remove that reaction. Please try again.");return;}await loadPersonalDashboard(user);});
+    card.appendChild(remove);return card;
+  });
+  const breakdown=accountById("reactionBreakdown");breakdown.replaceChildren();
+  Object.entries(reactionCounts).sort((a,b)=>b[1]-a[1]).forEach(([key,count])=>{const row=document.createElement("div");row.className="activity-item";const label=document.createElement("strong");label.textContent=(reactionLabels[key]||key)+" — "+count;const note=document.createElement("small");note.textContent="Across your chapter reactions";row.append(label,note);breakdown.appendChild(row);});
+  if(!Object.keys(reactionCounts).length){const empty=document.createElement("div");empty.className="empty";empty.textContent="Your reaction breakdown will appear here once you react to chapters.";breakdown.appendChild(empty);}
  addActivity("commentList",comments,"You haven't submitted any comments yet.",item=>{const c=chapterInfo(item.chapter_id),status={approved:"APPROVED",pending:"AWAITING REVIEW",hidden:"HIDDEN"}[item.moderation_status]||item.moderation_status.toUpperCase();return activityCard(c?c.number+" — "+c.title:item.chapter_id,status+" · "+safeDate(item.created_at),item.body);});
  const labels={characters:"Characters",plot:"Plot and twists",worldbuilding:"Worldbuilding and lore",relationships:"Relationships",action:"Action and challenges",other:"Other"},container=accountById("preferenceList");container.replaceChildren();
  if(!preferences.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="You haven't saved any content preferences yet.";container.appendChild(empty);}
- preferences.forEach(item=>{const tag=document.createElement("span");tag.className="pill";tag.textContent=labels[item.interest_id]||item.interest_id;container.appendChild(tag);if(item.other_detail){const detail=document.createElement("p");detail.className="muted";detail.textContent=item.other_detail;container.appendChild(detail);}});
+  preferences.forEach(item=>{
+    const wrap=document.createElement("div");wrap.className="activity-item";
+    const tag=document.createElement("strong");tag.textContent=labels[item.interest_id]||item.interest_id;wrap.appendChild(tag);
+    if(item.other_detail){const detail=document.createElement("small");detail.textContent=item.other_detail;wrap.appendChild(detail);}
+    const remove=document.createElement("button");remove.type="button";remove.className="personal-remove-button";remove.textContent="REMOVE SELECTION";
+    remove.addEventListener("click",async()=>{const {error}=await accountClient.from("reader_content_interests").delete().eq("user_id",user.id).eq("interest_id",item.interest_id);if(error){setAuthMessage("We couldn't remove that preference. Please try again.");return;}await loadPersonalDashboard(user);});
+    wrap.appendChild(remove);container.appendChild(wrap);
+  });
 }
 async function showSession(session){
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
