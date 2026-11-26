@@ -90,35 +90,25 @@ async function loadPersonalDashboard(user){
       remove.textContent="REMOVING…";
       setAuthMessage("Removing your reaction…");
       try{
-        const {data:deletedRows,error}=await accountClient
-          .from("chapter_reactions")
-          .delete()
-          .eq("user_id",user.id)
-          .eq("chapter_id",item.chapter_id)
-          .select("user_id,chapter_id");
+        const {data:removed,error}=await accountClient.rpc("remove_own_chapter_reaction",{
+          target_chapter_id:item.chapter_id
+        });
         if(error)throw error;
-
-        // PostgREST can return no error when row-level security filters out
-        // a DELETE. Verify that an actual row was removed before refreshing.
-        if(!deletedRows || deletedRows.length===0){
-          const {data:stillSaved,error:checkError}=await accountClient
-            .from("chapter_reactions")
-            .select("chapter_id")
-            .eq("user_id",user.id)
-            .eq("chapter_id",item.chapter_id)
-            .maybeSingle();
-          if(checkError)throw checkError;
-          if(stillSaved){
-            throw new Error("Supabase did not delete the reaction. Check the chapter_reactions DELETE policy for the signed-in reader.");
-          }
+        if(removed!==true){
+          throw new Error("No matching saved reaction was removed. Refresh your statistics and try again.");
         }
 
-        await loadPersonalDashboard(user);
-        setAuthMessage("Your reaction has been removed.");
+        try {
+          await loadPersonalDashboard(user);
+          setAuthMessage("Your reaction has been removed.");
+        } catch(refreshError) {
+          console.error("Reaction removed, but statistics could not refresh:",refreshError);
+          setAuthMessage("Your reaction was removed, but your statistics could not refresh. Please reload this page.");
+        }
       }catch(error){
         console.error("Could not remove chapter reaction:",error);
-        setAuthMessage(error && error.message && error.message.includes("DELETE policy")
-          ? "Supabase blocked the deletion. Please run the reaction-removal policy SQL supplied with this website update."
+        setAuthMessage(error && error.message && error.message.includes("remove_own_chapter_reaction")
+          ? "The reaction-removal database update has not been installed yet. Please run the SQL migration supplied with this update in Supabase."
           : "We couldn't remove that reaction. Your other statistics are still safe. Please try again.");
         remove.disabled=false;
         remove.textContent="REMOVE REACTION";
