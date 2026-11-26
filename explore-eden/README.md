@@ -97,3 +97,16 @@ The migration:
 The My Account page now includes a personal card binder. It displays the cards a reader owns, their permanent card numbers, category, rarity and number of copies. Readers cannot directly query or edit the underlying ownership tables.
 
 The binder currently displays earned cards only. Public binders, trading, duplicate exchange, achievements and card-set completion are later features.
+
+
+## Stage 4 — interactive personal binder
+
+Stage 4 upgrades the signed-in reader's binder with:
+- category filters that appear automatically as the reader collects cards from more categories;
+- selectable card fronts that open a larger detail view;
+- card number, category, rarity and owned-copy count in the detail view;
+- spoiler-safe descriptions when one has been approved in the catalogue.
+
+The binder still shows only cards the signed-in reader owns. It does not expose the master catalogue or another reader's collection. Explore Eden companion links will be added as the corresponding spoiler-safe lore entries are authored and released.
+
+No additional Supabase SQL is required for this interface stage. The existing private get_my_card_collection() function supplies the data.
