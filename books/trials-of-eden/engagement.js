@@ -255,7 +255,7 @@ async function loadChapterComments() {
   data.filter(comment => !comment.parent_id).forEach(comment => {
     container.appendChild(createCommentElement(comment,"Reader"));
     data.filter(reply => reply.parent_id === comment.id).forEach(reply => {
-      const replyElement = createCommentElement(reply,"Reader"));
+      const replyElement = createCommentElement(reply,"Reader");
       replyElement.style.marginLeft = "22px";
       container.appendChild(replyElement);
     });
