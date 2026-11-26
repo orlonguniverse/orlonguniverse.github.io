@@ -608,3 +608,21 @@ body.focus-mode .focus-exit { display:block; }
   body[data-reader-mode="book"] .reader { min-height:0; padding:35px 22px; }
   .reader .chapter-heading { padding:55px 0 38px; }
 }
+
+
+/* Reliable Reading Options: each control directly affects manuscript text. */
+.reader .chapter-text {
+  font-size: var(--reader-font-size, 16px) !important;
+  line-height: var(--reader-line-height, 1.8) !important;
+}
+.reader .chapter-text p {
+  margin-bottom: 1.6em !important;
+}
+body[data-reader-font="literary"] .reader .chapter-text { font-family: 'Libre Baskerville', Georgia, serif !important; }
+body[data-reader-font="atkinson"] .reader .chapter-text { font-family: 'Atkinson Hyperlegible', Arial, sans-serif !important; }
+body[data-reader-font="arial"] .reader .chapter-text { font-family: Arial, Helvetica, sans-serif !important; }
+body[data-reader-font="lora"] .reader .chapter-text { font-family: 'Lora', Georgia, serif !important; }
+
+/* "Book page" previously only changed width; true pagination is not offered yet. */
+body[data-reader-mode="book"] .reader,
+body[data-reader-mode="scroll"] .reader { max-width: 100%; min-height: 0; }
