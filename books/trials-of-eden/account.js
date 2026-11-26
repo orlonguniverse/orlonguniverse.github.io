@@ -33,17 +33,33 @@ function activityCard(title,detail,body){
  const small=document.createElement("small");small.textContent=detail;card.append(heading,small);
  if(body){const paragraph=document.createElement("p");paragraph.textContent=body;card.appendChild(paragraph);}return card;
 }
-async function loadPersonalDashboard(user){
- const [profile,completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult]=await Promise.all([
-  accountClient.from("reader_profiles").select("display_name,avatar_url").eq("user_id",user.id).maybeSingle(),
-  accountClient.from("chapter_completions").select("chapter_id,completed_at").eq("user_id",user.id).order("completed_at",{ascending:false}),
-  accountClient.from("chapter_reactions").select("chapter_id,reaction,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
-  accountClient.from("chapter_comments").select("id,chapter_id,body,moderation_status,created_at,contains_spoiler").eq("user_id",user.id).order("created_at",{ascending:false}),
-  accountClient.from("reader_content_interests").select("interest_id,other_detail,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
-  accountClient.from("chapter_quiz_attempts").select("id,chapter_id,answers,score,total_questions,submitted_at").eq("user_id",user.id).order("submitted_at",{ascending:false})
- ]);
- const errors=[completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult].filter(result=>result.error);
- if(errors.length){setAuthMessage("We couldn't load all your statistics. Please refresh and try again.");console.error(errors);return;}
+async function loadPersonalDashboard(user,cachedData=null,silent=false){
+ let profile,completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult;
+ if(cachedData){
+  profile={data:cachedData.profile};
+  completionsResult={data:cachedData.completions||[]};
+  reactionsResult={data:cachedData.reactions||[]};
+  commentsResult={data:cachedData.comments||[]};
+  preferencesResult={data:cachedData.preferences||[]};
+  quizResult={data:cachedData.quizAttempts||[]};
+ }else{
+  [profile,completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult]=await Promise.all([
+   accountClient.from("reader_profiles").select("display_name,avatar_url").eq("user_id",user.id).maybeSingle(),
+   accountClient.from("chapter_completions").select("chapter_id,completed_at").eq("user_id",user.id).order("completed_at",{ascending:false}),
+   accountClient.from("chapter_reactions").select("chapter_id,reaction,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
+   accountClient.from("chapter_comments").select("id,chapter_id,body,moderation_status,created_at,contains_spoiler").eq("user_id",user.id).order("created_at",{ascending:false}),
+   accountClient.from("reader_content_interests").select("interest_id,other_detail,updated_at").eq("user_id",user.id).order("updated_at",{ascending:false}),
+   accountClient.from("chapter_quiz_attempts").select("id,chapter_id,answers,score,total_questions,submitted_at").eq("user_id",user.id).order("submitted_at",{ascending:false})
+  ]);
+  const errors=[completionsResult,reactionsResult,commentsResult,preferencesResult,quizResult].filter(result=>result.error);
+  if(errors.length){if(!silent)setAuthMessage("We couldn't load all your statistics. Please refresh and try again.");console.error(errors);return;}
+  try{
+   sessionStorage.setItem("edenDashboard:"+user.id,JSON.stringify({
+    profile:profile.data,completions:completionsResult.data||[],reactions:reactionsResult.data||[],
+    comments:commentsResult.data||[],preferences:preferencesResult.data||[],quizAttempts:quizResult.data||[]
+   }));
+  }catch(cacheError){console.warn("Could not cache the statistics dashboard.",cacheError);}
+ }
  const completions=completionsResult.data||[],reactions=reactionsResult.data||[],comments=commentsResult.data||[],preferences=preferencesResult.data||[],quizAttempts=quizResult.data||[];
  accountById("profileName").textContent=(profile.data?.display_name||"Reader").toUpperCase();
  const avatarPreview=accountById("accountAvatarPreview");
@@ -172,7 +188,14 @@ async function showSession(session){
  if(signedIn){
   const name=session.user.user_metadata?.display_name;
   if(name)accountById("profileName").textContent=String(name).toUpperCase();
-  await loadPersonalDashboard(session.user);
+  let cached=null;
+  try{cached=JSON.parse(sessionStorage.getItem("edenDashboard:"+userId)||"null");}catch(_){}
+  if(cached){
+   await loadPersonalDashboard(session.user,cached);
+   loadPersonalDashboard(session.user,null,true);
+  }else{
+   await loadPersonalDashboard(session.user);
+  }
  }
 }
 async function submitAccount(event){
