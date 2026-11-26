@@ -7,6 +7,7 @@ const SUPABASE_URL = "https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 
 const engagementClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+window.engagementClient = engagementClient;
 let engagementUser = null;
 let engagementProfile = null;
 let currentReaction = null;
@@ -448,6 +449,7 @@ function openAccountDialog() {
 
 async function handleAuthState(session) {
   engagementUser = session && session.user ? session.user : null;
+  window.engagementUser = engagementUser;
   engagementProfile = null;
   if (engagementUser) {
     const { data } = await engagementClient.from("reader_profiles").select("display_name").eq("user_id",engagementUser.id).maybeSingle();
@@ -460,7 +462,7 @@ async function handleAuthState(session) {
     const message = "Signed in as " + displayName + ". Your participation is connected to this account.";
     setMessage("accountMessage",message);
     const navButton = byId("openAccountButton");
-    if (navButton) navButton.textContent = "MY ACCOUNT";
+    if (navButton) navButton.textContent = displayName.toUpperCase();
     setMessage("accountActionsName",message);
   } else {
     setMessage("accountMessage","You can read without an account. Sign in or create one to save milestones and join discussions.");
@@ -468,6 +470,7 @@ async function handleAuthState(session) {
     if (navButton) navButton.textContent = "SIGN IN";
   }
   setEngagementEnabled(Boolean(engagementUser));
+  if (window.startEdenReader) window.startEdenReader(session);
   await refreshEngagement();
 }
 
