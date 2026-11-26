@@ -114,3 +114,23 @@ window.EDEN_CHAPTERS = [
   // Example for Chapter 08 in Part Two:
   // { id: "chapter-08", number: "Chapter 08", title: "Your title", partId: "part-02", available: false }
 ];
+
+
+// DISPLAY RULE: show every released chapter plus only the next two
+// unreleased chapters. This keeps the public directory concise.
+window.EDEN_UNRELEASED_AHEAD = 2;
+window.getVisibleEdenChapters = function () {
+  const chapters = window.EDEN_CHAPTERS || [];
+  let lastReleasedIndex = -1;
+
+  chapters.forEach((chapter, index) => {
+    if (chapter.available) lastReleasedIndex = index;
+  });
+
+  // If nothing has been released yet, show the first two entries.
+  const lastVisibleIndex = lastReleasedIndex === -1
+    ? window.EDEN_UNRELEASED_AHEAD - 1
+    : lastReleasedIndex + window.EDEN_UNRELEASED_AHEAD;
+
+  return chapters.slice(0, lastVisibleIndex + 1);
+};
