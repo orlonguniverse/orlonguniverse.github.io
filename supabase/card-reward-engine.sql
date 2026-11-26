@@ -285,6 +285,31 @@ and exists (
 )
 on conflict (pool_id, card_id) do nothing;
 
+-- Backfill qualifying Chapter One activity already recorded before
+-- this migration was installed. Unique claims keep this safe on reruns.
+select public.award_reader_card(user_id, 'chapter_completion', chapter_id)
+from public.chapter_completions
+where chapter_id = 'chapter-01';
+
+select public.award_reader_card(user_id, 'chapter_reaction', chapter_id)
+from public.chapter_reactions
+where chapter_id = 'chapter-01';
+
+select public.award_reader_card(user_id, 'chapter_challenge', chapter_id)
+from (
+  select distinct user_id, chapter_id
+  from public.chapter_quiz_attempts
+  where chapter_id = 'chapter-01'
+) existing_challenges;
+
+select public.award_reader_card(user_id, 'approved_comment', chapter_id)
+from (
+  select distinct user_id, chapter_id
+  from public.chapter_comments
+  where chapter_id = 'chapter-01'
+    and moderation_status = 'approved'
+) existing_approved_comments;
+
 -- Quick verification: each active Chapter One pool should show 3 cards.
 select
   p.pool_id,
