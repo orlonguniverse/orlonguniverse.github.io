@@ -434,6 +434,26 @@ body.focus-mode .topbar {
   display: none;
 }
 
+/* FOCUS MODE EXIT BUTTON */
+
+.focus-exit {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 200;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid var(--blue);
+  color: var(--text);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+body.focus-mode .focus-exit {
+  display: block;
+}
+
 body.focus-mode .reading-layout {
   display: block;
   max-width: 900px;
@@ -542,6 +562,14 @@ body.focus-mode .reader {
   </div>
 
 </nav>
+
+<button class="focus-exit" onclick="toggleFocus()">
+  EXIT FOCUS MODE
+</button>
+
+<div class="reading-progress">
+  <div id="progressBar"></div>
+</div>
 
 
 <!-- BOOK HEADER -->
