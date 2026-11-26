@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Contents | The Trials of Eden</title>
+<meta name="description" content="Explore the Parts and chapters of The Trials of Eden by Callum Macann.">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --blue:#398cff; --blue-light:#8bbdff; }
+* { box-sizing:border-box; }
+body {
+  --background:#090e18; --surface:#101a2a; --surface-2:#162338;
+  --text:#e9edf5; --muted:#9ca9bc; --border:#ffffff18;
+  margin:0; background:var(--background); color:var(--text);
+  font-family:Inter,sans-serif; transition:background .25s,color .25s;
+}
+body.light {
+  --background:#f2efe8; --surface:#fff; --surface-2:#e9e5dc;
+  --text:#242a34; --muted:#687080; --border:#17243a20;
+}
+a { color:inherit; text-decoration:none; }
+button { font:inherit; cursor:pointer; }
+.topbar { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:18px 6%; background:var(--surface); border-bottom:1px solid var(--border); }
+.logo { font-family:Cinzel,serif; letter-spacing:3px; font-size:17px; }
+.top-actions { display:flex; align-items:center; gap:18px; }
+.top-actions a,.top-actions button { color:var(--muted); background:none; border:1px solid var(--border); padding:10px 13px; font-size:10px; letter-spacing:1px; }
+.top-actions a:hover,.top-actions button:hover { color:var(--blue-light); border-color:var(--blue); }
+.hero { text-align:center; padding:75px 20px 60px; background:radial-gradient(ellipse at 50% 0%,#17447744,transparent 65%),var(--background); border-bottom:1px solid var(--border); }
+.eyebrow { color:var(--blue-light); font-size:10px; letter-spacing:4px; }
+.hero h1 { font-family:Cinzel,serif; font-weight:500; font-size:clamp(30px,5vw,48px); letter-spacing:4px; margin:18px 0 12px; }
+.hero p { color:var(--muted); font-size:12px; letter-spacing:1px; }
+.hero-actions { margin-top:28px; }
+.primary-button { display:inline-block; padding:15px 24px; background:#236bd2; border:1px solid #65adff; color:white; font-size:10px; letter-spacing:2px; transition:.2s; }
+.primary-button:hover { background:#398cff; transform:translateY(-2px); }
+.contents-wrap { max-width:900px; margin:auto; padding:55px 24px 90px; }
+.contents-intro { margin-bottom:35px; }
+.contents-intro h2 { font-family:Cinzel,serif; font-weight:500; letter-spacing:2px; font-size:17px; }
+.contents-intro p { color:var(--muted); font-size:12px; line-height:1.8; }
+.part-section { margin:0 0 18px; padding:23px; background:var(--surface); border:1px solid var(--border); }
+.part-heading { display:flex; align-items:center; justify-content:space-between; gap:15px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+.part-heading h2 { margin:0; font-family:Cinzel,serif; font-size:16px; font-weight:500; letter-spacing:2px; }
+.part-count { color:var(--muted); font-size:9px; letter-spacing:1.5px; text-align:right; }
+.part-empty { color:var(--muted); font-size:12px; margin:18px 0 2px; }
+.contents-chapter-list { display:grid; gap:8px; padding-top:14px; }
+.contents-chapter { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:15px 13px; border:1px solid var(--border); background:var(--surface-2); transition:border-color .2s,transform .2s; }
+.contents-chapter.is-available:hover { border-color:var(--blue); transform:translateX(3px); }
+.contents-chapter.is-unavailable { opacity:.62; }
+.contents-chapter-details { display:flex; flex-direction:column; gap:6px; }
+.contents-chapter-number { color:var(--blue-light); font-size:9px; letter-spacing:1.5px; text-transform:uppercase; }
+.contents-chapter-title { color:var(--text); font-size:12px; }
+.contents-chapter-status { color:var(--muted); font-size:9px; letter-spacing:1px; white-space:nowrap; }
+.contents-chapter.is-available .contents-chapter-status { color:var(--blue-light); }
+.special-section { border-color:#398cff55; }
+footer { padding:35px 20px; border-top:1px solid var(--border); text-align:center; }
+footer p { color:var(--muted); font-size:10px; line-height:2; }
+footer a { color:var(--blue-light); }
+@media(max-width:600px) {
+  .topbar { flex-direction:column; }
+  .top-actions { flex-wrap:wrap; justify-content:center; }
+  .hero { padding:55px 18px 45px; }
+  .contents-wrap { padding:35px 14px 65px; }
+  .part-section { padding:17px 13px; }
+  .part-heading h2 { font-size:14px; }
+  .contents-chapter { padding:13px 10px; }
+  .contents-chapter-status { font-size:8px; }
+}
+</style>
+</head>
+<body class="dark">
+<nav class="topbar" aria-label="Main navigation">
+  <a href="../../index.html" class="logo">ORLONG</a>
+  <div class="top-actions">
+    <a href="../../index.html">MAIN WEBSITE</a>
+    <a href="index.html">READING ROOM</a>
+    <button id="contentsThemeButton" type="button" onclick="toggleContentsTheme()">LIGHT MODE</button>
+  </div>
+</nav>
+<header class="hero">
+  <div class="eyebrow">HOUSE BLUE EEL · EDEN TRILOGY · BOOK ONE</div>
+  <h1>THE TRIALS OF EDEN</h1>
+  <p>BOOK CONTENTS</p>
+  <div class="hero-actions"><a class="primary-button" id="startReading" href="index.html">START READING</a></div>
+</header>
+<main class="contents-wrap">
+  <div class="contents-intro">
+    <h2>EXPLORE THE BOOK</h2>
+    <p>Browse the Parts and chapters below. Available chapters can be opened directly; chapters still in preparation are listed so you can see how the book is organised.</p>
+  </div>
+  <div id="bookContents" aria-live="polite"><p>Loading book contents...</p></div>
+</main>
+<footer>
+  <p>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN</p>
+  <p><a href="../../index.html">Return to the Orlong Universe</a></p>
+  <p>© 2026 Callum Macann. All rights reserved.</p>
+</footer>
+<script src="chapters.js"></script>
+<script src="contents.js"></script>
+</body>
+</html>
