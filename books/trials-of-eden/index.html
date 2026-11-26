@@ -784,6 +784,16 @@ body.focus-mode .reader {
   <p class="engagement-small"><a href="account.html">VIEW MY READING STATISTICS →</a></p>
 </dialog>
 
+<dialog class="account-dialog account-actions-dialog" id="accountActionsDialog" aria-labelledby="accountActionsTitle">
+  <div class="account-dialog-header">
+    <div><p class="engagement-eyebrow">YOUR ORLONG ACCOUNT</p><h2 id="accountActionsTitle">WELCOME BACK</h2></div>
+    <button type="button" id="closeAccountActions" class="account-dialog-close" aria-label="Close account menu">×</button>
+  </div>
+  <p id="accountActionsName" class="engagement-muted">You're signed in.</p>
+  <a class="account-action-link" href="account.html">VIEW MY PROFILE &amp; STATISTICS</a>
+  <button type="button" id="accountActionsSignOut" class="account-submit-button">SIGN OUT</button>
+</dialog>
+
 <button class="focus-exit" onclick="toggleFocus()">
   EXIT FOCUS MODE
 </button>
@@ -951,16 +961,9 @@ body.focus-mode .reader {
   <div class="engagement-inner">
     <p class="engagement-eyebrow">THE ORLONG COMMUNITY</p>
     <h2 id="communityHeading">YOUR READING JOURNEY</h2>
-    <p class="engagement-intro">Reading is always free. Sign in only if you'd like to save chapter milestones, share your reactions or join the discussion.</p>
+    <p class="engagement-intro">Track your chapter milestones, share your reactions, tell us what you want to see next and join the discussion.</p>
 
     <div class="engagement-grid">
-      <section class="engagement-card" id="accountCard">
-        <h3>READER ACCOUNT</h3>
-        <p id="accountStatusMessage" class="engagement-muted" aria-live="polite">You can read the novel without an account. Sign in if you'd like to save your progress or join the discussion.</p>
-        <button type="button" id="accountCardButton">SIGN IN / CREATE ACCOUNT</button>
-        <button type="button" id="signOutButton" class="secondary" hidden>SIGN OUT</button>
-      </section>
-
       <section class="engagement-card" id="chapterEngagementCard">
         <h3>THIS CHAPTER</h3>
         <p class="engagement-muted" id="chapterEngagementTitle">Chapter activity will appear here.</p>
@@ -990,6 +993,7 @@ body.focus-mode .reader {
         <label class="other-interest-label" for="otherInterestDetail">Anything specific? (Optional)</label>
         <textarea id="otherInterestDetail" rows="2" maxlength="500" placeholder="Tell us what you'd like to see more of..."></textarea>
         <button type="button" id="saveContentInterestsButton" disabled>SAVE MY PREFERENCES</button>
+        <button type="button" id="clearContentInterestsButton" class="secondary" disabled>CLEAR MY SELECTIONS</button>
         <p id="contentInterestMessage" class="engagement-small" aria-live="polite">Sign in to share what interests you.</p>
       </section>
     </div>
