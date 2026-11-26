@@ -11,6 +11,8 @@ window.engagementClient = engagementClient;
 let engagementUser = null;
 let engagementProfile = null;
 let currentReaction = null;
+let currentCompletion = false;
+let quizDraftEnabled = false;
 let replyToComment = null;
 let accountMode = "signin";
 
@@ -121,8 +123,10 @@ async function loadChapterActivity() {
   if (complete) {
     complete.textContent = "MARK CHAPTER COMPLETE";
     complete.disabled = !engagementUser;
+    complete.setAttribute("aria-pressed","false");
   }
   currentReaction = null;
+  currentCompletion = false;
   document.querySelectorAll(".engagement-reactions button").forEach(button => button.classList.remove("selected"));
   if (!engagementUser) {
     setMessage("completionMessage", "Sign in to save this chapter milestone.");
@@ -137,9 +141,14 @@ async function loadChapterActivity() {
     setMessage("completionMessage", "We couldn't load your saved chapter activity.");
     return;
   }
-  if (completionResult.data) {
-    if (complete) { complete.textContent = "✓ CHAPTER COMPLETED"; complete.disabled = true; }
-    setMessage("completionMessage", "This chapter is saved as completed on your account.");
+  currentCompletion = Boolean(completionResult.data);
+  if (complete) {
+    complete.textContent = currentCompletion ? "✓ COMPLETED — UNMARK?" : "MARK CHAPTER COMPLETE";
+    complete.disabled = false;
+    complete.setAttribute("aria-pressed",String(currentCompletion));
+  }
+  if (currentCompletion) {
+    setMessage("completionMessage", "This chapter is marked complete. You can undo this whenever you like.");
   } else {
     setMessage("completionMessage", "Finished reading? Save this milestone to your account.");
   }
@@ -155,10 +164,17 @@ async function loadChapterActivity() {
 
 async function markChapterComplete() {
   if (!engagementUser) return;
-  const { error } = await engagementClient.from("chapter_completions").upsert({
-    user_id: engagementUser.id, chapter_id: engagementChapterId()
-  }, { onConflict: "user_id,chapter_id", ignoreDuplicates: true });
-  if (error) { setMessage("completionMessage", "We couldn't save that milestone. Please try again."); return; }
+  const query = engagementClient.from("chapter_completions").delete()
+    .eq("user_id",engagementUser.id).eq("chapter_id",engagementChapterId());
+  const result = currentCompletion
+    ? await query
+    : await engagementClient.from("chapter_completions").upsert({
+        user_id:engagementUser.id, chapter_id:engagementChapterId()
+      }, { onConflict:"user_id,chapter_id", ignoreDuplicates:true });
+  if (result.error) {
+    setMessage("completionMessage",currentCompletion ? "We couldn't undo that milestone. Please try again." : "We couldn't save that milestone. Please try again.");
+    return;
+  }
   await loadChapterActivity();
   loadPublicStats();
 }
@@ -412,7 +428,167 @@ async function loadModeratorPanel() {
 }
 
 async function refreshEngagement() {
-  await Promise.all([loadChapterActivity(),loadContentInterests(),loadChapterComments(),loadModeratorPanel()]);
+  await Promise.all([loadChapterActivity(),loadContentInterests(),loadChapterComments(),loadModeratorPanel(),loadChapterQuiz()]);
+}
+
+// CHAPTER CHALLENGE — each submission is a new immutable database row.
+function renderQuizMessage(message) {
+  const target = byId("chapterQuiz");
+  if (!target) return;
+  target.replaceChildren();
+  const note = document.createElement("p");
+  note.className = "engagement-muted";
+  note.textContent = message;
+  target.appendChild(note);
+}
+
+function renderQuizAttemptReview(quiz, attempt) {
+  const target = byId("chapterQuiz");
+  target.replaceChildren();
+  const result = document.createElement("p");
+  result.className = "quiz-result";
+  result.textContent = "YOUR RESULT: " + attempt.score + " / " + attempt.total_questions;
+  target.appendChild(result);
+  const answers = Array.isArray(attempt.answers) ? attempt.answers : [];
+  quiz.questions.slice(0,3).forEach((question,index) => {
+    const answer = Number(answers[index]);
+    const item = document.createElement("div");
+    item.className = "quiz-review-item";
+    const heading = document.createElement("strong");
+    heading.textContent = (index+1) + ". " + question.question;
+    const chosen = document.createElement("p");
+    chosen.textContent = "Your answer: " + (question.options[answer] ?? "No answer");
+    const correct = document.createElement("p");
+    correct.textContent = "Correct answer: " + question.options[question.answer];
+    item.append(heading,chosen,correct);
+    if (question.explanation) {
+      const explanation = document.createElement("small");
+      explanation.textContent = question.explanation;
+      item.appendChild(explanation);
+    }
+    target.appendChild(item);
+  });
+  const retake = document.createElement("button");
+  retake.type = "button";
+  retake.className = "quiz-retake-button";
+  retake.textContent = "TAKE ANOTHER ATTEMPT";
+  retake.addEventListener("click",() => renderQuizForm(quiz));
+  target.appendChild(retake);
+}
+
+function renderQuizForm(quiz) {
+  const target = byId("chapterQuiz");
+  target.replaceChildren();
+  const form = document.createElement("form");
+  form.id = "chapterQuizForm";
+  quiz.questions.slice(0,3).forEach((question,index) => {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "quiz-question";
+    const legend = document.createElement("legend");
+    legend.textContent = (index+1) + ". " + question.question;
+    fieldset.appendChild(legend);
+    question.options.forEach((option,optionIndex) => {
+      const label = document.createElement("label");
+      label.className = "quiz-option";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "question-" + index;
+      input.value = String(optionIndex);
+      input.required = true;
+      const span = document.createElement("span");
+      span.textContent = option;
+      label.append(input,span);
+      fieldset.appendChild(label);
+    });
+    form.appendChild(fieldset);
+  });
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.className = "quiz-submit-button";
+  submit.textContent = "SUBMIT MY ANSWERS";
+  form.appendChild(submit);
+  const note = document.createElement("p");
+  note.className = "engagement-small";
+  note.textContent = "Once submitted, this attempt is locked. You can review it later and start a separate attempt.";
+  form.appendChild(note);
+  form.addEventListener("submit",async event => {
+    event.preventDefault();
+    if (!engagementUser) return;
+    const answers = quiz.questions.slice(0,3).map((_,index) => {
+      const selected = form.querySelector('input[name="question-' + index + '"]:checked');
+      return selected ? Number(selected.value) : -1;
+    });
+    if (answers.some(answer => answer < 0)) return;
+    submit.disabled = true;
+    submit.textContent = "SAVING ATTEMPT...";
+    const score = answers.reduce((total,answer,index) => total + (answer === quiz.questions[index].answer ? 1 : 0),0);
+    const {error} = await engagementClient.from("chapter_quiz_attempts").insert({
+      user_id:engagementUser.id,
+      chapter_id:engagementChapterId(),
+      quiz_version:String(quiz.version || "1"),
+      answers,
+      score,
+      total_questions:3
+    });
+    if (error) {
+      submit.disabled = false;
+      submit.textContent = "SUBMIT MY ANSWERS";
+      const warning = document.createElement("p");
+      warning.className = "engagement-small";
+      warning.textContent = "We couldn't save your attempt. Please try again.";
+      form.appendChild(warning);
+      return;
+    }
+    await loadChapterQuiz();
+  });
+  target.appendChild(form);
+}
+
+async function loadChapterQuiz() {
+  const target = byId("chapterQuiz");
+  if (!target) return;
+  const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === engagementChapterId());
+  const quiz = chapter && chapter.quiz;
+  if (!quiz || !Array.isArray(quiz.questions) || quiz.questions.length !== 3 ||
+      quiz.questions.some(q => !q.question || !Array.isArray(q.options) || q.options.length < 2 ||
+      !Number.isInteger(q.answer) || q.answer < 0 || q.answer >= q.options.length)) {
+    renderQuizMessage("A three-question challenge for this chapter will appear here soon.");
+    return;
+  }
+  if (!engagementUser) {
+    renderQuizMessage("Sign in to take this chapter's three-question challenge and save your result.");
+    return;
+  }
+  const {data,error} = await engagementClient.from("chapter_quiz_attempts")
+    .select("id,answers,score,total_questions,submitted_at,quiz_version")
+    .eq("user_id",engagementUser.id).eq("chapter_id",engagementChapterId())
+    .order("submitted_at",{ascending:false});
+  if (error) {
+    renderQuizMessage("Your chapter challenge is temporarily unavailable. Please refresh.");
+    return;
+  }
+  const history = data || [];
+  if (history.length) {
+    const count = document.createElement("p");
+    count.className = "engagement-small";
+    count.textContent = history.length + (history.length === 1 ? " attempt saved" : " attempts saved") + " for this chapter.";
+    target.replaceChildren(count);
+    const latest = history[0];
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "quiz-retake-button";
+    review.textContent = "REVIEW LATEST ATTEMPT";
+    review.addEventListener("click",() => renderQuizAttemptReview(quiz,latest));
+    target.appendChild(review);
+    const retake = document.createElement("button");
+    retake.type = "button";
+    retake.className = "quiz-retake-button";
+    retake.textContent = "TAKE ANOTHER ATTEMPT";
+    retake.addEventListener("click",() => renderQuizForm(quiz));
+    target.appendChild(retake);
+    return;
+  }
+  renderQuizForm(quiz);
 }
 
 function setAccountMode(mode) {
@@ -548,7 +724,7 @@ function initialiseEngagement() {
   const chapterTarget = byId("chapterContent");
   if (chapterTarget) {
     new MutationObserver(() => {
-      window.setTimeout(() => { loadChapterActivity(); loadChapterComments(); },150);
+      window.setTimeout(() => { loadChapterActivity(); loadChapterComments(); loadChapterQuiz(); },150);
     }).observe(chapterTarget,{childList:true,subtree:true});
   }
 }
