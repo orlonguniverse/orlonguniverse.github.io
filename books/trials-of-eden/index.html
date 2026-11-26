@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Caveat:wght@400;500;600;700&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../../site-nav.css">
    
 <style>
 
@@ -744,30 +745,17 @@ body.focus-mode .reader {
 
 <!-- TOP NAVIGATION -->
 
-<nav class="topbar">
-
+<nav class="topbar" aria-label="Main navigation">
   <a href="../../index.html" class="logo">ORLONG</a>
-
   <div class="topbar-right">
-
     <a href="../../index.html">HOME</a>
     <a href="contents.html">BOOK CONTENTS</a>
-
     <a href="#directory">CHAPTERS</a>
-
     <button type="button" id="openAccountButton" class="nav-account-button">SIGN IN</button>
-    <a href="account.html" class="nav-account-button">MY STATISTICS</a>
-
-    <button id="themeButton" onclick="toggleTheme()">
-      LIGHT MODE
-    </button>
-
-    <button onclick="toggleCompanion()">
-      COMPANION
-    </button>
-
+    <a href="account.html">MY STATISTICS</a>
+    <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+    <a href="#companion">COMPANION</a>
   </div>
-
 </nav>
 
 <dialog class="account-dialog" id="accountDialog" aria-labelledby="accountDialogTitle">
@@ -1101,6 +1089,7 @@ body.focus-mode .reader {
 
 <!-- Scripts must load AFTER the floating panel so PIN and collapse controls are available. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../site-nav.js"></script>
 <script src="chapters.js"></script>
 <script src="script.js"></script>
 <script src="engagement.js"></script>
