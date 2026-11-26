@@ -9,7 +9,7 @@
 
 <meta name="description" content="Read The Trials of Eden by Callum Macann.">
 
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Caveat:wght@400;500;600;700&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
    
@@ -42,6 +42,9 @@ body.light {
   --muted: #687080;
   --border: #17243a20;
   --reader-text: #303744;
+  /* Darker accent blues keep labels and links readable on pale surfaces. */
+  --blue: #1557a6;
+  --blue-light: #174f91;
 }
 
 * {
@@ -861,6 +864,11 @@ body.focus-mode .reader {
         <p class="companion-empty">Loading chapter references...</p>
       </div>
 
+      <label class="reference-lines-setting">
+        <input type="checkbox" id="referenceLinesToggle" checked>
+        <span>Show subtle reference lines</span>
+      </label>
+
     </div>
 
 
@@ -872,6 +880,19 @@ body.focus-mode .reader {
     <div class="companion-box">
 
       <h3>READING OPTIONS</h3>
+
+      <label class="reader-setting-label" for="readerFontSelect">MANUSCRIPT FONT</label>
+      <select id="readerFontSelect" class="reader-setting-select">
+        <option value="literary">Literary Serif (Libre Baskerville)</option>
+        <option value="atkinson">Dyslexia-friendly (Atkinson Hyperlegible)</option>
+        <option value="arial">Arial</option>
+        <option value="roboto">Roboto</option>
+        <option value="lora">Lora</option>
+        <option value="merriweather">Merriweather</option>
+        <option value="orlong">Orlong Signature</option>
+        <option value="handwritten">Handwritten (Caveat)</option>
+      </select>
+      <p class="reader-setting-note">Your font choice is saved on this device and applies to the manuscript text.</p>
 
       <p>
         Prefer a distraction-free experience?
