@@ -547,6 +547,45 @@ body.focus-mode .reader {
 
 }
 
+/* FLOATING BOOKMARK CONTROLS */
+
+.floating-bookmark {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.floating-bookmark button {
+  padding: 13px 17px;
+
+  background: var(--surface);
+  color: var(--text);
+
+  border: 1px solid var(--blue);
+  font-size: 10px;
+  letter-spacing: 1px;
+
+  box-shadow: 0 5px 20px #00000035;
+  transition: .2s;
+}
+
+.floating-bookmark button:hover {
+  background: var(--blue);
+  color: white;
+}
+
+@media(max-width: 700px) {
+  .floating-bookmark {
+    bottom: 15px;
+    right: 15px;
+  }
+}
+
 </style>
 </head>
 
