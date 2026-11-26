@@ -592,6 +592,7 @@ async function loadChapterQuiz() {
   const {data,error} = await engagementClient.from("chapter_quiz_attempts")
     .select("id,answers,score,total_questions,submitted_at,quiz_version")
     .eq("user_id",engagementUser.id).eq("chapter_id",engagementChapterId())
+    .eq("quiz_version",String(quiz.version || "1"))
     .order("submitted_at",{ascending:false});
   if (error) {
     renderQuizMessage("Your chapter challenge is temporarily unavailable. Please refresh.");
