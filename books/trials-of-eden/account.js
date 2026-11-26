@@ -161,8 +161,11 @@ async function loadPersonalDashboard(user,cachedData=null,silent=false){
 async function loadCardCollection(user){
  const grid=accountById("cardCollectionGrid");
  const summary=accountById("cardCollectionSummary");
+ const filters=accountById("cardCategoryFilters");
+ const dialog=accountById("cardDetailDialog");
  if(!grid||!summary)return;
  grid.replaceChildren();
+ if(filters)filters.replaceChildren();
  summary.textContent="LOADING YOUR COLLECTION...";
  const {data,error}=await accountClient.rpc("get_my_card_collection");
  if(error){
@@ -178,30 +181,78 @@ async function loadCardCollection(user){
   empty.textContent="Your binder is empty for now. Earn your first collectible by completing an eligible Reading Room activity.";
   grid.appendChild(empty);return;
  }
- cards.forEach(card=>{
-  const item=document.createElement("article");item.className="owned-card";
+ let selectedCategory="all";
+ const categories=[...new Set(cards.map(card=>card.category_label||"Other"))];
+ const renderCards=()=>{
+  grid.replaceChildren();
+  const visible=selectedCategory==="all"?cards:cards.filter(card=>(card.category_label||"Other")===selectedCategory);
+  visible.forEach(card=>{
+   const item=document.createElement("button");item.type="button";item.className="owned-card";
+   item.setAttribute("aria-label","View "+card.card_name+", "+card.card_number);
+   if(card.artwork_url){
+    const image=document.createElement("img");image.className="owned-card-image";
+    image.src=new URL(card.artwork_url,window.location.origin).href;
+    image.alt=card.card_name+" collectible card";image.loading="lazy";
+    image.onerror=()=>{image.hidden=true;};
+    item.appendChild(image);
+   }
+   const number=document.createElement("p");number.className="owned-card-number";number.textContent=card.card_number||"COLLECTIBLE";
+   const name=document.createElement("h3");name.textContent=card.card_name;
+   const meta=document.createElement("p");meta.className="owned-card-meta";
+   meta.textContent=[card.category_label,card.rarity].filter(Boolean).join(" · ");
+   const count=document.createElement("span");count.className="owned-card-count";
+   const copies=Number(card.copy_count||0);count.textContent=copies+" "+(copies===1?"COPY":"COPIES");
+   item.append(number,name,meta,count);
+   item.addEventListener("click",()=>openCardDetails(card));
+   grid.appendChild(item);
+  });
+ };
+ const renderFilters=()=>{
+  if(!filters)return;
+  filters.replaceChildren();
+  const options=[{id:"all",label:"ALL CARDS"},...categories.map(category=>({id:category,label:category.toUpperCase()}))];
+  options.forEach(option=>{
+   const button=document.createElement("button");button.type="button";button.className="card-category-filter";
+   button.textContent=option.label;button.setAttribute("aria-pressed",String(selectedCategory===option.id));
+   button.addEventListener("click",()=>{selectedCategory=option.id;renderFilters();renderCards();});
+   filters.appendChild(button);
+  });
+ };
+ function openCardDetails(card){
+  if(!dialog)return;
+  const artwork=accountById("cardDetailArtwork");
+  const number=accountById("cardDetailNumber");
+  const name=accountById("cardDetailName");
+  const meta=accountById("cardDetailMeta");
+  const description=accountById("cardDetailDescription");
+  const copies=accountById("cardDetailCopies");
+  number.textContent=card.card_number||"COLLECTIBLE";
+  name.textContent=card.card_name||"Collectible";
+  meta.textContent=[card.category_label,card.rarity].filter(Boolean).join(" · ").toUpperCase();
+  description.textContent=card.spoiler_safe_description||"More information about this collectible will be added to Explore Eden as its companion entry is released.";
+  const copyCount=Number(card.copy_count||0);
+  copies.textContent=copyCount+" "+(copyCount===1?"COPY":"COPIES")+" IN YOUR BINDER";
   if(card.artwork_url){
-   const image=document.createElement("img");image.className="owned-card-image";
-   image.src=new URL(card.artwork_url,window.location.origin).href;
-   image.alt=card.card_name+" collectible card";image.loading="lazy";
-   image.onerror=()=>{image.hidden=true;};
-   item.appendChild(image);
+   artwork.src=new URL(card.artwork_url,window.location.origin).href;
+   artwork.alt=card.card_name+" collectible card";
+   artwork.hidden=false;
+  }else{
+   artwork.removeAttribute("src");artwork.alt="";artwork.hidden=true;
   }
-  const number=document.createElement("p");number.className="owned-card-number";number.textContent=card.card_number||"COLLECTIBLE";
-  const name=document.createElement("h3");name.textContent=card.card_name;
-  const meta=document.createElement("p");meta.className="owned-card-meta";
-  meta.textContent=[card.category_label,card.rarity].filter(Boolean).join(" · ");
-  const count=document.createElement("span");count.className="owned-card-count";
-  const copies=Number(card.copy_count||0);count.textContent=copies+" "+(copies===1?"COPY":"COPIES");
-  item.append(number,name,meta,count);
-  if(card.spoiler_safe_description){
-   const description=document.createElement("p");description.className="owned-card-description";
-   description.textContent=card.spoiler_safe_description;item.appendChild(description);
-  }
-  grid.appendChild(item);
- });
+  if(typeof dialog.showModal==="function")dialog.showModal();
+ }
+ const closeButton=accountById("closeCardDetail");
+ if(closeButton&&dialog&&!closeButton.dataset.bound){
+  closeButton.dataset.bound="true";
+  closeButton.addEventListener("click",()=>dialog.close());
+ }
+ if(dialog&&!dialog.dataset.backdropBound){
+  dialog.dataset.backdropBound="true";
+  dialog.addEventListener("click",event=>{if(event.target===dialog)dialog.close();});
+ }
+ renderFilters();
+ renderCards();
 }
-
 async function uploadProfilePicture(){
  const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
  const file=input?.files?.[0];
