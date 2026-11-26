@@ -3,21 +3,81 @@
   "catalogueVersion": 1,
   "universe": "orlong",
   "rarityTiers": [
-    { "id": "common", "label": "Common", "sortOrder": 1 },
-    { "id": "uncommon", "label": "Uncommon", "sortOrder": 2 },
-    { "id": "rare", "label": "Rare", "sortOrder": 3 },
-    { "id": "epic", "label": "Epic", "sortOrder": 4 },
-    { "id": "legendary", "label": "Legendary", "sortOrder": 5 }
+    {
+      "id": "common",
+      "label": "Common",
+      "sortOrder": 1
+    },
+    {
+      "id": "uncommon",
+      "label": "Uncommon",
+      "sortOrder": 2
+    },
+    {
+      "id": "rare",
+      "label": "Rare",
+      "sortOrder": 3
+    },
+    {
+      "id": "epic",
+      "label": "Epic",
+      "sortOrder": 4
+    },
+    {
+      "id": "legendary",
+      "label": "Legendary",
+      "sortOrder": 5
+    }
   ],
   "categories": [
-    { "id": "characters", "label": "Characters", "code": "CHR", "sortOrder": 1 },
-    { "id": "creatures", "label": "Creatures", "code": "CRE", "sortOrder": 2 },
-    { "id": "locations", "label": "Locations", "code": "LOC", "sortOrder": 3 },
-    { "id": "objects", "label": "Objects", "code": "OBJ", "sortOrder": 4 },
-    { "id": "organisations", "label": "Organisations", "code": "ORG", "sortOrder": 5 },
-    { "id": "technology", "label": "Technology", "code": "TEC", "sortOrder": 6 },
-    { "id": "events", "label": "Events & History", "code": "EVT", "sortOrder": 7 },
-    { "id": "concepts", "label": "Concepts & Abilities", "code": "CON", "sortOrder": 8 }
+    {
+      "id": "characters",
+      "label": "Characters",
+      "code": "CHR",
+      "sortOrder": 1
+    },
+    {
+      "id": "creatures",
+      "label": "Creatures",
+      "code": "CRE",
+      "sortOrder": 2
+    },
+    {
+      "id": "locations",
+      "label": "Locations",
+      "code": "LOC",
+      "sortOrder": 3
+    },
+    {
+      "id": "objects",
+      "label": "Objects",
+      "code": "OBJ",
+      "sortOrder": 4
+    },
+    {
+      "id": "organisations",
+      "label": "Organisations",
+      "code": "ORG",
+      "sortOrder": 5
+    },
+    {
+      "id": "technology",
+      "label": "Technology",
+      "code": "TEC",
+      "sortOrder": 6
+    },
+    {
+      "id": "events",
+      "label": "Events & History",
+      "code": "EVT",
+      "sortOrder": 7
+    },
+    {
+      "id": "concepts",
+      "label": "Concepts & Abilities",
+      "code": "CON",
+      "sortOrder": 8
+    }
   ],
   "sets": [
     {
@@ -41,7 +101,7 @@
       "setId": "eden-chapter-01",
       "unlockChapterId": "chapter-01",
       "spoilerSafeDescription": null,
-      "artworkUrl": null,
+      "artworkUrl": "/explore-eden/cards/CHR-001-maya-garcia.png",
       "duplicateExchangeValue": null,
       "active": true
     },
@@ -55,7 +115,7 @@
       "setId": "eden-chapter-01",
       "unlockChapterId": "chapter-01",
       "spoilerSafeDescription": null,
-      "artworkUrl": null,
+      "artworkUrl": "/explore-eden/cards/CHR-002-elena-strix.png",
       "duplicateExchangeValue": null,
       "active": true
     },
@@ -69,7 +129,7 @@
       "setId": "eden-chapter-01",
       "unlockChapterId": "chapter-01",
       "spoilerSafeDescription": null,
-      "artworkUrl": null,
+      "artworkUrl": "/explore-eden/cards/CHR-003-mrs-finch.png",
       "duplicateExchangeValue": null,
       "active": true
     }
