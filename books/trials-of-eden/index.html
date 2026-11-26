@@ -630,6 +630,96 @@ body.focus-mode .reader {
 }
 
 
+/* =====================================
+   CHAPTER READING PROGRESS PANEL
+===================================== */
+
+.chapter-progress {
+  max-width: 620px;
+  margin: 0 auto 45px;
+  padding: 20px 22px;
+
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+
+.chapter-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.chapter-progress-heading span:first-child {
+  color: var(--muted);
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+#chapterProgressPercent {
+  color: var(--blue-light);
+  font-size: 10px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.chapter-progress-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+
+  background: var(--background);
+  border-radius: 10px;
+}
+
+#chapterProgressFill {
+  width: 0%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    #236bd2,
+    #65adff
+  );
+
+  border-radius: 10px;
+  box-shadow: 0 0 10px #398cff66;
+  transition: width .2s ease;
+}
+
+.chapter-progress-details {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 13px;
+
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+@media(max-width: 700px) {
+
+  .chapter-progress {
+    padding: 16px;
+    margin-bottom: 35px;
+  }
+
+  .chapter-progress-heading span:first-child {
+    font-size: 9px;
+  }
+
+  .chapter-progress-details {
+    font-size: 8px;
+  }
+
+}
+
+
 </style>
 </head>
 
@@ -775,8 +865,39 @@ body.focus-mode .reader {
 
     </header>
 
+    
+   <!-- CHAPTER PROGRESS PANEL -->
+   
+   <div class="chapter-progress">
+   
+     <div class="chapter-progress-heading">
+       <span>YOUR READING PROGRESS</span>
+       <span id="chapterProgressPercent">0% COMPLETE</span>
+     </div>
+   
+     <div
+       class="chapter-progress-track"
+       id="chapterProgressTrack"
+       role="progressbar"
+       aria-label="Chapter reading progress"
+       aria-valuemin="0"
+       aria-valuemax="100"
+       aria-valuenow="0"
+     >
+       <div id="chapterProgressFill"></div>
+     </div>
+   
+     <div class="chapter-progress-details">
+       <span id="readingTimeRemaining">
+         Calculating reading time...
+       </span>
+   
+       <span id="chapterWordCount"></span>
+     </div>
+   
+   </div>
 
-    <!--
+   <!--
       REPLACE THE PLACEHOLDER BELOW WITH YOUR
       ACTUAL CHAPTER TEXT WHEN IT IS READY.
     -->
