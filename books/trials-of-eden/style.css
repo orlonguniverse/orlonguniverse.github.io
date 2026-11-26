@@ -157,3 +157,24 @@
     width: min(265px, calc(100vw - 24px));
   }
 }
+
+
+/* =====================================
+   CURRENT PART LABEL + COMPANION REFERENCES
+===================================== */
+.reader-book-location { display:flex; flex-direction:column; gap:8px; }
+.reader-book-location > span:first-child { color:var(--muted); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+.current-part-label { display:inline-flex; align-self:flex-start; padding:6px 9px; color:var(--blue-light); background:var(--surface-2); border:1px solid var(--blue); font-size:9px; font-weight:600; letter-spacing:1.6px; }
+.companion-subheading { margin-top:24px !important; padding-top:17px; border-top:1px solid var(--border); }
+.companion-term-list { display:flex; flex-direction:column; gap:7px; max-height:340px; overflow-y:auto; }
+.companion-reference-button { width:100%; padding:11px 12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); text-align:left; font-size:11px; cursor:pointer; transition:border-color .2s,background .2s; }
+.companion-reference-button:hover,.companion-reference-button.selected { border-color:var(--blue); background:var(--surface-2); }
+.companion-reference-button.selected { box-shadow:inset 3px 0 0 var(--blue); }
+.companion-empty { color:var(--muted); font-size:11px; line-height:1.8; }
+#companionDetails { min-height:130px; }
+#companionDetails h3 { margin:9px 0 10px; color:var(--text); font-family:'Cinzel',serif; font-size:14px; letter-spacing:1px; }
+#companionDetails p { color:var(--muted); font-size:11px; line-height:1.9; overflow-wrap:anywhere; }
+.companion-category { color:var(--blue-light); font-size:9px; letter-spacing:1.6px; }
+.companion-trigger { display:inline; padding:0; color:var(--blue-light); background:transparent; border:0; border-bottom:1px dotted currentColor; font:inherit; text-align:inherit; cursor:pointer; }
+.companion-trigger:hover,.companion-trigger:focus-visible { color:var(--blue); outline-offset:3px; }
+@media(max-width:700px) { .reader-book-location { width:100%; } }
