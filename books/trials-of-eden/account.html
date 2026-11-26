@@ -22,15 +22,29 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 .profile-picture-editor{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}.account-avatar{width:104px;height:104px;flex:0 0 104px;border-radius:50%;object-fit:cover;border:2px solid var(--blue);background:var(--surface2)}.profile-picture-fields{flex:1;min-width:220px}.profile-picture-fields label{display:block;margin-bottom:8px;color:var(--blue-light);font-size:10px;letter-spacing:1px}.profile-picture-fields input{display:block;width:100%;color:var(--text);font-size:12px}.profile-picture-fields button{margin-top:12px}@media(max-width:560px){.profile-picture-editor{flex-direction:column}}
 
 .card-collection-summary{margin:0 0 16px;color:var(--blue-light);font-size:11px;letter-spacing:1px}
+.card-category-filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.card-category-filter{padding:8px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:9px;letter-spacing:1px;cursor:pointer}
+.card-category-filter[aria-pressed="true"]{border-color:var(--blue);background:#16345a;color:var(--blue-light)}
 .card-collection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.owned-card{min-width:0;padding:12px;background:var(--surface2);border:1px solid var(--border)}
+.owned-card{display:block;width:100%;min-width:0;padding:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text);text-align:left;cursor:pointer;transition:border-color .18s ease,transform .18s ease,background .18s ease}
+.owned-card:hover,.owned-card:focus-visible{border-color:var(--blue);background:#1a2b43;transform:translateY(-2px);outline:none}
 .owned-card-image{display:block;width:100%;aspect-ratio:5/7;object-fit:contain;background:#080d16;border:1px solid var(--border)}
 .owned-card-number{margin:12px 0 5px;color:var(--blue-light);font-size:9px;letter-spacing:1.2px}
 .owned-card h3{margin:0;color:var(--text);font-family:Cinzel,serif;font-size:13px;font-weight:500;line-height:1.5}
 .owned-card-meta{margin:6px 0 0;color:var(--muted);font-size:9px;letter-spacing:.8px;text-transform:uppercase}
-.owned-card-description{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
 .owned-card-count{display:inline-block;margin-top:10px;padding:5px 8px;border:1px solid var(--blue);color:var(--blue-light);font-size:9px;letter-spacing:1px}
-@media(max-width:700px){.card-collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card-detail-dialog{width:min(760px,calc(100% - 28px));max-width:760px;max-height:min(88vh,850px);padding:28px;background:#0d1726;color:var(--text);border:1px solid #398cff88;box-shadow:0 24px 90px #000b}
+.card-detail-dialog::backdrop{background:#020711d9;backdrop-filter:blur(5px)}
+.card-detail-close{position:absolute;top:10px;right:12px;width:36px;height:36px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:24px;cursor:pointer}
+.card-detail-layout{display:grid;grid-template-columns:minmax(0, .85fr) minmax(0,1fr);gap:28px;align-items:center}
+.card-detail-art-wrap{padding:10px;background:#080d16;border:1px solid var(--border)}
+.card-detail-art{display:block;width:100%;max-height:68vh;object-fit:contain}
+.card-detail-information h3{margin:8px 0;color:var(--text);font-family:Cinzel,serif;font-size:clamp(20px,3vw,30px);font-weight:400}
+.card-detail-information .owned-card-number{margin-top:0}
+.card-detail-description,.card-detail-note{color:var(--muted);font-size:12px;line-height:1.8}
+.card-detail-note{margin-top:24px;padding-top:15px;border-top:1px solid var(--border);font-size:10px}
+@media(max-width:700px){.card-collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card-detail-layout{grid-template-columns:1fr 1fr;gap:16px}.card-detail-dialog{padding:22px 16px}}
+@media(max-width:480px){.card-detail-layout{grid-template-columns:1fr}.card-detail-art-wrap{max-width:240px;margin:0 auto}.card-detail-art{max-height:42vh}.card-detail-information h3{font-size:20px}}
 @media(max-width:420px){.card-collection-grid{grid-template-columns:1fr 1fr;gap:9px}.owned-card{padding:8px}.owned-card h3{font-size:11px}}
 
 </style>
@@ -66,7 +80,22 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
 <p class="muted">Every card you've earned is kept here. Duplicate copies are counted separately and remain yours.</p>
 <p id="cardCollectionSummary" class="card-collection-summary" aria-live="polite">Loading your collection...</p>
+<div id="cardCategoryFilters" class="card-category-filters" aria-label="Filter cards by category"></div>
 <div id="cardCollectionGrid" class="card-collection-grid"><div class="empty">Loading your cards...</div></div>
+<dialog id="cardDetailDialog" class="card-detail-dialog" aria-labelledby="cardDetailName">
+<button type="button" id="closeCardDetail" class="card-detail-close" aria-label="Close card details">×</button>
+<div class="card-detail-layout">
+<div class="card-detail-art-wrap"><img id="cardDetailArtwork" class="card-detail-art" alt=""></div>
+<div class="card-detail-information">
+<p id="cardDetailNumber" class="owned-card-number"></p>
+<h3 id="cardDetailName"></h3>
+<p id="cardDetailMeta" class="owned-card-meta"></p>
+<p id="cardDetailDescription" class="card-detail-description"></p>
+<p id="cardDetailCopies" class="owned-card-count"></p>
+<p class="card-detail-note">This card is part of your personal collection. Its ownership remains securely linked to your account.</p>
+</div>
+</div>
+</dialog>
 </section>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
@@ -76,5 +105,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-binder-stage-3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-binder-stage-4"></script>
 </body></html>
