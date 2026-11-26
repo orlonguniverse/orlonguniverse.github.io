@@ -275,3 +275,62 @@ grant execute on function public.get_author_engagement_stats() to authenticated;
 
 -- Approved discussions are readable without an account; RLS still hides pending/hidden submissions.
 grant select on public.chapter_comments to anon;
+
+
+-- Reader content preferences: multiple categories may be selected by each reader.
+create table if not exists public.reader_content_interests (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  interest_id text not null check (interest_id in ('characters','plot','worldbuilding','relationships','action','other')),
+  other_detail text check (other_detail is null or char_length(other_detail) <= 500),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, interest_id),
+  check (interest_id = 'other' or other_detail is null)
+);
+alter table public.reader_content_interests enable row level security;
+drop policy if exists "Readers view their own content preferences" on public.reader_content_interests;
+create policy "Readers view their own content preferences"
+  on public.reader_content_interests for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "Readers add their own content preferences" on public.reader_content_interests;
+create policy "Readers add their own content preferences"
+  on public.reader_content_interests for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "Readers remove their own content preferences" on public.reader_content_interests;
+create policy "Readers remove their own content preferences"
+  on public.reader_content_interests for delete to authenticated using (auth.uid() = user_id);
+grant select, insert, delete on public.reader_content_interests to authenticated;
+
+create or replace function public.get_public_engagement_stats()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'chapters', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'chapter_id', chapter_id,
+        'completions', completion_count,
+        'reactions', reaction_count,
+        'comments', comment_count
+      ) order by chapter_id)
+      from (
+        select chapter_id,
+          (select count(*) from public.chapter_completions cc where cc.chapter_id = c.chapter_id) as completion_count,
+          (select count(*) from public.chapter_reactions cr where cr.chapter_id = c.chapter_id) as reaction_count,
+          (select count(*) from public.chapter_comments cm where cm.chapter_id = c.chapter_id and cm.moderation_status = 'approved') as comment_count
+        from (
+          select chapter_id from public.chapter_completions
+          union select chapter_id from public.chapter_reactions
+          union select chapter_id from public.chapter_comments where moderation_status = 'approved'
+        ) c
+      ) totals
+    ), '[]'::jsonb),
+    'series', '[]'::jsonb,
+    'content_interests', coalesce((
+      select jsonb_agg(jsonb_build_object('interest_id',interest_id,'responses',responses) order by interest_id)
+      from (select interest_id,count(*) as responses from public.reader_content_interests group by interest_id) preferences
+    ), '[]'::jsonb)
+  );
+$$;
+revoke all on function public.get_public_engagement_stats() from public;
+grant execute on function public.get_public_engagement_stats() to anon, authenticated;
