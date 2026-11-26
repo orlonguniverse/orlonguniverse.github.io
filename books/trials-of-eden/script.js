@@ -1,50 +1,69 @@
-<!-- INTERACTIVE FEATURES -->
 
-<script>
+// =====================================
+// THE TRIALS OF EDEN — READING ROOM
+// Interactive features and preferences
+// =====================================
 
-// =========================
-// THEME SWITCH
-// =========================
 
-function toggleTheme() {
+// =====================================
+// 1. READER PREFERENCES
+// =====================================
 
-  const body = document.body;
+let fontSize = Number(localStorage.getItem("edenFontSize")) || 16;
+
+
+// =====================================
+// 2. THEME SETTINGS
+// =====================================
+
+function applyTheme(theme) {
+
+  document.body.classList.remove("dark", "light");
+  document.body.classList.add(theme);
+
   const button = document.getElementById("themeButton");
 
-  body.classList.toggle("light");
-  body.classList.toggle("dark");
-
-  if (body.classList.contains("light")) {
-    button.textContent = "DARK MODE";
-  } else {
-    button.textContent = "LIGHT MODE";
+  if (button) {
+    button.textContent =
+      theme === "light" ? "DARK MODE" : "LIGHT MODE";
   }
 
+  localStorage.setItem("edenTheme", theme);
 }
 
 
-// =========================
-// TEXT SIZE CONTROL
-// =========================
+function toggleTheme() {
 
-let fontSize = 16;
+  const newTheme =
+    document.body.classList.contains("dark") ? "light" : "dark";
+
+  applyTheme(newTheme);
+}
+
+
+// =====================================
+// 3. FONT SIZE
+// =====================================
 
 function changeFontSize(amount) {
 
   fontSize += amount;
 
-  if (fontSize < 13) fontSize = 13;
-  if (fontSize > 23) fontSize = 23;
+  fontSize = Math.max(13, Math.min(23, fontSize));
 
-  document.getElementById("chapterText").style.fontSize =
-    fontSize + "px";
+  const chapterText = document.getElementById("chapterText");
 
+  if (chapterText) {
+    chapterText.style.fontSize = fontSize + "px";
+  }
+
+  localStorage.setItem("edenFontSize", fontSize);
 }
 
 
-// =========================
-// FOCUS MODE
-// =========================
+// =====================================
+// 4. FOCUS MODE
+// =====================================
 
 function toggleFocus() {
 
@@ -53,13 +72,17 @@ function toggleFocus() {
 }
 
 
-// =========================
-// READING COMPANION
-// =========================
+// =====================================
+// 5. READING COMPANION
+// =====================================
 
 function toggleCompanion() {
 
-  document.getElementById("companion").classList.toggle("companion-hidden");
+  const companion = document.getElementById("companion");
+
+  if (companion) {
+    companion.classList.toggle("companion-hidden");
+  }
 
 }
 
@@ -67,6 +90,8 @@ function toggleCompanion() {
 function showCompanion(category) {
 
   const panel = document.getElementById("companionContent");
+
+  if (!panel) return;
 
   if (category === "characters") {
 
@@ -78,9 +103,7 @@ function showCompanion(category) {
       </p>
     `;
 
-  }
-
-  if (category === "locations") {
+  } else if (category === "locations") {
 
     panel.innerHTML = `
       <h3>LOCATION REFERENCES</h3>
@@ -90,9 +113,7 @@ function showCompanion(category) {
       </p>
     `;
 
-  }
-
-  if (category === "notes") {
+  } else if (category === "notes") {
 
     panel.innerHTML = `
       <h3>AUTHOR NOTES</h3>
@@ -106,22 +127,21 @@ function showCompanion(category) {
 
 }
 
-</script>
 
-// =========================
-// READING PROGRESS
-// =========================
-
-window.addEventListener("scroll", updateProgress);
+// =====================================
+// 6. READING PROGRESS
+// =====================================
 
 function updateProgress() {
 
   const reader = document.getElementById("chapterText");
   const progressBar = document.getElementById("progressBar");
 
-  const rect = reader.getBoundingClientRect();
+  if (!reader || !progressBar) return;
 
-  const readerTop = window.scrollY + rect.top;
+  const readerTop =
+    window.scrollY + reader.getBoundingClientRect().top;
+
   const readerHeight = reader.offsetHeight;
 
   const availableScroll = readerHeight - window.innerHeight;
@@ -129,9 +149,14 @@ function updateProgress() {
   let progress = 0;
 
   if (availableScroll > 0) {
-    progress = ((window.scrollY - readerTop) / availableScroll) * 100;
+
+    progress =
+      ((window.scrollY - readerTop) / availableScroll) * 100;
+
   } else if (window.scrollY >= readerTop) {
+
     progress = 100;
+
   }
 
   progress = Math.max(0, Math.min(100, progress));
@@ -140,70 +165,28 @@ function updateProgress() {
 
 }
 
-window.addEventListener("load", updateProgress);
 
-// =========================
-// READER PREFERENCES
-// =========================
-
-let fontSize = Number(localStorage.getItem("edenFontSize")) || 16;
-
-
-// =========================
-// THEME SWITCH
-// =========================
-
-function applyTheme(theme) {
-
-  document.body.classList.remove("dark", "light");
-  document.body.classList.add(theme);
-
-  const button = document.getElementById("themeButton");
-
-  button.textContent =
-    theme === "light" ? "DARK MODE" : "LIGHT MODE";
-
-  localStorage.setItem("edenTheme", theme);
-
-}
-
-
-function toggleTheme() {
-
-  const newTheme =
-    document.body.classList.contains("dark") ? "light" : "dark";
-
-  applyTheme(newTheme);
-
-}
-
-
-// =========================
-// TEXT SIZE CONTROL
-// =========================
-
-function changeFontSize(amount) {
-
-  fontSize += amount;
-
-  if (fontSize < 13) fontSize = 13;
-  if (fontSize > 23) fontSize = 23;
-
-  document.getElementById("chapterText").style.fontSize =
-    fontSize + "px";
-
-  localStorage.setItem("edenFontSize", fontSize);
-
-}
-
-
-// =========================
-// LOAD SAVED PREFERENCES
-// =========================
+// =====================================
+// 7. LOAD SAVED SETTINGS
+// =====================================
 
 const savedTheme = localStorage.getItem("edenTheme") || "dark";
 
 applyTheme(savedTheme);
 
-document.getElementById("chapterText").style.fontSize =
-  fontSize + "px";
+const chapterText = document.getElementById("chapterText");
+
+if (chapterText) {
+  chapterText.style.fontSize = fontSize + "px";
+}
+
+
+// =====================================
+// 8. EVENT LISTENERS
+// =====================================
+
+window.addEventListener("scroll", updateProgress, { passive: true });
+
+window.addEventListener("resize", updateProgress);
+
+window.addEventListener("load", updateProgress);
