@@ -37,6 +37,15 @@ function changeFontSize(amount) {
 }
 
 // Reader font choices affect only the manuscript, never the interface text.
+function applyReaderTheme(theme) {
+  const validThemes = ["classic", "paper", "sepia", "midnight"];
+  const selectedTheme = validThemes.includes(theme) ? theme : "classic";
+  document.body.dataset.readerTheme = selectedTheme;
+  const selector = document.getElementById("readerThemeSelect");
+  if (selector) selector.value = selectedTheme;
+  localStorage.setItem("edenReaderTheme", selectedTheme);
+}
+
 function applyReaderFont(font) {
   const validFonts = ["literary", "atkinson", "arial", "roboto", "lora", "merriweather", "orlong", "handwritten"];
   const selectedFont = validFonts.includes(font) ? font : "literary";
@@ -488,9 +497,14 @@ applyTheme(savedTheme);
 const initialReader = document.getElementById("chapterText");
 if (initialReader) initialReader.style.fontSize = fontSize + "px";
 
+applyReaderTheme(localStorage.getItem("edenReaderTheme") || "classic");
 applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
 applyReferenceLinePreference(localStorage.getItem("edenReferenceLines") !== "false");
 
+const readerThemeSelect = document.getElementById("readerThemeSelect");
+if (readerThemeSelect) {
+  readerThemeSelect.addEventListener("change", event => applyReaderTheme(event.target.value));
+}
 const readerFontSelect = document.getElementById("readerFontSelect");
 if (readerFontSelect) {
   readerFontSelect.addEventListener("change", event => applyReaderFont(event.target.value));
