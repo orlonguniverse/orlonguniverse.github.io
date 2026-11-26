@@ -924,6 +924,15 @@ body.focus-mode .reader {
 
       <h3>READING OPTIONS</h3>
 
+      <label class="reader-setting-label" for="readerPresetSelect">READING PRESET</label>
+      <select id="readerPresetSelect" class="reader-setting-select">
+        <option value="custom">Custom settings</option>
+        <option value="print">Balanced Print</option>
+        <option value="night">Night Reader</option>
+        <option value="accessible">Accessible Reading</option>
+      </select>
+      <p class="reader-setting-note">Presets adjust the page, type and spacing together. You can customise any setting afterwards.</p>
+
       <label class="reader-setting-label" for="readerThemeSelect">PAGE APPEARANCE</label>
       <select id="readerThemeSelect" class="reader-setting-select">
         <option value="classic">Classic — Orlong Blue</option>
@@ -946,11 +955,45 @@ body.focus-mode .reader {
       </select>
       <p class="reader-setting-note">Your font choice is saved on this device and applies to the manuscript text.</p>
 
+      <label class="reader-setting-label" for="readerTextSize">TEXT SIZE <span id="readerTextSizeValue">16px</span></label>
+      <input id="readerTextSize" class="reader-setting-range" type="range" min="14" max="24" step="1" value="16">
+
+      <label class="reader-setting-label" for="readerLineHeightSelect">LINE SPACING</label>
+      <select id="readerLineHeightSelect" class="reader-setting-select">
+        <option value="1.7">Compact</option>
+        <option value="1.9">Comfortable</option>
+        <option value="2.1">Relaxed</option>
+        <option value="2.3">Extra spacious</option>
+      </select>
+
+      <label class="reader-setting-label" for="readerParagraphSelect">PARAGRAPH SPACING</label>
+      <select id="readerParagraphSelect" class="reader-setting-select">
+        <option value="1.1">Close</option>
+        <option value="1.6">Balanced</option>
+        <option value="2">Open</option>
+      </select>
+
+      <label class="reader-setting-label" for="readerWidthSelect">TEXT COLUMN WIDTH</label>
+      <select id="readerWidthSelect" class="reader-setting-select">
+        <option value="narrow">Narrow</option>
+        <option value="standard">Standard book</option>
+        <option value="wide">Wide</option>
+      </select>
+
+      <label class="reader-setting-label" for="readerModeSelect">READING LAYOUT</label>
+      <select id="readerModeSelect" class="reader-setting-select">
+        <option value="book">Book page</option>
+        <option value="scroll">Continuous scroll</option>
+      </select>
+
+      <button type="button" id="companionFocusButton" onclick="toggleFocus()">ENTER FOCUS MODE</button>
+      <p class="reader-setting-note">Focus Mode hides the surrounding website and keeps the manuscript front and centre.</p>
+
       <p>
         Prefer a distraction-free experience?
       </p>
 
-      <button onclick="toggleFocus()">
+      <button type="button" onclick="toggleFocus()">
         Toggle focus mode
       </button>
 
