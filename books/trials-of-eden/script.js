@@ -36,6 +36,23 @@ function changeFontSize(amount) {
   localStorage.setItem("edenFontSize", fontSize);
 }
 
+// Reader font choices affect only the manuscript, never the interface text.
+function applyReaderFont(font) {
+  const validFonts = ["literary", "atkinson", "arial", "roboto", "lora", "merriweather", "orlong", "handwritten"];
+  const selectedFont = validFonts.includes(font) ? font : "literary";
+  document.body.dataset.readerFont = selectedFont;
+  const selector = document.getElementById("readerFontSelect");
+  if (selector) selector.value = selectedFont;
+  localStorage.setItem("edenReaderFont", selectedFont);
+}
+
+function applyReferenceLinePreference(showLines) {
+  document.body.classList.toggle("hide-reference-lines", !showLines);
+  const toggle = document.getElementById("referenceLinesToggle");
+  if (toggle) toggle.checked = showLines;
+  localStorage.setItem("edenReferenceLines", String(showLines));
+}
+
 function toggleFocus() {
   document.body.classList.toggle("focus-mode");
 }
@@ -289,6 +306,7 @@ async function loadChapter(chapterId) {
 
     const reader = document.getElementById("chapterText");
     if (reader) reader.style.fontSize = fontSize + "px";
+    applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
     chapterTotalWords = reader && reader.innerText.trim() ? reader.innerText.trim().split(/\s+/).length : 0;
 
     // Show the Part name alongside the chapter currently being read.
@@ -452,6 +470,18 @@ applyTheme(savedTheme);
 
 const initialReader = document.getElementById("chapterText");
 if (initialReader) initialReader.style.fontSize = fontSize + "px";
+
+applyReaderFont(localStorage.getItem("edenReaderFont") || "literary");
+applyReferenceLinePreference(localStorage.getItem("edenReferenceLines") !== "false");
+
+const readerFontSelect = document.getElementById("readerFontSelect");
+if (readerFontSelect) {
+  readerFontSelect.addEventListener("change", event => applyReaderFont(event.target.value));
+}
+const referenceLinesToggle = document.getElementById("referenceLinesToggle");
+if (referenceLinesToggle) {
+  referenceLinesToggle.addEventListener("change", event => applyReferenceLinePreference(event.target.checked));
+}
 
 // The script is loaded after the HTML controls, so they can be connected here.
 setReadingWidgetState();
