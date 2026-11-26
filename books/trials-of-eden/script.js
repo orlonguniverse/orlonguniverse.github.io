@@ -114,7 +114,10 @@ function renderChapterDirectory() {
   if (!list || !Array.isArray(window.EDEN_CHAPTERS)) return;
 
   list.innerHTML = "";
-  window.EDEN_CHAPTERS.forEach(chapter => {
+  const visibleChapters = window.getVisibleEdenChapters
+    ? window.getVisibleEdenChapters()
+    : window.EDEN_CHAPTERS;
+  visibleChapters.forEach(chapter => {
     const item = document.createElement(chapter.available ? "a" : "div");
     item.className = "chapter-item" + (chapter.id === currentChapter ? " active" : "");
     if (chapter.available) {
@@ -375,8 +378,21 @@ window.addEventListener("resize", updateProgress);
 
 // Connect highlighted manuscript words and Companion index entries.
 document.addEventListener("click", event => {
+  if (!(event.target instanceof Element)) return;
   const trigger = event.target.closest("[data-companion-term]");
-  if (trigger) showCompanionTerm(trigger.dataset.companionTerm);
+  if (!trigger) return;
+
+  showCompanionTerm(trigger.dataset.companionTerm);
+
+  // If the reader selects a highlighted manuscript term, bring the
+  // Companion into view so the matching reference is easy to find.
+  if (trigger.closest("#chapterContent")) {
+    const companion = document.getElementById("companion");
+    if (companion && companion.classList.contains("companion-hidden")) {
+      companion.classList.remove("companion-hidden");
+    }
+    if (companion) companion.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 });
 
 // Build the chapter menu and load the selected chapter.
