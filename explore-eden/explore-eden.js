@@ -445,6 +445,7 @@ function setTab(button){
 }
 async function initialise(){
  document.querySelectorAll(".eden-tab").forEach(button=>button.addEventListener("click",()=>setTab(button)));
+ const requestedTab=new URLSearchParams(location.search).get("tab");if(requestedTab==="trading"){const tradingTab=document.querySelector('.eden-tab[data-panel="tradingPanel"]');if(tradingTab)setTab(tradingTab);}
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
