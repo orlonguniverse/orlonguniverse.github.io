@@ -404,7 +404,7 @@
 .eden-help-guide>summary strong{color:#d5e8ff;font-size:10px;letter-spacing:1.3px}
 .eden-help-guide>summary small{color:var(--eden-muted);font-size:11px;line-height:1.5}
 .eden-help-guide .help-toggle{color:#a8ceff;font-size:8px;letter-spacing:1px;white-space:nowrap}
-.eden-help-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 18px 15px}
+.eden-help-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:0 18px 15px}
 .eden-help-grid>div{padding:13px;background:#ffffff06;border:1px solid var(--eden-border)}
 .eden-help-grid strong{color:#c9e2ff;font-size:9px;letter-spacing:1px}
 .eden-help-grid p{margin:7px 0 0;color:var(--eden-muted);font-size:10px;line-height:1.7}
@@ -429,3 +429,5 @@
 .progress-undiscovered .eden-card-name{color:#c3cfdd}
 @media(max-width:850px){.progress-slot-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){.progress-category{padding:13px}.progress-category-heading{align-items:flex-start;flex-direction:column}.progress-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+
+.eden-help-grid a{display:inline-block;margin-top:9px;color:var(--eden-blue);font-size:9px;letter-spacing:.8px;text-decoration:none}
