@@ -127,7 +127,9 @@ document.addEventListener("DOMContentLoaded",async()=>{
   const response=await fetch("card-catalogue.json",{cache:"no-cache"});
   if(!response.ok)throw new Error("Catalogue request failed");
   const raw=await response.json();
-  catalogue=(raw.cards||[]).filter(c=>c.active!==false).map(c=>({...c,categoryLabel:raw.categories.find(cat=>cat.id===c.categoryId)?.label||"Collectibles"}));
+  const {data:databaseCards,error:catalogueError}=await client.rpc("get_public_card_catalogue");
+  if(catalogueError)throw catalogueError;
+  catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
   $("catalogueSummary").textContent=catalogue.length+" RELEASED CARDS";
   await initialise();
   renderCatalogue();renderMarketplace();
