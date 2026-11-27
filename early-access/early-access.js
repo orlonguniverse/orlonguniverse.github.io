@@ -72,16 +72,7 @@ async function completeMission(key,button){
   return;
  }
  byId("missionMessage").textContent="Mission complete! Your card has been added to your reader binder.";
- if(window.OrlongCardReveal&&awarded.reward_card_name){
-  await window.OrlongCardReveal.play({
-   id:awarded.reward_card_id,
-   name:awarded.reward_card_name,
-   number:awarded.reward_card_number,
-   rarity:awarded.reward_card_rarity||"common",
-   artwork:awarded.reward_card_artwork||"",
-   description:awarded.reward_card_description||"A new Special Edition discovery from the Orlong archive."
-  });
- }
+ // The sitewide card-copy watcher handles this reward, just like every other card award.
 }
 async function submitTesterFeedback(event){
  event.preventDefault();const input=byId("testerFeedbackText"),button=byId("submitTesterFeedbackButton"),message=byId("testerFeedbackMessage"),feedback=input.value.trim();
