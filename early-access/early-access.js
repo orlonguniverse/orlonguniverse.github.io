@@ -62,10 +62,26 @@ async function loadMissions(){
 }
 async function completeMission(key,button){
  button.disabled=true;button.textContent="VERIFYING & UNLOCKING…";byId("missionMessage").textContent="";
+ // The database RPC is the authority: never show a reveal on a failed claim.
  const {data,error}=await earlyAccessClient.rpc("complete_early_access_mission",{target_mission_key:key});
  if(error){console.error(error);byId("missionMessage").textContent=error.message||"The activity has not been verified yet. Visit the mission area and try again.";button.disabled=false;button.textContent="OPEN CHARACTER PACK";return;}
- const mission=missionRows.find(m=>m.mission_key===key);if(mission){mission.is_completed=true;mission.completed_at=data||new Date().toISOString();}
- await loadMissions();byId("missionMessage").textContent="Mission complete! Your random Special Edition character card has been added to your reader binder.";
+ await loadMissions();
+ const awarded=missionRows.find(m=>m.mission_key===key);
+ if(!awarded?.is_completed||!awarded?.reward_card_id){
+  byId("missionMessage").textContent="Your mission was accepted by the server. Refresh your missions to view the card added to your binder.";
+  return;
+ }
+ byId("missionMessage").textContent="Mission complete! Your card has been added to your reader binder.";
+ if(window.OrlongCardReveal&&awarded.reward_card_name){
+  await window.OrlongCardReveal.play({
+   id:awarded.reward_card_id,
+   name:awarded.reward_card_name,
+   number:awarded.reward_card_number,
+   rarity:awarded.reward_card_rarity||"common",
+   artwork:awarded.reward_card_artwork||"",
+   description:awarded.reward_card_description||"A new Special Edition discovery from the Orlong archive."
+  });
+ }
 }
 async function submitTesterFeedback(event){
  event.preventDefault();const input=byId("testerFeedbackText"),button=byId("submitTesterFeedbackButton"),message=byId("testerFeedbackMessage"),feedback=input.value.trim();
