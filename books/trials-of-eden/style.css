@@ -741,3 +741,32 @@ body[data-reader-theme="midnight"] .orlong-scene-break {
 .moderator-actions button{font-size:.72rem}
 #loadMoreCommentsButton{margin-top:16px}
 @media(max-width:560px){.discussion-filter-row{grid-template-columns:1fr 1fr}.discussion-filter-row label{align-self:end}}
+
+
+/* Stage 2.5 interface simplification */
+.discussion-current{display:grid;gap:8px;margin:18px 0;padding:16px;border:1px solid var(--line,rgba(255,255,255,.16));border-radius:12px;background:rgba(255,255,255,.025)}
+.discussion-eyebrow{display:block;font-size:.68rem;letter-spacing:.13em;opacity:.7}
+.discussion-current>strong{font-size:1.05rem;font-weight:600}
+.discussion-chapter-picker,.discussion-more-filters,.moderator-section{border:1px solid var(--line,rgba(255,255,255,.15));border-radius:9px;margin-top:8px;overflow:hidden}
+.discussion-chapter-picker>summary,.discussion-more-filters>summary,.moderator-section>summary{cursor:pointer;list-style:none;padding:12px 14px;font-size:.75rem;font-weight:700;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.discussion-chapter-picker>summary::-webkit-details-marker,.discussion-more-filters>summary::-webkit-details-marker,.moderator-section>summary::-webkit-details-marker{display:none}
+.discussion-chapter-picker>summary:after,.discussion-more-filters>summary:after,.moderator-section>summary:after{content:"+";font-size:1.1rem;opacity:.7}
+.discussion-chapter-picker[open]>summary:after,.discussion-more-filters[open]>summary:after,.moderator-section[open]>summary:after{content:"−"}
+.discussion-more-filters>summary span{font-size:.68rem;font-weight:400;letter-spacing:0;opacity:.65;margin-left:auto}
+.discussion-button-grid{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-top:1px solid var(--line,rgba(255,255,255,.12))}
+.discussion-category-bar,.discussion-sort-buttons,.discussion-post-types{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.discussion-chip{border:1px solid var(--line,rgba(255,255,255,.22));border-radius:999px;padding:9px 14px;background:transparent;color:inherit;font-size:.76rem;cursor:pointer;transition:background .15s,border-color .15s}
+.discussion-chip:hover{border-color:var(--blue,#5797e8)}
+.discussion-chip.is-active{background:var(--surface-2,rgba(70,130,220,.18));border-color:var(--blue,#5797e8);color:inherit;font-weight:700}
+.discussion-filter-content{display:grid;gap:10px;padding:14px;border-top:1px solid var(--line,rgba(255,255,255,.12))}
+.discussion-filter-content input{width:100%;padding:11px 12px;border:1px solid var(--line,rgba(255,255,255,.2));border-radius:8px;background:var(--panel,#111);color:inherit}
+#commentForm{margin-top:18px}
+#commentForm textarea{width:100%;box-sizing:border-box}
+#commentCategory{display:none}
+.moderator-section{margin:10px 0}
+.moderator-section>summary{font-size:.78rem}
+.moderator-section[open]>summary{border-bottom:1px solid var(--line,rgba(255,255,255,.12))}
+.moderator-section>.moderator-item,.moderator-section>p{margin:0;padding:14px}
+.moderator-section .moderator-item+.moderator-item{border-top:1px solid var(--line,rgba(255,255,255,.1))}
+.discussion-chip:focus-visible,.discussion-chapter-picker>summary:focus-visible,.discussion-more-filters>summary:focus-visible,.moderator-section>summary:focus-visible{outline:2px solid var(--blue,#5797e8);outline-offset:3px}
+@media(max-width:560px){.discussion-chip{padding:8px 11px;font-size:.72rem}.discussion-current{padding:13px}}
