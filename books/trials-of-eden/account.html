@@ -118,13 +118,16 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <p class="muted">Create reusable promotional codes. Access permissions are permanent for each reader who successfully redeems a code, even after that code expires.</p>
 <label for="accessCampaignLabel">CAMPAIGN NAME</label>
 <input id="accessCampaignLabel" type="text" maxlength="100" placeholder="Founding Readers — 2026" value="Founding Readers — 2026">
+<label for="accessCampaignCustomCode">CUSTOM ACCESS CODE (OPTIONAL)</label>
+<input id="accessCampaignCustomCode" type="text" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="earlyaccess2026">
+<p class="muted">Use 6–40 letters or numbers. Leave blank to generate a random code.</p>
 <label for="accessCampaignKeys">ACCESS PERMISSIONS (COMMA-SEPARATED)</label>
 <input id="accessCampaignKeys" type="text" value="early_access" placeholder="early_access, event:launch">
 <label for="accessCampaignExpiry">CODE EXPIRY (YOUR LOCAL TIME)</label>
 <input id="accessCampaignExpiry" type="datetime-local" value="2026-12-31T23:59">
 <label for="accessCampaignLimit">MAXIMUM REDEMPTIONS (OPTIONAL)</label>
 <input id="accessCampaignLimit" type="number" min="1" step="1" placeholder="Leave blank for unlimited">
-<button class="primary" id="createAccessCodeButton" type="button">GENERATE ACCESS CODE</button>
+<button class="primary" id="createAccessCodeButton" type="button">CREATE ACCESS CODE</button>
 <p id="createAccessCodeMessage" class="muted" role="status" aria-live="polite">Only moderator accounts can create access codes.</p>
 <div class="created-access-code-row"><code id="createdAccessCode" hidden></code><button id="copyCreatedAccessCode" class="secondary" type="button">COPY CODE</button></div>
 </section>
@@ -184,5 +187,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=access-codes-stage-1-debug"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=access-codes-stage-1-custom"></script>
 </body></html>
