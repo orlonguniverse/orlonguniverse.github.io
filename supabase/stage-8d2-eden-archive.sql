@@ -95,7 +95,7 @@ begin
  if char_length(coalesce(p_summary,''))>500 then raise exception 'Summary must be 500 characters or fewer'; end if;
  if nullif(trim(p_content),'') is null or char_length(p_content)>30000 then raise exception 'Entry content is required and must be 30,000 characters or fewer'; end if;
  if p_unlock_chapter_id is not null and not exists(select 1 from public.eden_book_chapters where chapter_id=p_unlock_chapter_id) then raise exception 'Choose a valid chapter release gate'; end if;
- if coalesce(cardinality(p_required_card_ids),0)<1 then raise exception 'Connect at least one required card to this entry'; end if;
+ if p_required_card_ids is null or cardinality(p_required_card_ids)<1 then raise exception 'Connect at least one required card to this entry'; end if;
  select count(distinct requested.card_id) into v_card_count from unnest(p_required_card_ids) requested(card_id)
   join public.card_catalogue c on c.card_id=requested.card_id where c.is_active=true;
  if v_card_count<>cardinality(p_required_card_ids) then raise exception 'One or more selected cards are invalid, inactive or duplicated'; end if;
