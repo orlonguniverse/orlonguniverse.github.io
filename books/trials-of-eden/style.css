@@ -845,3 +845,7 @@ body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggl
  body.book-only-mode .reader{padding:24px 17px}
  body.book-only-mode .chapter-heading{padding:34px 0 25px}
 }
+/* Book-Only is a site-wide preference; the Reading Room becomes the entire destination. */
+body.book-only-mode .mobile-focus-toggle,body.book-only-mode .focus-exit{display:none!important}
+body.book-only-mode .book-only-toggle{top:auto;right:18px;bottom:18px;opacity:.16;z-index:10020}
+body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggle:focus-visible{opacity:1}
