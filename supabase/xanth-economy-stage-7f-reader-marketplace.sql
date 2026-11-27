@@ -36,6 +36,9 @@ create table if not exists public.reader_card_market_offers (
 create index if not exists reader_market_offers_incoming on public.reader_card_market_offers(recipient_user_id,status,updated_at desc);
 create index if not exists reader_market_offers_outgoing on public.reader_card_market_offers(proposer_user_id,status,updated_at desc);
 
+alter table public.reader_card_market_offers add column if not exists escrow_user_id uuid references auth.users(id);
+alter table public.reader_card_market_offers add column if not exists escrow_cents bigint not null default 0 check(escrow_cents>=0);
+
 create table if not exists public.reader_card_market_offer_items (
   item_id uuid primary key default gen_random_uuid(),
   offer_id uuid not null references public.reader_card_market_offers(offer_id) on delete cascade,
@@ -193,12 +196,14 @@ begin
  values(p_listing_id,uid,p_recipient_id,coalesce(p_proposer_pays_cents,0),coalesce(p_recipient_pays_cents,0)) returning offer_id into oid;
  foreach v_copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
+  if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A card in a legacy trade cannot be offered here'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A card already listed for sale cannot be added to a separate offer'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
   select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='proposer';
  end loop;
  foreach v_copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
+  if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A requested card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A requested card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
  end loop;
@@ -215,7 +220,7 @@ create or replace function public.counter_reader_market_offer(
  p_proposer_pays_cents bigint,p_recipient_pays_cents bigint,p_message text default null
 )
 returns integer language plpgsql security definer set search_path=public,pg_temp as $$
-declare uid uuid:=auth.uid(); o public.reader_card_market_offers%rowtype; rev integer; c uuid; pc jsonb; rc jsonb; listed_copy uuid;
+declare uid uuid:=auth.uid(); o public.reader_card_market_offers%rowtype; rev integer; c uuid; pc jsonb; rc jsonb; listed_copy uuid; new_escrow_user uuid; new_escrow bigint; bal bigint;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  select * into o from public.reader_card_market_offers where offer_id=p_offer_id and status='pending' for update;
@@ -226,11 +231,13 @@ begin
  delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
  foreach c in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies where copy_id=c and owner_user_id=o.proposer_user_id) then raise exception 'A proposed card is no longer owned by its reader'; end if;
+  if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=c and t0.status='pending') then raise exception 'A proposed card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=c and l0.status='active') then raise exception 'A proposed card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'proposer',copy_id,card_id from public.reader_card_copies where copy_id=c;
  end loop;
  foreach c in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies where copy_id=c and owner_user_id=o.recipient_user_id) then raise exception 'A requested card is no longer owned by its reader'; end if;
+  if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=c and t0.status='pending') then raise exception 'A requested card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=c and l0.status='active' and l0.listing_id is distinct from o.listing_id) then raise exception 'A requested card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'recipient',copy_id,card_id from public.reader_card_copies where copy_id=c;
  end loop;
@@ -242,10 +249,23 @@ begin
   end if;
  end if;
  if not exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id) and p_proposer_pays_cents+p_recipient_pays_cents=0 then raise exception 'A counter-offer must include cards or Xanth'; end if;
+ -- Release the previous escrow, then reserve the revised net Xanth amount.
+ if o.escrow_cents>0 and o.escrow_user_id is not null then
+  update public.reader_xanth_accounts set balance_cents=balance_cents+o.escrow_cents,updated_at=now() where user_id=o.escrow_user_id;
+ end if;
+ new_escrow:=abs(p_proposer_pays_cents-p_recipient_pays_cents);
+ new_escrow_user:=case when p_proposer_pays_cents>p_recipient_pays_cents then o.proposer_user_id when p_recipient_pays_cents>p_proposer_pays_cents then o.recipient_user_id else null end;
+ if new_escrow>0 then
+  insert into public.reader_xanth_accounts(user_id) values(new_escrow_user) on conflict(user_id) do nothing;
+  perform 1 from public.reader_xanth_accounts where user_id=new_escrow_user for update;
+  select balance_cents into bal from public.reader_xanth_accounts where user_id=new_escrow_user;
+  if bal<new_escrow then raise exception 'Not enough available Xanth to reserve this counter-offer'; end if;
+  update public.reader_xanth_accounts set balance_cents=balance_cents-new_escrow,updated_at=now() where user_id=new_escrow_user;
+ end if;
  rev:=o.current_revision+1;
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=p_offer_id and i.owner_side='proposer';
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into rc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=p_offer_id and i.owner_side='recipient';
- update public.reader_card_market_offers set proposer_pays_cents=p_proposer_pays_cents,recipient_pays_cents=p_recipient_pays_cents,current_revision=rev,updated_at=now() where offer_id=p_offer_id;
+ update public.reader_card_market_offers set proposer_pays_cents=p_proposer_pays_cents,recipient_pays_cents=p_recipient_pays_cents,escrow_user_id=new_escrow_user,escrow_cents=new_escrow,current_revision=rev,updated_at=now() where offer_id=p_offer_id;
  insert into public.reader_card_market_offer_history(offer_id,revision,sender_user_id,proposer_pays_cents,recipient_pays_cents,proposer_cards,recipient_cards,message)
  values(p_offer_id,rev,uid,p_proposer_pays_cents,p_recipient_pays_cents,pc,rc,left(p_message,500));
  return rev;
@@ -260,28 +280,29 @@ begin
  select * into o from public.reader_card_market_offers where offer_id=p_offer_id and status='pending' for update;
  if not found or uid not in(o.proposer_user_id,o.recipient_user_id) then raise exception 'Offer not found or no longer open'; end if;
  if (o.current_revision%2=1 and uid<>o.recipient_user_id) or (o.current_revision%2=0 and uid<>o.proposer_user_id) then raise exception 'It is the other reader’s turn to respond'; end if;
- if not p_accept then update public.reader_card_market_offers set status='declined',updated_at=now() where offer_id=p_offer_id; delete from public.reader_card_market_offer_items where offer_id=p_offer_id; return 'declined'; end if;
+ if not p_accept then
+  if o.escrow_cents>0 and o.escrow_user_id is not null then update public.reader_xanth_accounts set balance_cents=balance_cents+o.escrow_cents,updated_at=now() where user_id=o.escrow_user_id; end if;
+  update public.reader_card_market_offers set status='declined',escrow_user_id=null,escrow_cents=0,updated_at=now() where offer_id=p_offer_id;
+  delete from public.reader_card_market_offer_items where offer_id=p_offer_id; return 'declined';
+ end if;
  for it in select i.*,c.owner_user_id from public.reader_card_market_offer_items i join public.reader_card_copies c on c.copy_id=i.copy_id where i.offer_id=p_offer_id for update of c loop
   if (it.owner_side='proposer' and it.owner_user_id<>o.proposer_user_id) or (it.owner_side='recipient' and it.owner_user_id<>o.recipient_user_id) then raise exception 'A card in this offer is no longer owned by its reader'; end if;
  end loop;
  if not exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id) and o.proposer_pays_cents+o.recipient_pays_cents=0 then raise exception 'This offer has no value to transfer'; end if;
  insert into public.reader_xanth_accounts(user_id) values(o.proposer_user_id),(o.recipient_user_id) on conflict(user_id) do nothing;
  perform 1 from public.reader_xanth_accounts where user_id in(o.proposer_user_id,o.recipient_user_id) order by user_id for update;
- net:=o.proposer_pays_cents-o.recipient_pays_cents;
- buyer:=case when net>=0 then o.proposer_user_id else o.recipient_user_id end;
- seller:=case when net>=0 then o.recipient_user_id else o.proposer_user_id end;
- if abs(net)>0 then
-  select balance_cents into buyer_balance from public.reader_xanth_accounts where user_id=buyer;
-  if buyer_balance<abs(net) then raise exception 'The paying reader no longer has enough Xanth'; end if;
-  update public.reader_xanth_accounts set balance_cents=balance_cents-abs(net),updated_at=now() where user_id=buyer returning balance_cents into buyer_balance;
-  update public.reader_xanth_accounts set balance_cents=balance_cents+abs(net),updated_at=now() where user_id=seller returning balance_cents into seller_balance;
+ if o.escrow_cents>0 and o.escrow_user_id is not null then
+  seller:=case when o.escrow_user_id=o.proposer_user_id then o.recipient_user_id else o.proposer_user_id end;
+  insert into public.reader_xanth_accounts(user_id) values(seller) on conflict(user_id) do nothing;
+  update public.reader_xanth_accounts set balance_cents=balance_cents+o.escrow_cents,updated_at=now() where user_id=seller returning balance_cents into seller_balance;
   insert into public.reader_xanth_transactions(user_id,amount_cents,balance_after_cents,transaction_type,description,reference_id,metadata)
-  values(buyer,-abs(net),buyer_balance,'market_trade','Xanth paid in reader-to-reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',seller)),
-  (seller,abs(net),seller_balance,'market_trade','Xanth received in reader-to-reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',buyer));
+  select o.escrow_user_id,-o.escrow_cents,a.balance_cents,'market_trade','Xanth reserved for accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',seller) from public.reader_xanth_accounts a where a.user_id=o.escrow_user_id;
+  insert into public.reader_xanth_transactions(user_id,amount_cents,balance_after_cents,transaction_type,description,reference_id,metadata)
+  values(seller,o.escrow_cents,seller_balance,'market_trade','Xanth received in accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',o.escrow_user_id));
  end if;
  update public.reader_card_copies c set owner_user_id=case when i.owner_side='proposer' then o.recipient_user_id else o.proposer_user_id end
  from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.copy_id=c.copy_id;
- update public.reader_card_market_offers set status='accepted',completed_at=now(),updated_at=now() where offer_id=p_offer_id;
+ update public.reader_card_market_offers set status='accepted',completed_at=now(),escrow_user_id=null,escrow_cents=0,updated_at=now() where offer_id=p_offer_id;
  if o.listing_id is not null then update public.reader_card_market_listings set status='sold',sold_to=case when exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id and copy_id=(select copy_id from public.reader_card_market_listings where listing_id=o.listing_id)) then o.proposer_user_id else o.recipient_user_id end,sold_at=now(),updated_at=now() where listing_id=o.listing_id and status='active'; end if;
  -- Re-touch newly received copies after offer closure so auto-sell can
  -- apply the recipient's preference without touching reserved copies.
@@ -298,7 +319,12 @@ declare uid uuid:=auth.uid(); n integer;
 begin
  update public.reader_card_market_offers set status='cancelled',updated_at=now()
  where offer_id=p_offer_id and proposer_user_id=uid and status='pending';
- get diagnostics n=row_count; if n=1 then delete from public.reader_card_market_offer_items where offer_id=p_offer_id; end if; return n=1;
+ get diagnostics n=row_count;
+ if n=1 then
+  update public.reader_xanth_accounts set balance_cents=balance_cents+(select escrow_cents from public.reader_card_market_offers where offer_id=p_offer_id),updated_at=now() where user_id=(select escrow_user_id from public.reader_card_market_offers where offer_id=p_offer_id) and (select escrow_cents from public.reader_card_market_offers where offer_id=p_offer_id)>0;
+  update public.reader_card_market_offers set escrow_user_id=null,escrow_cents=0 where offer_id=p_offer_id;
+  delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
+ end if; return n=1;
 end $$;
 
 create or replace function public.get_my_reader_market_offers()
