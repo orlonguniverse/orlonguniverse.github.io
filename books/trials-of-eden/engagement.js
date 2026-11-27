@@ -285,11 +285,22 @@ async function loadPublicStats() {
 
 function discussionChapterId(){return discussionChapterOverride||engagementChapterId();}
 function discussionChapterOptions(){
- const select=byId("discussionChapterSelect");if(!select)return;
+ const wrap=byId("discussionChapterButtons");if(!wrap)return;
  const chapters=(window.EDEN_CHAPTERS||[]).filter(ch=>ch.available);
- select.replaceChildren();
- chapters.forEach(ch=>{const o=document.createElement("option");o.value=ch.id;o.textContent=ch.number+" — "+ch.title;select.appendChild(o);});
- select.value=discussionChapterId();if(!select.value&&chapters[0])select.value=chapters[0].id;
+ wrap.replaceChildren();
+ chapters.forEach(ch=>{
+  const button=document.createElement("button");button.type="button";button.className="discussion-chip";
+  button.textContent=ch.number+" · "+ch.title;button.dataset.chapterId=ch.id;
+  button.setAttribute("aria-pressed",String(ch.id===discussionChapterId()));
+  button.addEventListener("click",()=>{
+   discussionChapterOverride=ch.id;discussionChapterOptions();loadChapterComments(true);
+   const picker=wrap.closest("details");if(picker)picker.open=false;
+  });
+  wrap.appendChild(button);
+ });
+ const current=chapters.find(ch=>ch.id===discussionChapterId());
+ const label=byId("discussionCurrentChapter");
+ if(label)label.textContent=current?current.number+" — "+current.title:"Select a chapter";
 }
 function renderDiscussionRows(){
  const box=byId("chapterComments");if(!box)return;box.replaceChildren();
@@ -380,7 +391,13 @@ async function loadModeratorPanel(){
   engagementClient.rpc("get_author_engagement_stats")
  ]);
  if(stats.data){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Pending: "+(stats.data.pending_comments||0)+" · Approved: "+(stats.data.approved_comments||0)+" · Reports: "+((reports.data||[]).length);target.appendChild(p);}
- const addSection=(title,rows,build)=>{const h=document.createElement("h4");h.textContent=title;target.appendChild(h);if(!rows?.length){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Nothing to review here.";target.appendChild(p);return;}rows.forEach(r=>{const item=document.createElement("div");item.className="moderator-item";build(item,r);target.appendChild(item);});};
+ const addSection=(title,rows,build)=>{
+  const details=document.createElement("details");details.className="moderator-section";
+  const summary=document.createElement("summary");summary.textContent=title+" ("+(rows?.length||0)+")";details.appendChild(summary);
+  if(!rows?.length){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Nothing to review here.";details.appendChild(p);}
+  else rows.forEach(r=>{const item=document.createElement("div");item.className="moderator-item";build(item,r);details.appendChild(item);});
+  target.appendChild(details);
+ };
  const button=(box,label,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.addEventListener("click",fn);box.appendChild(b);};
  addSection("PENDING APPROVAL",pending.data,(item,r)=>{const p=document.createElement("p");p.textContent=r.chapter_id+" · "+r.body;item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"APPROVE",()=>moderateComment(r.id,"approved"));button(a,"HIDE",()=>moderateComment(r.id,"hidden"));button(a,"REMOVE",()=>moderateComment(r.id,"removed"));item.appendChild(a);});
  addSection("REPORTED COMMENTS",reports.data,(item,r)=>{const c=Array.isArray(r.chapter_comments)?r.chapter_comments[0]:r.chapter_comments;const p=document.createElement("p");p.textContent=(c?.chapter_id||"Chapter unknown")+" · Report: "+r.reason+" · Comment: "+(c?.body||"Unavailable");item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"DISMISS REPORT",async()=>{await engagementClient.from("chapter_comment_reports").update({status:"dismissed",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);loadModeratorPanel();});if(c?.id){button(a,"HIDE COMMENT",async()=>{await moderateComment(c.id,"hidden");await engagementClient.from("chapter_comment_reports").update({status:"actioned",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);});button(a,"REMOVE COMMENT",async()=>{await moderateComment(c.id,"removed");await engagementClient.from("chapter_comment_reports").update({status:"actioned",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);});}item.appendChild(a);});
@@ -698,8 +715,20 @@ function initialiseEngagement() {
   discussionChapterOptions();
   byId("discussionChapterSelect")?.addEventListener("change",ev=>{discussionChapterOverride=ev.target.value;loadChapterComments(true);});
   byId("discussionSearch")?.addEventListener("input",renderDiscussionRows);
-  byId("discussionCategoryFilter")?.addEventListener("change",renderDiscussionRows);
-  byId("discussionSort")?.addEventListener("change",renderDiscussionRows);
+  document.querySelectorAll("[data-discussion-category]").forEach(button=>button.addEventListener("click",()=>{
+    const select=byId("discussionCategoryFilter");if(select)select.value=button.dataset.discussionCategory;
+    document.querySelectorAll("[data-discussion-category]").forEach(b=>{const active=b===button;b.classList.toggle("is-active",active);b.setAttribute("aria-pressed",String(active));});
+    renderDiscussionRows();
+  }));
+  document.querySelectorAll("[data-discussion-sort]").forEach(button=>button.addEventListener("click",()=>{
+    const select=byId("discussionSort");if(select)select.value=button.dataset.discussionSort;
+    document.querySelectorAll("[data-discussion-sort]").forEach(b=>{const active=b===button;b.classList.toggle("is-active",active);b.setAttribute("aria-pressed",String(active));});
+    renderDiscussionRows();
+  }));
+  document.querySelectorAll("[data-post-category]").forEach(button=>button.addEventListener("click",()=>{
+    const select=byId("commentCategory");if(select)select.value=button.dataset.postCategory;
+    document.querySelectorAll("[data-post-category]").forEach(b=>{const active=b===button;b.classList.toggle("is-active",active);b.setAttribute("aria-pressed",String(active));});
+  }));
   byId("loadMoreCommentsButton")?.addEventListener("click",()=>loadChapterComments(false));
   document.querySelectorAll(".engagement-reactions button").forEach(button => {
     button.addEventListener("click",() => saveReaction(button.dataset.reaction));
