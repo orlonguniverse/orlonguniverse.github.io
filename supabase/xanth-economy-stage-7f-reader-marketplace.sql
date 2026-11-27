@@ -238,6 +238,15 @@ begin
  if p_proposer_pays_cents<0 or p_recipient_pays_cents<0 then raise exception 'Xanth amounts cannot be negative'; end if;
  if uid=o.proposer_user_id and o.current_revision%2=1 then raise exception 'Wait for the other reader to respond'; end if;
  if uid=o.recipient_user_id and o.current_revision%2=0 then raise exception 'Wait for the other reader to respond'; end if;
+ -- A countering reader may change only their own side of the deal.
+ if uid=o.proposer_user_id and (
+  exists(select 1 from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.owner_side='recipient' and not (i.copy_id=any(coalesce(p_recipient_copy_ids,'{}'::uuid[]))))
+  or exists(select 1 from unnest(coalesce(p_recipient_copy_ids,'{}'::uuid[])) q(copy_id) where not exists(select 1 from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.owner_side='recipient' and i.copy_id=q.copy_id))
+ ) then raise exception 'You can only change the cards on your side of the offer'; end if;
+ if uid=o.recipient_user_id and (
+  exists(select 1 from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.owner_side='proposer' and not (i.copy_id=any(coalesce(p_proposer_copy_ids,'{}'::uuid[]))))
+  or exists(select 1 from unnest(coalesce(p_proposer_copy_ids,'{}'::uuid[])) q(copy_id) where not exists(select 1 from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.owner_side='proposer' and i.copy_id=q.copy_id))
+ ) then raise exception 'You can only change the cards on your side of the offer'; end if;
  delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
  foreach v_copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies where copy_id=v_copy_id and owner_user_id=o.proposer_user_id) then raise exception 'A proposed card is no longer owned by its reader'; end if;
