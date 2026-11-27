@@ -129,3 +129,21 @@ The first achievement collection tracks:
 Achievements unlock automatically when the signed-in reader opens My Account. Unlock timestamps are stored permanently in the database; progress is calculated from the reader's saved Reading Room activity and card ownership. The private `get_my_achievements()` RPC exposes only the signed-in reader's achievements.
 
 This stage adds achievement milestones and progress tracking, not an in-game currency or automatic bonus card. Those reward types need their own carefully balanced economy and reward rules and will be designed separately. The animated card-opening reveal with music remains reserved for the final stage.
+
+
+## Stage 6 — Trading Post database foundation
+
+The Stage 6 migration is `supabase/card-trading-stage-6.sql`. Run it in the Supabase SQL Editor after Stage 5.
+
+The database foundation introduces:
+- opt-in public/private collection visibility (all existing and new readers default to private);
+- a public directory containing only opted-in readers and their collection counts;
+- public binder views that reveal card identities and copy counts, never private reading activity or physical copy IDs;
+- trade offers in which a reader offers one of their own physical card copies for a card held by another reader;
+- incoming/outgoing offer history, with accept, decline and cancel actions;
+- atomic server-side ownership transfers: accepting an offer transfers both cards together or neither;
+- a pending-offer lock so one physical card copy cannot be committed to multiple simultaneous offers.
+
+The trade tables have row-level security enabled and direct reader access revoked. All collection visibility and trade actions are performed through authenticated, narrowly scoped database functions. Public visibility does not expose achievements, currency, account activity or other private statistics.
+
+No in-game currency or automatic duplicate exchange is introduced in this stage. Duplicate copies remain owned unless the reader explicitly trades one. The Trading Post interface will be connected after the database migration has been run and verified.
