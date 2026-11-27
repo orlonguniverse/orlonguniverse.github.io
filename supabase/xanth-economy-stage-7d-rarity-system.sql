@@ -315,7 +315,7 @@ as $$
     union all
     select 'chapter:'||lpad(e.chapter_number::text,2,'0'),
       'Chapter '||e.chapter_number||' Pack','chapter','CHAPTER '||e.chapter_number,
-      'Two cards drawn only from Chapter '||e.chapter_number+', using the standard rarity odds.',
+      'Two cards drawn only from Chapter '||e.chapter_number::text||', using the standard rarity odds.',
       2,'#5ca7ff'
     from (select distinct chapter_number from eligible where chapter_number between 1 and 999) e
     union all
