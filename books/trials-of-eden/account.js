@@ -547,7 +547,12 @@ async function showSession(session){
  window.updateOrlongAccountLabel?.(session?.user||null);
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
  const userId=signedIn?session.user.id:null;
- if(userId===lastDashboardUserId)return;
+ if(userId===lastDashboardUserId){
+  if(signedIn){
+   await Promise.all([loadMyAccessGrants(),loadAccessCodeAdmin()]);
+  }
+  return;
+ }
  if(!userId&&lastDashboardUserId){try{sessionStorage.removeItem("edenDashboard:"+lastDashboardUserId);}catch(_){}}
  lastDashboardUserId=userId;
  if(signedIn){
