@@ -391,7 +391,7 @@ async function loadTradingMarket(){
  offersRoot.replaceChildren();
  if(offers.error)offersRoot.append(text("div","eden-empty","Your offers could not be loaded."));
  else if(!offers.data?.length)offersRoot.append(text("div","eden-empty","No offers yet. Make an offer on a listing or in a public reader's binder."));
- (offers.data||[]).forEach(offer=>{
+ (offers.data||[]).forEach(async offer=>{
   const card=document.createElement("article");card.className="market-offer-card";
   const title=text("strong","",offer.trade_role==="proposer"?"Your offer to "+offer.other_reader_name:offer.other_reader_name+" sent you an offer");
   const status=text("span","market-offer-status",String(offer.status).toUpperCase()+" · REVISION "+offer.current_revision);
