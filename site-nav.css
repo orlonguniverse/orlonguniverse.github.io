@@ -31,3 +31,12 @@
  .topbar-right,.top-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
  .topbar-right a,.topbar-right button,.top-actions a,.top-actions button{width:100%}
 }
+
+/* Homepage social link */
+.topbar-right .nav-social-link{
+  width:36px;min-width:36px;min-height:36px;padding:8px;
+  color:#a1a9b8;border:1px solid transparent;
+}
+.topbar-right .nav-social-link svg{display:block;width:17px;height:17px}
+.topbar-right .nav-social-link:hover{color:#fff;border-color:#398cff77;background:#398cff12}
+.topbar-right .nav-social-link:focus-visible{outline:2px solid #8bbdff;outline-offset:3px}
