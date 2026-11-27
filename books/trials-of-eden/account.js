@@ -463,33 +463,36 @@ async function createReaderAccessCode(){
  const output=accountById("createdAccessCode");
  const label=accountById("accessCampaignLabel").value.trim();
  const keys=accountById("accessCampaignKeys").value.split(",").map(value=>value.trim()).filter(Boolean);
+ const customCode=accountById("accessCampaignCustomCode").value.trim();
  const expiryValue=accountById("accessCampaignExpiry").value;
  const limitValue=accountById("accessCampaignLimit").value.trim();
  if(!label||!keys.length){message.textContent="Enter a campaign name and at least one access permission.";return;}
+ if(customCode&&!/^[A-Za-z0-9]{6,40}$/.test(customCode)){message.textContent="Custom codes must be 6–40 letters or numbers, with no spaces or symbols.";return;}
  const expiry=expiryValue?new Date(expiryValue):null;
  if(expiryValue&&Number.isNaN(expiry.getTime())){message.textContent="Please choose a valid expiry date.";return;}
  const limit=limitValue?Number.parseInt(limitValue,10):null;
  if(limitValue&&(!Number.isInteger(limit)||limit<1)){message.textContent="The redemption limit must be a whole number greater than zero.";return;}
- button.disabled=true;button.textContent="CREATING CODE…";message.textContent="Generating a secure access code…";output.hidden=true;
+ button.disabled=true;button.textContent="CREATING CODE…";message.textContent="Creating your access code…";output.hidden=true;
  try{
   const {data,error}=await accountClient.rpc("create_access_code",{
    campaign_label:label,
    granted_access_keys:keys,
    code_expires_at:expiry?expiry.toISOString():null,
-   redemption_limit:limit
+   redemption_limit:limit,
+   custom_code:customCode||null
   });
   if(error)throw error;
   output.textContent=data;
   output.hidden=false;
-  message.textContent="Code created. Copy and save it now — the plaintext code is shown only once.";
-  accountById("accessCampaignLabel").value="";
+  message.textContent="Code created. Copy and save it now — the full code is shown only once.";
+  accountById("accessCampaignCustomCode").value="";
  }catch(error){
   console.error("Could not create access code:",error);
   const detail=[error.message,error.details,error.hint].filter(Boolean).join(" — ");
   message.textContent=detail
    ? "Supabase error: "+detail
    : "We couldn't create that code. Please check the browser console for the Supabase error.";
- }finally{button.disabled=false;button.textContent="GENERATE ACCESS CODE";}
+ }finally{button.disabled=false;button.textContent="CREATE ACCESS CODE";}
 }
 async function loadMyAccessGrants(){
  const list=accountById("readerAccessGrantList");
