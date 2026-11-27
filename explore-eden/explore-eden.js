@@ -99,6 +99,77 @@ async function purchaseShopCard(slotNumber,button){
  if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
 }
+
+function closeMysteryPackOverlay(overlay){
+ if(overlay?.isConnected)overlay.remove();
+ document.body.classList.remove("orlong-reveal-lock");
+}
+function showMysteryPackTear(pack){
+ const overlay=document.createElement("div");overlay.className="mystery-pack-open-overlay";overlay.style.setProperty("--pack-accent",pack.accent||"#d6b86f");
+ const scene=document.createElement("div");scene.className="mystery-pack-opening-scene";
+ const art=document.createElement("div");art.className="mystery-pack-opening-art";
+ const shell=document.createElement("div");shell.className="mystery-pack-opening-shell";
+ const left=document.createElement("span");left.className="pack-half";
+ const right=document.createElement("span");right.className="pack-half";
+ const line=document.createElement("span");line.className="mystery-pack-tear-line";
+ shell.append(left,right,line);art.append(shell);
+ const caption=text("p","","BREAKING THE SEAL");
+ scene.append(art,caption);overlay.append(scene);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");
+ requestAnimationFrame(()=>{overlay.classList.add("is-active");window.setTimeout(()=>overlay.classList.add("is-tearing"),120);});
+ return overlay;
+}
+async function loadMysteryPacks(){
+ const grid=$("mysteryPackGrid");if(!grid)return;
+ grid.replaceChildren(text("div","eden-empty","Opening the Mystery Vault…"));
+ const {data,error}=await client.rpc("get_xanth_mystery_packs");
+ if(error){
+  console.error("Mystery Vault unavailable:",error);
+  grid.replaceChildren(text("div","eden-empty","The Mystery Vault is waiting for the Stage 7C Supabase migration."));
+  return;
+ }
+ grid.replaceChildren();
+ (data||[]).forEach(pack=>{
+  const article=document.createElement("article");article.className="mystery-pack-card theme-"+pack.theme_type;
+  if(pack.accent)article.style.setProperty("--pack-accent",pack.accent);
+  article.append(text("span","mystery-pack-kicker",pack.theme_label||"SEALED DISCOVERY"));
+  const art=document.createElement("div");art.className="mystery-pack-art";
+  const envelope=document.createElement("div");envelope.className="mystery-pack-envelope";
+  envelope.append(text("span","mystery-pack-glyph",pack.theme_type==="chapter"?"⌁":pack.theme_type==="category"?"✧":pack.theme_type==="rarity"?"◇":"✦"),
+    text("span","mystery-pack-ribbon",""));
+  art.append(envelope);
+  article.append(art,text("h4","mystery-pack-title",pack.title),text("p","mystery-pack-description",pack.description));
+  const meta=document.createElement("div");meta.className="mystery-pack-meta";
+  meta.append(text("span","",pack.card_count+" CARDS INSIDE"),text("span","",""+pack.eligible_count+" POSSIBLE"));
+  article.append(meta,text("p","mystery-pack-price",formatXanth(pack.price_cents)));
+  const button=text("button","mystery-pack-buy","OPEN PACK");button.type="button";
+  button.addEventListener("click",()=>purchaseMysteryPack(pack,button));
+  article.append(button);grid.append(article);
+ });
+ if(!(data||[]).length)grid.append(text("div","eden-empty","The vault is quiet. More released cards are needed to form eligible packs."));
+}
+async function purchaseMysteryPack(pack,button){
+ button.disabled=true;button.textContent="SEAL BREAKING…";
+ $("mysteryPackStatus").textContent="";
+ const overlay=showMysteryPackTear(pack);
+ await new Promise(resolve=>window.setTimeout(resolve,1650));
+ const {data,error}=await client.rpc("purchase_xanth_mystery_pack",{p_pack_id:pack.pack_id});
+ closeMysteryPackOverlay(overlay);
+ if(error){
+  console.error("Mystery pack purchase failed:",error);
+  button.disabled=false;button.textContent=String(error.message||"").toLowerCase().includes("not enough xanth")?"NOT ENOUGH XANTH":"TRY AGAIN";
+  $("mysteryPackStatus").textContent=error.message||"The pack could not be opened. Your wallet has not been charged.";
+  return;
+ }
+ button.textContent="PACK OPENED";
+ $("mysteryPackStatus").textContent=pack.title+" opened — "+data.card_count+" card"+(data.card_count===1?"":"s")+" added to your collection. Your discoveries are being revealed.";
+ const collectionResult=await client.rpc("get_my_card_collection");
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
+ await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+ // The universal reveal queue plays the existing reveal soundtrack and
+ // presents each card sequentially, using the same cinematic card treatment.
+ window.OrlongCardRevealWatcher?.poll?.();
+}
+
 async function loadMarketplace(){
  const grid=$("dailyShopGrid");
  const [walletResult,shopResult]=await Promise.all([client.rpc("get_my_xanth_wallet"),client.rpc("get_xanth_daily_shop")]);
@@ -122,6 +193,7 @@ async function loadMarketplace(){
  });
  if(!slots.length)grid.append(text("div","eden-empty","No released cards are currently eligible for the daily exchange."));
  await loadXanthTransactions();
+ await loadMysteryPacks();
 }
 function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
