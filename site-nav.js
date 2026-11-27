@@ -74,7 +74,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   const settingsLabel=document.createElement("span");settingsLabel.className="nav-menu-section-label";settingsLabel.textContent="SETTINGS";
   const theme=document.createElement("button");theme.type="button";theme.id="mainMenuThemeButton";theme.className="nav-menu-action";theme.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";theme.addEventListener("click",window.toggleSiteTheme);
   const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";
-  panel.append(settingsLabel,theme,statsLink,musicSlot);
+  const guideLink=makeLink("READER GUIDE","/getting-started.html",location.pathname.endsWith("/getting-started.html"));
+  guideLink.classList.add("nav-guide-link");
+  panel.append(guideLink,settingsLabel,theme,statsLink,musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
