@@ -79,6 +79,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   exploreEden.classList.add("nav-explore-eden");
   const community=dropdown("DISCOVER",[
    ["EVENTS","/events.html",location.pathname.endsWith("/events.html")],
+   ["EDEN ARCHIVE","/eden-archive/",location.pathname.startsWith("/eden-archive")],
    ["EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access")],
    ["FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers")]
   ]);
