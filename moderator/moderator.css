@@ -8,3 +8,10 @@
 
 .shop-admin-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:20px 0}.shop-admin-controls label,.shop-override-form label{display:grid;gap:8px;color:#dce8f7;font-size:9px;font-weight:700;letter-spacing:1.1px}.shop-admin-controls input,.shop-override-form input,.shop-override-form select{min-width:220px;padding:12px;background:#091321;border:1px solid #304a68;color:var(--white);font:13px Inter,sans-serif;border-radius:2px}.shop-admin-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 28px}.shop-admin-slot{display:grid;gap:8px;min-width:0;padding:17px;background:linear-gradient(145deg,#16283e,#0d1726);border:1px solid #c6a96c55}.shop-admin-slot strong{font:500 12px Cinzel,serif;line-height:1.6}.shop-admin-slot small{color:#d8bd82;font-size:9px;letter-spacing:.8px}.shop-override-form{display:grid;gap:15px;max-width:780px;padding:22px;background:var(--panel);border:1px solid var(--line)}.shop-override-form .eyebrow{margin:0}.shop-override-form .field-grid{grid-template-columns:1fr 1.5fr}
 @media(max-width:700px){.shop-admin-slots{grid-template-columns:1fr}.shop-override-form .field-grid{grid-template-columns:1fr}.shop-admin-controls{align-items:stretch;flex-direction:column}.shop-admin-controls input,.shop-override-form input,.shop-override-form select{min-width:0;width:100%}}
+
+.xanth-grant-panel{margin-top:32px;padding:22px;background:linear-gradient(135deg,#14263b,#0c1726);border:1px solid #c6a96c55;max-width:850px}
+.xanth-grant-panel h3{margin:0;font:500 19px Cinzel,serif;color:#f0d9a5}
+.xanth-grant-panel>p:not(.eyebrow){color:#aebbd0;font-size:12px;line-height:1.7}
+.xanth-grant-panel .shop-override-form{margin-top:16px}
+.xanth-grant-panel .field-grid{grid-template-columns:1fr 1fr}
+@media(max-width:700px){.xanth-grant-panel .field-grid{grid-template-columns:1fr}}
