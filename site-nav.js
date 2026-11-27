@@ -25,7 +25,7 @@ window.toggleSiteTheme=function(){
  const light=document.body.classList.toggle("light");
  document.body.classList.toggle("dark",!light);
  localStorage.setItem("orlongSiteTheme",light?"light":"dark");
- const button=document.getElementById("themeButton")||document.getElementById("contentsThemeButton")||document.getElementById("mainMenuThemeButton");
+ const button=document.getElementById("mainMenuThemeButton");
  if(button)button.textContent=light?"DARK MODE":"LIGHT MODE";
 };
 document.addEventListener("DOMContentLoaded",()=>{
@@ -34,16 +34,14 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.body.classList.toggle("light",saved==="light");
   document.body.classList.toggle("dark",saved==="dark");
  }
- const themeButton=document.getElementById("themeButton")||document.getElementById("contentsThemeButton");
- if(themeButton)themeButton.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";
-
- // Restore the familiar READ / COMMUNITY navigation. MAIN MENU is reserved
- // for personal settings, statistics and background music only.
+ // Build the same navigation on every page from one shared template.
  const navLinks=document.querySelector(".topbar-right, .top-actions");
  if(navLinks&&!navLinks.dataset.orlongGrouped){
-  const original=[...navLinks.children];
   const accountButton=navLinks.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button");
-  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/MY STATISTICS/i.test(a.textContent)||/account\.html#dashboard|account\.html\?/.test(a.getAttribute("href")||""));
+  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/MY STATISTICS/i.test(a.textContent)||/account\.html(?:#dashboard|\?)/i.test(a.getAttribute("href")||""))||document.createElement("a");
+  statsLink.textContent="MY STATISTICS";
+  statsLink.href="/books/trials-of-eden/account.html#dashboard";
+  statsLink.classList.add("nav-menu-statistics");
   const makeLink=(label,href,current=false)=>{
    const a=document.createElement("a");a.href=href;a.textContent=label;
    if(current)a.setAttribute("aria-current","page");
@@ -64,20 +62,18 @@ document.addEventListener("DOMContentLoaded",()=>{
    ["READING ROOM","/books/trials-of-eden/",location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html")],
    ["EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden")]
   ]);
-  const communityItems=[
+  const community=dropdown("COMMUNITY",[
    ["EVENTS","/events.html",location.pathname.endsWith("/events.html")],
    ["EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access")],
    ["FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers")]
-  ];
-  const community=dropdown("COMMUNITY",communityItems);
+  ]);
   const main=document.createElement("details");main.className="nav-dropdown nav-main-menu";
   const mainSummary=document.createElement("summary");mainSummary.textContent="MAIN MENU";mainSummary.setAttribute("aria-haspopup","true");
   const panel=document.createElement("div");panel.className="nav-dropdown-menu nav-main-menu-panel";
   const settingsLabel=document.createElement("span");settingsLabel.className="nav-menu-section-label";settingsLabel.textContent="SETTINGS";
   const theme=document.createElement("button");theme.type="button";theme.id="mainMenuThemeButton";theme.className="nav-menu-action";theme.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";theme.addEventListener("click",window.toggleSiteTheme);
-  panel.append(settingsLabel,theme);
-  if(statsLink){statsLink.textContent="MY STATISTICS";statsLink.href="/books/trials-of-eden/account.html#dashboard";statsLink.classList.add("nav-menu-statistics");panel.append(statsLink);}
-  const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";panel.append(musicSlot);
+  const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";
+  panel.append(settingsLabel,theme,statsLink,musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
@@ -88,72 +84,55 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.addEventListener("click",event=>{if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
   document.addEventListener("keydown",event=>{if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
  }
- // Keep the account button's navigation behaviour independent of authentication.
  const accountButton=document.getElementById("openAccountButton");
  if(accountButton&&!document.getElementById("authForm")&&!document.getElementById("accountDialog")){
   accountButton.addEventListener("click",()=>{
    const target=accountButton.dataset.accountTarget;
-   if(target){
-    const panel=document.querySelector(target);
-    if(panel)panel.scrollIntoView({behavior:"smooth",block:"start"});
-    else window.location.href=accountButton.dataset.accountHref||"account.html";
-    return;
-   }
-   window.location.href=accountButton.dataset.accountHref||"books/trials-of-eden/account.html";
+   if(target){const panel=document.querySelector(target);if(panel){panel.scrollIntoView({behavior:"smooth",block:"start"});return;}}
+   window.location.href=accountButton.dataset.accountHref||"/books/trials-of-eden/account.html";
   });
  }
-
- // Load Supabase when a page does not already include it, so the signed-in
- // username is shown consistently throughout the entire website.
- const initialiseSharedAccountLabel=()=>{
-  if(!window.supabase?.createClient)return;
-  if(!window.orlongNavigationClient){
-   window.orlongNavigationClient=window.supabase.createClient(
-    "https://kqfwtzrfqsfampqfzoal.supabase.co",
-    "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes"
-   );
-  }
-  const client=window.orlongNavigationClient;
-  const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
-  client.auth.getSession().then(({data,error})=>{
-   if(!error){const user=data.session?.user||null;setAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);}
-  }).catch(()=>{});
-  client.auth.onAuthStateChange((_event,session)=>{
-   window.setTimeout(()=>{const user=session?.user||null;setAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);},0);
-  });
- };
- if(window.supabase?.createClient){
-  initialiseSharedAccountLabel();
-  installCardRevealSystem();
- }else{
-  if(!window.__orlongSupabaseLoad){
-   window.__orlongSupabaseLoad=new Promise((resolve,reject)=>{
-    const script=document.createElement("script");
-    script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-    script.onload=resolve;
-    script.onerror=reject;
-    document.head.appendChild(script);
-   });
-  }
-  window.__orlongSupabaseLoad.then(()=>{initialiseSharedAccountLabel();installCardRevealSystem();}).catch(()=>{});
- }
- // Universal collectible reveal system: every new physical card copy is announced,
- // regardless of which page or reward workflow caused it.
+ // Install reveal/audio features only after their functions are defined, avoiding
+ // the intermittent temporal-dead-zone error on pages where Supabase loads first.
  const installCardRevealSystem=()=>{
   if(!document.querySelector("link[data-orlong-reveal-css]")){
-   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6f";css.dataset.orlongRevealCss="true";document.head.append(css);
+   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6g";css.dataset.orlongRevealCss="true";document.head.append(css);
   }
   const loadWatcher=()=>{
    if(window.OrlongCardRevealWatcher){window.OrlongCardRevealWatcher.start();return;}
    if(document.querySelector("script[data-orlong-reveal-watcher]"))return;
-   const watcher=document.createElement("script");watcher.src="/assets/js/card-reveal-watcher.js?v=stage-6f";watcher.dataset.orlongRevealWatcher="true";document.body.append(watcher);
+   const watcher=document.createElement("script");watcher.src="/assets/js/card-reveal-watcher.js?v=stage-6g";watcher.dataset.orlongRevealWatcher="true";document.body.append(watcher);
   };
   if(window.OrlongCardReveal){loadWatcher();return;}
   if(document.querySelector("script[data-orlong-reveal-core]"))return;
-  const reveal=document.createElement("script");reveal.src="/assets/js/card-reveal.js?v=stage-6f";reveal.dataset.orlongRevealCore="true";reveal.onload=loadWatcher;document.body.append(reveal);
+  const reveal=document.createElement("script");reveal.src="/assets/js/card-reveal.js?v=stage-6g";reveal.dataset.orlongRevealCore="true";reveal.onload=loadWatcher;document.body.append(reveal);
  };
- // Shared optional background soundtrack control on pages using the site navigation.
- if(!document.querySelector("script[data-orlong-music]")){
-  const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6e";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
+ const initialiseSharedAccountLabel=()=>{
+  if(!window.supabase?.createClient)return;
+  if(!window.orlongNavigationClient){
+   window.orlongNavigationClient=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");
+  }
+  const client=window.orlongNavigationClient;
+  client.auth.getSession().then(({data,error})=>{
+   if(!error){const user=data.session?.user||null;window.updateOrlongAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);}
+  }).catch(()=>{});
+  client.auth.onAuthStateChange((_event,session)=>{
+   window.setTimeout(()=>{const user=session?.user||null;window.updateOrlongAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);},0);
+  });
+ };
+ const installSharedAudio=()=>{
+  if(!document.querySelector("script[data-orlong-music]")){
+   const script=document.createElement("script");script.src="/assets/js/orlong-audio.js?v=stage-6g";script.dataset.orlongMusic="true";document.body.appendChild(script);
+  }
+ };
+ const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();};
+ if(window.supabase?.createClient)initialiseSharedFeatures();
+ else{
+  if(!window.__orlongSupabaseLoad){
+   window.__orlongSupabaseLoad=new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.onload=resolve;script.onerror=reject;document.head.appendChild(script);
+   });
+  }
+  window.__orlongSupabaseLoad.then(initialiseSharedFeatures).catch(()=>{installCardRevealSystem();installSharedAudio();});
  }
 });
