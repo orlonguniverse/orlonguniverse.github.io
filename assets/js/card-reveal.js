@@ -4,9 +4,17 @@
  const wait=ms=>new Promise(resolve=>window.setTimeout(resolve,ms));
  const reduced=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
  const rarities={common:{label:"COMMON",colour:"#c8d0da"},uncommon:{label:"UNCOMMON",colour:"#54d69a"},rare:{label:"RARE",colour:"#42a5ff"},epic:{label:"EPIC",colour:"#bd72ff"},legendary:{label:"LEGENDARY",colour:"#f2c75c"}};
- let active=false,score=null;
+ let active=false,score=null,queuedCards=[],activeResolver=null;
  function stopScore(){if(score){score.pause();score.currentTime=0;score=null;}}
- function close(overlay){stopScore();overlay?.classList.remove("orlong-reveal-active");window.setTimeout(()=>overlay?.remove(),650);document.body.classList.remove("orlong-reveal-lock");active=false;}
+ function close(overlay){
+  if(!overlay||overlay.dataset.closing==="true")return;
+  overlay.dataset.closing="true";stopScore();overlay.classList.remove("orlong-reveal-active");
+  window.setTimeout(()=>{
+   overlay.remove();document.body.classList.remove("orlong-reveal-lock");active=false;
+   const resolve=activeResolver;activeResolver=null;if(resolve)resolve();
+   startNext();
+  },650);
+ }
  function makeOverlay(card){
   const overlay=document.createElement("div");overlay.className="orlong-reveal-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","New collectible card reveal");
   const rarity=rarities[String(card.rarity||"common").toLowerCase()]||rarities.common;overlay.style.setProperty("--reveal-rarity",rarity.colour);
@@ -41,9 +49,18 @@
   return overlay;
  }
  function finish(overlay,caption,skip,closeButton){overlay.dataset.stage="complete";overlay.classList.add("orlong-reveal-complete");caption.textContent="A NEW DISCOVERY ENTERS YOUR COLLECTION";skip.hidden=true;closeButton.hidden=false;}
- async function play(card){
-  if(active||!card||!card.name)return;
-  active=true;const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
+ function play(card){
+  return new Promise(resolve=>{
+   if(!card||!card.name){resolve();return;}
+   queuedCards.push({card,resolve});startNext();
+  });
+ }
+ function startNext(){
+  if(active||!queuedCards.length)return;
+  const next=queuedCards.shift();active=true;activeResolver=next.resolve;
+  startCard(next.card);
+ }
+ async function startCard(card){const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
   const caption=overlay.querySelector(".orlong-reveal-caption"),skip=overlay.querySelector(".orlong-reveal-skip"),closeButton=overlay.querySelector(".orlong-reveal-close");
   if(card.series==="eden"||card.book==="trials-of-eden"||card.id?.startsWith("special-")||!card.series)overlay.classList.add("series-eden");
   const finishNow=()=>finish(overlay,caption,skip,closeButton);
@@ -59,7 +76,7 @@
    ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",1800],
    ["revealed",String(card.name).toUpperCase(),1700]
   ];
-  for(const [stage,label,duration] of sequence){if(!overlay.isConnected)return;overlay.dataset.stage=stage;caption.textContent=label;await wait(duration);}
+  for(const [stage,label,duration] of sequence){if(!overlay.isConnected||overlay.dataset.closing==="true")return;overlay.dataset.stage=stage;caption.textContent=label;await wait(duration);}
   finishNow();
  }
  function rarityLabel(card){return (rarities[String(card.rarity||"common").toLowerCase()]||rarities.common).label;}
