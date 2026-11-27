@@ -21,25 +21,30 @@
    if(!userId)return;
    const {data:awards,error}=await client.rpc("claim_my_card_reveals",{p_limit:10});
    if(error)throw error;
-   for(const award of awards||[]){
+   const list=awards||[];
+   const toCard=award=>({
+    id:award.card_id,name:award.card_name,number:award.card_number,rarity:award.rarity||"common",
+    artwork:award.artwork_url?new URL(award.artwork_url,location.origin).href:"",
+    description:award.spoiler_safe_description||"A new discovery has entered your collection.",
+    category:award.category_label||"CHARACTER",chapterNumber:award.chapter_number||null,
+    setId:award.set_id||"",bookLabel:award.book_id==="trials-of-eden"?"THE TRIALS OF EDEN":(award.book_id||"ORLONG ARCHIVE"),
+    series:award.series_id||"",book:award.book_id||"",
+    sourceLabel:award.source_label||"New collectible reward",sourceDetail:award.source_detail||"A new card has been added to your collection."
+   });
+   const packAwards=list.filter(award=>String(award.source_label||"").toLowerCase()==="mystery pack opened");
+   const otherAwards=list.filter(award=>String(award.source_label||"").toLowerCase()!=="mystery pack opened");
+   if(packAwards.length>1&&window.OrlongCardReveal.playBatch){
+    await window.OrlongCardReveal.playBatch(packAwards.map(toCard));
+    const {error:ackError}=await client.rpc("acknowledge_my_card_reveals",{p_queue_ids:packAwards.map(a=>a.queue_id)});
+    if(ackError)throw ackError;
+   }else if(packAwards.length===1){
+    const award=packAwards[0];await window.OrlongCardReveal.play(toCard(award));
+    const {error:ackError}=await client.rpc("acknowledge_my_card_reveals",{p_queue_ids:[award.queue_id]});
+    if(ackError)throw ackError;
+   }
+   for(const award of otherAwards){
     if(!window.OrlongCardReveal)break;
-    const card={
-     id:award.card_id,
-     name:award.card_name,
-     number:award.card_number,
-     rarity:award.rarity||"common",
-     artwork:award.artwork_url?new URL(award.artwork_url,location.origin).href:"",
-     description:award.spoiler_safe_description||"A new discovery has entered your collection.",
-     category:award.category_label||"CHARACTER",
-     chapterNumber:award.chapter_number||null,
-     setId:award.set_id||"",
-     bookLabel:award.book_id==="trials-of-eden"?"THE TRIALS OF EDEN":(award.book_id||"ORLONG ARCHIVE"),
-     series:award.series_id||"",
-     book:award.book_id||"",
-     sourceLabel:award.source_label||"New collectible reward",
-     sourceDetail:award.source_detail||"A new card has been added to your collection."
-    };
-    await window.OrlongCardReveal.play(card);
+    await window.OrlongCardReveal.play(toCard(award));
     const {error:ackError}=await client.rpc("acknowledge_my_card_reveals",{p_queue_ids:[award.queue_id]});
     if(ackError)throw ackError;
    }
