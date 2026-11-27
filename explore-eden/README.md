@@ -110,3 +110,22 @@ Stage 4 upgrades the signed-in reader's binder with:
 The binder still shows only cards the signed-in reader owns. It does not expose the master catalogue or another reader's collection. Explore Eden companion links will be added as the corresponding spoiler-safe lore entries are authored and released.
 
 No additional Supabase SQL is required for this interface stage. The existing private get_my_card_collection() function supplies the data.
+
+
+## Stage 5 — reader achievements
+
+The Stage 5 migration is `supabase/card-achievements-stage-5.sql`. Run it in the Supabase SQL Editor after Stage 3.
+
+The first achievement collection tracks:
+- First Chapter — complete a released chapter;
+- Dedicated Reader — complete five chapters;
+- First Reaction — react to a chapter;
+- Challenge Accepted — submit a chapter challenge;
+- Perfect Score — earn full marks on a challenge;
+- Joining the Conversation — have a discussion comment approved;
+- First Collectible — earn a card;
+- Growing Collection — own three different cards.
+
+Achievements unlock automatically when the signed-in reader opens My Account. Unlock timestamps are stored permanently in the database; progress is calculated from the reader's saved Reading Room activity and card ownership. The private `get_my_achievements()` RPC exposes only the signed-in reader's achievements.
+
+This stage adds achievement milestones and progress tracking, not an in-game currency or automatic bonus card. Those reward types need their own carefully balanced economy and reward rules and will be designed separately. The animated card-opening reveal with music remains reserved for the final stage.
