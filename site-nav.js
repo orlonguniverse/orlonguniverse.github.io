@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  };
  if(window.supabase?.createClient){
   initialiseSharedAccountLabel();
+  installCardRevealSystem();
  }else{
   if(!window.__orlongSupabaseLoad){
    window.__orlongSupabaseLoad=new Promise((resolve,reject)=>{
@@ -134,8 +135,23 @@ document.addEventListener("DOMContentLoaded",()=>{
     document.head.appendChild(script);
    });
   }
-  window.__orlongSupabaseLoad.then(initialiseSharedAccountLabel).catch(()=>{});
+  window.__orlongSupabaseLoad.then(()=>{initialiseSharedAccountLabel();installCardRevealSystem();}).catch(()=>{});
  }
+ // Universal collectible reveal system: every new physical card copy is announced,
+ // regardless of which page or reward workflow caused it.
+ const installCardRevealSystem=()=>{
+  if(!document.querySelector("link[data-orlong-reveal-css]")){
+   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6f";css.dataset.orlongRevealCss="true";document.head.append(css);
+  }
+  const loadWatcher=()=>{
+   if(window.OrlongCardRevealWatcher){window.OrlongCardRevealWatcher.start();return;}
+   if(document.querySelector("script[data-orlong-reveal-watcher]"))return;
+   const watcher=document.createElement("script");watcher.src="/assets/js/card-reveal-watcher.js?v=stage-6f";watcher.dataset.orlongRevealWatcher="true";document.body.append(watcher);
+  };
+  if(window.OrlongCardReveal){loadWatcher();return;}
+  if(document.querySelector("script[data-orlong-reveal-core]"))return;
+  const reveal=document.createElement("script");reveal.src="/assets/js/card-reveal.js?v=stage-6f";reveal.dataset.orlongRevealCore="true";reveal.onload=loadWatcher;document.body.append(reveal);
+ };
  // Shared optional background soundtrack control on pages using the site navigation.
  if(!document.querySelector("script[data-orlong-music]")){
   const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6e";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
