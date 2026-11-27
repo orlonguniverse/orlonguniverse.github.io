@@ -210,6 +210,14 @@ begin
  end loop;
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into rc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='recipient';
  if p_listing_id is not null and not (lid.copy_id=any(coalesce(p_recipient_copy_ids,'{}'::uuid[]))) then raise exception 'Listing card missing from offer'; end if;
+ if coalesce(p_proposer_pays_cents,0)>0 then
+  insert into public.reader_xanth_accounts(user_id) values(uid) on conflict(user_id) do nothing;
+  perform 1 from public.reader_xanth_accounts where user_id=uid for update;
+  select balance_cents into bal from public.reader_xanth_accounts where user_id=uid;
+  if bal<p_proposer_pays_cents then raise exception 'Not enough available Xanth to reserve this offer'; end if;
+  update public.reader_xanth_accounts set balance_cents=balance_cents-p_proposer_pays_cents,updated_at=now() where user_id=uid;
+  update public.reader_card_market_offers set escrow_user_id=uid,escrow_cents=p_proposer_pays_cents where offer_id=oid;
+ end if;
  insert into public.reader_card_market_offer_history(offer_id,revision,sender_user_id,proposer_pays_cents,recipient_pays_cents,proposer_cards,recipient_cards,message)
  values(oid,1,uid,coalesce(p_proposer_pays_cents,0),coalesce(p_recipient_pays_cents,0),pc,rc,left(p_message,500));
  return oid;
