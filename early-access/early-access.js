@@ -10,7 +10,7 @@ function renderMissionProgress(){
  byId("missionCount").textContent=total?completed+" / "+total+" MISSIONS":"NO MISSIONS";
  byId("missionProgressFill").style.width=percent+"%";byId("missionProgressTrack").setAttribute("aria-valuemax",String(total));byId("missionProgressTrack").setAttribute("aria-valuenow",String(completed));
  byId("missionProgressText").textContent=total?completed+" of "+total+" missions complete · "+percent+"% of your Founding Reader journey":"No active missions are available right now.";
- byId("rewardCount").textContent=completed+" / "+total+" EXCLUSIVE CARDS EARNED";
+ byId("rewardCount").textContent=completed+" / "+total+" CHARACTER PACKS OPENED";
 }
 function makeMissionCard(m){
  const card=document.createElement("article");card.className="mission-card"+(m.is_completed?" is-complete":"")+(m.is_verified&&!m.is_completed?" is-ready":"");
@@ -23,13 +23,15 @@ function makeMissionCard(m){
  const actions=document.createElement("div");actions.className="mission-actions";
  const link=document.createElement("a");link.className="mission-visit-link";link.href=m.action_url;link.textContent=m.action_label;
  const button=document.createElement("button");button.type="button";button.className="mission-complete-button";
- button.textContent=m.is_completed?"MISSION COMPLETE ✓":m.is_verified?"CLAIM MISSION REWARD":"COMPLETE THE ACTIVITY FIRST";
+ button.textContent=m.is_completed?"MISSION COMPLETE ✓":m.is_verified?"OPEN CHARACTER PACK":"COMPLETE THE ACTIVITY FIRST";
  button.disabled=!!m.is_completed||!m.is_verified;
  if(!m.is_completed&&m.is_verified)button.addEventListener("click",()=>completeMission(m.mission_key,button));
+ const visitTracked=["account-profile","reading-room","collectible-binder","trading-post","achievements","explore-eden","founding-readers"];
+ if(visitTracked.includes(m.mission_key))link.addEventListener("click",async event=>{event.preventDefault();link.style.pointerEvents="none";link.textContent="RECORDING VISIT…";const {error}=await earlyAccessClient.rpc("record_early_access_mission_visit",{target_mission_key:m.mission_key});if(error){console.error(error);byId("missionMessage").textContent=error.message||"Visit could not be recorded. Please try again.";link.style.pointerEvents="";link.textContent=m.action_label;return;}window.location.href=m.action_url;});
  actions.append(link,button);card.append(top,title,desc,instructions,actions);
  if(m.is_completed&&m.reward_card_id){
   const reward=document.createElement("div");reward.className="mission-reward";
-  const image=document.createElement("img");image.src=m.reward_card_artwork;image.alt=m.reward_card_name+" collectible card";image.loading="lazy";
+  const image=m.reward_card_artwork?document.createElement("img"):document.createElement("div");if(m.reward_card_artwork){image.src=m.reward_card_artwork;image.alt=m.reward_card_name+" collectible card";image.loading="lazy";}else{image.className="mission-reward-placeholder";image.textContent="SPECIAL EDITION";image.setAttribute("aria-label","Special Edition character card");}
   const details=document.createElement("div");details.className="mission-reward-details";
   const label=document.createElement("span");label.className="reward-eyebrow";label.textContent="EXCLUSIVE CARD UNLOCKED";
   const name=document.createElement("strong");name.textContent=m.reward_card_name;
@@ -61,9 +63,9 @@ async function loadMissions(){
 async function completeMission(key,button){
  button.disabled=true;button.textContent="VERIFYING & UNLOCKING…";byId("missionMessage").textContent="";
  const {data,error}=await earlyAccessClient.rpc("complete_early_access_mission",{target_mission_key:key});
- if(error){console.error(error);byId("missionMessage").textContent=error.message||"The activity has not been verified yet. Visit the mission area and try again.";button.disabled=false;button.textContent="CLAIM MISSION REWARD";return;}
+ if(error){console.error(error);byId("missionMessage").textContent=error.message||"The activity has not been verified yet. Visit the mission area and try again.";button.disabled=false;button.textContent="OPEN CHARACTER PACK";return;}
  const mission=missionRows.find(m=>m.mission_key===key);if(mission){mission.is_completed=true;mission.completed_at=data||new Date().toISOString();}
- await loadMissions();byId("missionMessage").textContent="Mission verified! Your exclusive card has been added to your reader binder.";
+ await loadMissions();byId("missionMessage").textContent="Mission complete! Your random Special Edition character card has been added to your reader binder.";
 }
 async function submitTesterFeedback(event){
  event.preventDefault();const input=byId("testerFeedbackText"),button=byId("submitTesterFeedbackButton"),message=byId("testerFeedbackMessage"),feedback=input.value.trim();
