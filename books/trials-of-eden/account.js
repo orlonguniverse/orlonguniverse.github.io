@@ -295,6 +295,102 @@ async function loadReaderAchievements(){
  grid.appendChild(wrap);
 }
 
+
+async function loadTradingPost(){
+ const status=accountById("tradeStatus"),directory=accountById("publicCollectionDirectory"),offers=accountById("myTradeOffers"),toggle=accountById("publicCollectionToggle");
+ if(!status||!directory||!offers||!toggle)return;
+ status.textContent="Loading Trading Post...";
+ const [visibilityResult,copiesResult,directoryResult,tradesResult]=await Promise.all([
+  accountClient.rpc("get_my_card_collection_visibility"),
+  accountClient.rpc("get_my_tradeable_card_copies"),
+  accountClient.rpc("get_public_card_collections"),
+  accountClient.rpc("get_my_card_trades")
+ ]);
+ const failed=[visibilityResult,copiesResult,directoryResult,tradesResult].find(result=>result.error);
+ if(failed){console.error("Could not load Trading Post:",failed.error);status.textContent="The Trading Post could not load. Please check that the Stage 6 database update completed successfully.";return;}
+ toggle.checked=visibilityResult.data===true;
+ const myCopies=copiesResult.data||[];
+ const readers=directoryResult.data||[];
+ const myTrades=tradesResult.data||[];
+ status.textContent="Your binder is "+(toggle.checked?"PUBLIC":"PRIVATE")+" · "+myCopies.length+" card copies currently available to offer.";
+ if(!toggle.dataset.bound){
+  toggle.dataset.bound="true";
+  toggle.addEventListener("change",async()=>{
+   toggle.disabled=true;
+   const {data,error}=await accountClient.rpc("set_my_card_collection_visibility",{make_public:toggle.checked});
+   if(error){console.error(error);toggle.checked=!toggle.checked;status.textContent="We couldn't update your collection visibility. Please try again.";}
+   else status.textContent=data?"Your binder is now public. Other signed-in readers can browse it and make offers.":"Your binder is private. Other readers can no longer browse it.";
+   toggle.disabled=false;
+   await loadTradingPost();
+  });
+ }
+ directory.replaceChildren();
+ if(!readers.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="No readers have made their collections public yet. You can make your own binder public using the setting above.";directory.appendChild(empty);}
+ for(const reader of readers){
+  const article=document.createElement("article");article.className="trade-reader";
+  const heading=document.createElement("div");heading.className="trade-reader-heading";
+  const name=document.createElement("strong");name.textContent=reader.display_name||"Reader";
+  const count=document.createElement("span");count.className="trade-reader-count";count.textContent=Number(reader.unique_cards||0)+" UNIQUE CARDS · "+Number(reader.total_copies||0)+" COPIES";
+  heading.append(name,count);article.appendChild(heading);
+  const cardsWrap=document.createElement("div");cardsWrap.className="trade-card-options";
+  const view=document.createElement("button");view.type="button";view.className="trade-action secondary";view.textContent="VIEW COLLECTION";
+  const cardHolder=document.createElement("div");cardHolder.hidden=true;
+  view.addEventListener("click",async()=>{
+   if(!cardHolder.hidden){cardHolder.hidden=true;view.textContent="VIEW COLLECTION";return;}
+   view.disabled=true;view.textContent="LOADING...";
+   const {data,error}=await accountClient.rpc("get_public_card_collection",{target_reader_id:reader.reader_id});
+   view.disabled=false;
+   if(error){console.error(error);view.textContent="TRY AGAIN";status.textContent="We couldn't open that public binder.";return;}
+   cardHolder.replaceChildren();
+   if(!data?.length){const empty=document.createElement("p");empty.className="empty";empty.textContent="This reader's public binder is currently empty.";cardHolder.appendChild(empty);}
+   (data||[]).forEach(card=>{
+    const option=document.createElement("div");option.className="trade-card-option";
+    const title=document.createElement("strong");title.textContent=(card.card_number||"CARD")+" · "+card.card_name;
+    const meta=document.createElement("small");meta.textContent=[card.category_label,card.rarity,Number(card.copy_count||0)+" owned"].filter(Boolean).join(" · ");
+    option.append(title,meta);
+    if(myCopies.length){
+     const select=document.createElement("select");select.setAttribute("aria-label","Choose a card to offer for "+card.card_name);
+     const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Choose one of your cards to offer";select.appendChild(placeholder);
+     myCopies.forEach(copy=>{const opt=document.createElement("option");opt.value=copy.copy_id;opt.textContent=copy.card_number+" · "+copy.card_name;select.appendChild(opt);});
+     const send=document.createElement("button");send.type="button";send.textContent="OFFER THIS CARD";send.disabled=true;
+     select.addEventListener("change",()=>{send.disabled=!select.value;});
+     send.addEventListener("click",async()=>{
+      send.disabled=true;send.textContent="SENDING...";
+      const {error:offerError}=await accountClient.rpc("create_card_trade_offer",{target_recipient_id:reader.reader_id,offered_copy:select.value,requested_card:card.card_id});
+      if(offerError){console.error(offerError);status.textContent=offerError.message||"We couldn't send that offer.";send.disabled=false;send.textContent="OFFER THIS CARD";return;}
+      status.textContent="Your trade offer has been sent to "+(reader.display_name||"the reader")+".";
+      await loadTradingPost();
+     });
+     option.append(select,send);
+    }else{
+     const note=document.createElement("small");note.textContent="You don't currently have an available card copy to offer.";option.appendChild(note);
+    }
+    cardsWrap.appendChild(option);
+   });
+   cardHolder.appendChild(cardsWrap);cardHolder.hidden=false;view.textContent="HIDE COLLECTION";
+  });
+  article.append(view,cardHolder);directory.appendChild(article);
+ }
+ offers.replaceChildren();
+ if(!myTrades.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="You don't have any trade offers yet. Offers you send or receive will appear here.";offers.appendChild(empty);}
+ myTrades.forEach(trade=>{
+  const article=document.createElement("article");article.className="trade-offer";
+  const role=trade.trade_role==="incoming"?"OFFER RECEIVED FROM ":"OFFER SENT TO ";
+  const heading=document.createElement("strong");heading.textContent=role+(trade.other_display_name||"Reader");
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="You offer: "+trade.offered_card_number+" · "+trade.offered_card_name+"  |  You request: "+trade.requested_card_number+" · "+trade.requested_card_name;
+  const state=document.createElement("p");state.className="trade-status";state.textContent=String(trade.status||"").toUpperCase()+" · "+safeDate(trade.created_at);
+  article.append(heading,detail,state);
+  if(trade.status==="pending"){
+   const actions=document.createElement("div");actions.className="trade-offer-actions";
+   const action=(label,accept,secondary)=>{const button=document.createElement("button");button.type="button";button.className="trade-action"+(secondary?" secondary":"");button.textContent=label;button.addEventListener("click",async()=>{button.disabled=true;const {error}=await accountClient.rpc("respond_to_card_trade",{target_offer_id:trade.offer_id,accept_offer:accept});if(error){console.error(error);status.textContent=error.message||"We couldn't update this trade.";button.disabled=false;return;}status.textContent=accept?"Trade accepted! Both card copies have been transferred.":"Trade updated.";await loadTradingPost();});actions.appendChild(button);};
+   if(trade.trade_role==="incoming"){action("ACCEPT TRADE",true,false);action("DECLINE",false,true);}
+   else action("CANCEL OFFER",false,true);
+   article.appendChild(actions);
+  }
+  offers.appendChild(article);
+ });
+}
+
 async function uploadProfilePicture(){
  const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
  const file=input?.files?.[0];
@@ -336,7 +432,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
-  await Promise.all([loadCardCollection(session.user),loadReaderAchievements()]);
+  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost()]);
  }
 }
 async function submitAccount(event){
