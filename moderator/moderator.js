@@ -7,7 +7,37 @@ function showTab(name){document.querySelectorAll(".mod-tabs button").forEach(b=>
 function fillSelect(el,items,labelKey,valueKey,first){el.replaceChildren();if(first){const o=document.createElement("option");o.value="";o.textContent=first;el.append(o)}items.forEach(item=>{const o=document.createElement("option");o.value=item[valueKey];o.textContent=item[labelKey];el.append(o)})}
 async function init(){client=window.supabase.createClient(URL_BASE,KEY);const {data,error}=await client.auth.getSession();if(error||!data.session){$("accessDenied").hidden=false;return}user=data.session.user;const {data:ok,error:roleError}=await client.rpc("is_reader_moderator");if(roleError||ok!==true){$("accessDenied").hidden=false;return}$("moderatorApp").hidden=false;window.updateOrlongAccountLabel?.(user);await loadStudio();bind()}
 async function loadStudio(){const {data,error}=await client.rpc("get_moderator_card_studio");if(error)throw error;categories=data.categories||[];sets=data.sets||[];cards=data.cards||[];fillSelect($("cardCategory"),categories,"label","id");fillSelect($("cardSet"),sets,"title","id","No set");renderList()}
-function renderList(){const root=$("cardList"),query=$("cardSearch").value.trim().toLowerCase();root.replaceChildren();const shown=cards.filter(c=>(c.name+" "+c.number+" "+c.id).toLowerCase().includes(query));if(!shown.length){const p=document.createElement("p");p.className="hint";p.textContent="No cards match your search.";root.append(p);return}shown.forEach(c=>{const row=document.createElement("article");row.className="catalogue-card";if(c.artwork_url){const img=document.createElement("img");img.className="catalogue-thumb";img.src=c.artwork_url;img.alt="";row.append(img)}else{const thumb=document.createElement("div");thumb.className="catalogue-thumb";row.append(thumb)}const info=document.createElement("div"),name=document.createElement("strong"),meta=document.createElement("small");name.textContent=c.name;meta.textContent=c.number+" · "+c.rarity.toUpperCase()+" · "+(c.active?"ACTIVE":"RETIRED");info.append(name,meta);const edit=document.createElement("button");edit.textContent="EDIT";edit.type="button";edit.addEventListener("click",()=>editCard(c));row.append(info,edit);root.append(row)})}
+function renderList(){
+ const root=$("cardList"),query=$("cardSearch").value.trim().toLowerCase();
+ root.replaceChildren();
+ const shown=cards.filter(c=>(c.name+" "+c.number+" "+c.id).toLowerCase().includes(query));
+ if(!shown.length){const p=document.createElement("p");p.className="hint";p.textContent="No cards match your search.";root.append(p);return;}
+ const groups=new Map();
+ categories.forEach(category=>groups.set(category.id,{label:category.label,cards:[]}));
+ shown.forEach(card=>{
+  if(!groups.has(card.category_id))groups.set(card.category_id,{label:card.category_id,cards:[]});
+  groups.get(card.category_id).cards.push(card);
+ });
+ [...groups.entries()].forEach(([categoryId,group])=>{
+  const details=document.createElement("details");details.className="card-category-group";
+  details.open=Boolean(query)||group.cards.length>0;
+  const summary=document.createElement("summary");summary.className="card-category-heading";
+  const label=document.createElement("strong");label.textContent=group.label;
+  const count=document.createElement("span");count.textContent=group.cards.length+" CARD"+(group.cards.length===1?"":"S");
+  summary.append(label,count);details.append(summary);
+  const list=document.createElement("div");list.className="card-list";
+  group.cards.forEach(card=>{
+   const row=document.createElement("article");row.className="catalogue-card";
+   if(card.artwork_url){const img=document.createElement("img");img.className="catalogue-thumb";img.src=card.artwork_url;img.alt="";row.append(img);}
+   else{const thumb=document.createElement("div");thumb.className="catalogue-thumb";row.append(thumb);}
+   const info=document.createElement("div"),name=document.createElement("strong"),meta=document.createElement("small");
+   name.textContent=card.name;meta.textContent=card.number+" · "+card.rarity.toUpperCase()+" · "+(card.active?"ACTIVE":"RETIRED");info.append(name,meta);
+   const edit=document.createElement("button");edit.textContent="EDIT";edit.type="button";edit.addEventListener("click",()=>editCard(card));
+   row.append(info,edit);list.append(row);
+  });
+  details.append(list);root.append(details);
+ });
+}
 function editCard(c){$("cardId").value=c.id;$("cardName").value=c.name;$("cardCategory").value=c.category_id;$("cardRarity").value=c.rarity;$("cardSet").value=c.set_id||"";$("cardChapterNumber").value=c.chapter_number??"";$("cardChapter").value=c.unlock_chapter_id||"";$("cardDescription").value=c.description||"";currentArtworkUrl=c.artwork_url||"";croppedBlob=null;$("cardCategory").disabled=true;setPreview();$("saveCardButton").textContent="SAVE CHANGES";$("deleteCardButton").hidden=false;window.scrollTo({top:0,behavior:"smooth"})}
 function resetForm(){ $("cardForm").reset();$("cardId").value="";$("cardCategory").disabled=false;currentArtworkUrl="";croppedBlob=null;$("saveCardButton").textContent="SAVE CARD";$("deleteCardButton").hidden=true;$("cropArtworkButton").disabled=true;setPreview()}
 function setPreview(){const name=$("cardName").value.trim()||"New Collectible",cat=categories.find(c=>c.id===$("cardCategory").value);$("previewName").textContent=name;$("previewDescription").textContent=$("cardDescription").value.trim()||"Your card description will appear here once entered.";$("previewRarity").textContent=$("cardRarity").value.toUpperCase();$("previewCategory").textContent=(cat?.label||"CATEGORY").toUpperCase();$("previewChapter").textContent=$("cardChapterNumber").value?"CH. "+$("cardChapterNumber").value:"CH. —";$("cardPreview").className="card-preview rarity-"+$("cardRarity").value;$("previewNumber").textContent=$("cardId").value?cards.find(c=>c.id===$("cardId").value)?.number||"EDITING":"AUTO NUMBER";const art=$("previewArt");art.replaceChildren();if(croppedBlob){const img=document.createElement("img");img.src=URL.createObjectURL(croppedBlob);art.append(img)}else if(currentArtworkUrl){const img=document.createElement("img");img.src=currentArtworkUrl;art.append(img)}else{const span=document.createElement("span");span.textContent="ARTWORK PREVIEW";art.append(span)}}
