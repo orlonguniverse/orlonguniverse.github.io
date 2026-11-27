@@ -69,9 +69,15 @@ async function saveDuplicateSaleSettings(){
    p_keep_copies:Number($("duplicateKeepCopies").value)
   });
   if(error)throw error;
-  $("duplicateSettingsStatus").textContent=data.auto_sell_duplicates
-   ?"Saved. New copies above your limit of "+data.keep_copies+" will be sold automatically for 50% of their rarity value."
-   :"Saved. Automatic selling is OFF; you can still sell duplicates manually.";
+  if(data.auto_sell_duplicates){
+   const sold=Number(data.existing_copies_sold||0);
+   $("duplicateSettingsStatus").textContent="Saved. Your collection has been brought down to your limit of "+data.keep_copies+" wherever copies were available to sell. "+(sold? sold+" existing duplicate cop"+(sold===1?"y was":"ies were")+" sold for 50% of rarity value.":"No existing excess copies needed selling.")+" Future acquisitions will also be checked automatically.";
+   const result=await client.rpc("get_my_card_collection");
+   if(!result.error){owned=result.data||[];renderCollection();}
+   await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+  }else{
+   $("duplicateSettingsStatus").textContent="Saved. Automatic selling is OFF; you can still sell duplicates manually.";
+  }
  }catch(error){console.error(error);$("duplicateSettingsStatus").textContent=error.message||"Could not save duplicate preferences.";}
  finally{button.disabled=false;button.textContent="SAVE PREFERENCES";}
 }
