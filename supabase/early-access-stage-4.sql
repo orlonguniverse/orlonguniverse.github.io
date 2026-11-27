@@ -256,6 +256,8 @@ grant execute on function public.submit_early_access_feedback(text) to authentic
 grant execute on function public.get_my_early_access_missions() to authenticated;
 grant execute on function public.complete_early_access_mission(text) to authenticated;
 
+update public.early_access_missions set description='Share a little about your testing experience and help guide the next improvements.', instructions='Submit your tester feedback in the form on this page. Once it is saved, you can claim your final exclusive card.', action_label='OPEN FEEDBACK FORM', action_url='/early-access/#testerFeedback' where mission_key='final-review';
+
 -- Verification: eight mission cards and eight mission reward pools.
 select m.mission_key,c.card_number,c.name,c.rarity,p.is_active
 from public.early_access_missions m
