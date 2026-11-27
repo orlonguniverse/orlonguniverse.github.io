@@ -95,7 +95,7 @@ language sql stable security definer set search_path=public,pg_temp as $$
  and not exists(select 1 from public.reader_card_market_listings l where l.copy_id=c.copy_id and l.status='active')
  and not exists(select 1 from public.reader_card_market_offer_items i join public.reader_card_market_offers o on o.offer_id=i.offer_id where i.copy_id=c.copy_id and o.status='pending')
  order by cat.card_number,c.acquired_at;
-$;
+$$;
 
 create or replace function public.create_market_card_listing(p_copy_id uuid,p_price_cents bigint)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
@@ -146,7 +146,7 @@ language sql stable security definer set search_path=public,pg_temp as $$
  select l.listing_id,l.copy_id,l.card_id,c.card_number,c.name,c.rarity,c.artwork_url,l.price_cents,l.status,l.created_at
  from public.reader_card_market_listings l join public.card_catalogue c on c.card_id=l.card_id
  where l.seller_user_id=auth.uid() and l.status='active' order by l.created_at desc;
-$;
+$$;
 
 create or replace function public.buy_market_card_listing(p_listing_id uuid)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
@@ -431,7 +431,7 @@ begin
   end if;
  end loop;
  return total_sold;
-end $;
+end $$;
 
 create or replace function public.auto_sell_excess_card_copies()
 returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
