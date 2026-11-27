@@ -239,3 +239,116 @@ where p.activity_type in (
 )
 group by p.chapter_id,p.activity_type,p.is_active
 order by p.chapter_id,p.activity_type;
+
+
+-- CARD REVEAL SOURCE: tell readers why each new card was awarded.
+alter table public.reader_card_reveal_queue
+  add column if not exists source_label text,
+  add column if not exists source_detail text;
+
+create or replace function public.queue_reader_card_reveal()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare
+  activity text;
+  chapter_key text;
+  achievement_title text;
+  label text;
+  detail text;
+begin
+  select rc.activity_type,rc.chapter_id
+    into activity,chapter_key
+  from public.card_reward_claims rc
+  where rc.claim_id=new.source_claim_id;
+
+  if activity='achievement_unlock' then
+    select ac.title into achievement_title
+    from public.card_achievement_catalogue ac
+    where ac.achievement_id=chapter_key;
+    label := 'Achievement unlocked';
+    detail := coalesce(achievement_title,'A reader achievement');
+  else
+    label := case activity
+      when 'chapter_completion' then 'Chapter completed'
+      when 'chapter_reaction' then 'Chapter reaction'
+      when 'chapter_challenge' then 'Chapter challenge'
+      when 'approved_comment' then 'Discussion comment approved'
+      else 'Collectible reward'
+    end;
+    detail := case
+      when chapter_key ~ '^chapter-0*[0-9]+$'
+        then 'Chapter '||substring(chapter_key from '[0-9]+')
+      else 'Reading Room activity'
+    end;
+  end if;
+
+  insert into public.reader_card_reveal_queue
+    (owner_user_id,copy_id,source_label,source_detail)
+  values(new.owner_user_id,new.copy_id,label,detail)
+  on conflict(copy_id) do nothing;
+  return new;
+end;
+$$;
+
+drop function if exists public.claim_my_card_reveals(integer);
+create function public.claim_my_card_reveals(p_limit integer default 10)
+returns table (
+  queue_id uuid,
+  copy_id uuid,
+  card_id text,
+  card_number text,
+  card_name text,
+  rarity text,
+  category_label text,
+  category_id text,
+  chapter_number integer,
+  set_id text,
+  artwork_url text,
+  spoiler_safe_description text,
+  series_id text,
+  book_id text,
+  source_label text,
+  source_detail text,
+  acquired_at timestamptz
+)
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare reader_id uuid := auth.uid();
+begin
+  if reader_id is null then raise exception 'Authentication required'; end if;
+  return query
+  with candidates as (
+    select q.queue_id
+    from public.reader_card_reveal_queue q
+    where q.owner_user_id=reader_id
+      and q.revealed_at is null
+      and (q.claimed_at is null or q.claimed_at < now()-interval '5 minutes')
+    order by q.queued_at,q.queue_id
+    limit greatest(1,least(coalesce(p_limit,10),25))
+    for update skip locked
+  ),
+  claimed as (
+    update public.reader_card_reveal_queue q
+       set claimed_at=now()
+      from candidates c
+     where q.queue_id=c.queue_id
+    returning q.queue_id,q.copy_id,q.source_label,q.source_detail
+  )
+  select cl.queue_id,cp.copy_id,cat.card_id,cat.card_number,cat.name,cat.rarity,
+         category.label,cat.category_id,cat.chapter_number,cat.set_id,
+         cat.artwork_url,cat.spoiler_safe_description,cat.series_id,cat.book_id,
+         cl.source_label,cl.source_detail,cp.acquired_at
+  from claimed cl
+  join public.reader_card_copies cp on cp.copy_id=cl.copy_id
+  join public.card_catalogue cat on cat.card_id=cp.card_id
+  join public.card_categories category on category.category_id=cat.category_id
+  order by cp.acquired_at,cl.queue_id;
+end;
+$$;
+revoke all on function public.claim_my_card_reveals(integer) from public,anon;
+grant execute on function public.claim_my_card_reveals(integer) to authenticated;
