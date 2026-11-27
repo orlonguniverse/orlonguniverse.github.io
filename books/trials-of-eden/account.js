@@ -349,9 +349,15 @@ async function loadTradingPost(){
  for(const reader of readers){
   const article=document.createElement("article");article.className="trade-reader";
   const heading=document.createElement("div");heading.className="trade-reader-heading";
+  const identity=document.createElement("div");identity.className="trade-reader-identity";
+  const avatar=reader.avatar_url?document.createElement("img"):document.createElement("span");
+  avatar.className="trade-reader-avatar";
+  if(reader.avatar_url){avatar.src=reader.avatar_url;avatar.alt="";avatar.loading="lazy";}
+  else{avatar.classList.add("trade-reader-avatar-fallback");avatar.textContent=(reader.display_name||"R").trim().charAt(0).toUpperCase();}
   const name=document.createElement("strong");name.textContent=reader.display_name||"Reader";
+  identity.append(avatar,name);
   const count=document.createElement("span");count.className="trade-reader-count";count.textContent=Number(reader.unique_cards||0)+" UNIQUE CARDS · "+Number(reader.total_copies||0)+" COPIES";
-  heading.append(name,count);article.appendChild(heading);
+  heading.append(identity,count);article.appendChild(heading);
   const cardsWrap=document.createElement("div");cardsWrap.className="trade-card-options";
   const view=document.createElement("button");view.type="button";view.className="trade-action secondary";view.textContent="VIEW COLLECTION";
   const cardHolder=document.createElement("div");cardHolder.hidden=true;
@@ -400,10 +406,16 @@ async function loadTradingPost(){
  visibleTrades.forEach(trade=>{
   const article=document.createElement("article");article.className="trade-offer";
   const role=trade.trade_role==="incoming"?"OFFER RECEIVED FROM ":"OFFER SENT TO ";
+  const headingRow=document.createElement("div");headingRow.className="trade-offer-heading";
+  const avatar=trade.other_avatar_url?document.createElement("img"):document.createElement("span");
+  avatar.className="trade-reader-avatar";
+  if(trade.other_avatar_url){avatar.src=trade.other_avatar_url;avatar.alt="";avatar.loading="lazy";}
+  else{avatar.classList.add("trade-reader-avatar-fallback");avatar.textContent=(trade.other_display_name||"R").trim().charAt(0).toUpperCase();}
   const heading=document.createElement("strong");heading.textContent=role+(trade.other_display_name||"Reader");
+  headingRow.append(avatar,heading);
   const detail=document.createElement("p");detail.className="muted";detail.textContent="You offer: "+trade.offered_card_number+" · "+trade.offered_card_name+"  |  You request: "+trade.requested_card_number+" · "+trade.requested_card_name;
   const state=document.createElement("p");state.className="trade-status";state.textContent=String(trade.status||"").toUpperCase()+" · "+safeDate(trade.created_at);
-  article.append(heading,detail,state);
+  article.append(headingRow,detail,state);
   if(trade.status==="pending"){
    const actions=document.createElement("div");actions.className="trade-offer-actions";
    const action=(label,accept,secondary,kind)=>{const button=document.createElement("button");button.type="button";button.className="trade-action"+(secondary?" secondary":"");button.textContent=label;button.addEventListener("click",async()=>{button.disabled=true;const result=kind==="cancel"?await accountClient.rpc("cancel_card_trade_offer",{target_offer_id:trade.offer_id}):await accountClient.rpc("respond_to_card_trade",{target_offer_id:trade.offer_id,accept_offer:accept});if(result.error||result.data===false){console.error(result.error);status.textContent=result.error?.message||"We couldn't update this trade.";button.disabled=false;return;}status.textContent=accept?"Trade accepted! Both card copies have been transferred.":"Trade updated.";await loadTradingPost();});actions.appendChild(button);};
