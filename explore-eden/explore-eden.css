@@ -235,3 +235,25 @@
 .xanth-history[open] .xanth-history-chevron{transform:rotate(180deg)}
 .xanth-history .xanth-transactions{margin-top:16px}
 @media(max-width:600px){.xanth-history-heading strong{font-size:14px}.xanth-history-summary-side{gap:7px}}
+
+/* Stage 7E — manual and automatic duplicate sales */
+.duplicate-sale-settings{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.9fr);gap:18px;align-items:center;margin:20px 0 22px;padding:20px;background:linear-gradient(125deg,#14243a,#0b1523);border:1px solid rgba(201,170,107,.3)}
+.duplicate-sale-settings h3{margin:0;color:#f0dfba;font:500 17px Cinzel,serif;letter-spacing:1.2px}
+.duplicate-sale-settings>div:first-child>p:last-child{max-width:560px;margin:9px 0 0;color:var(--eden-muted);font-size:10px;line-height:1.7}
+.duplicate-sale-options{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.duplicate-auto-toggle{grid-column:1/-1;display:flex;align-items:center;gap:11px;padding:12px;background:#091321;border:1px solid var(--eden-border);cursor:pointer}
+.duplicate-auto-toggle input{width:17px;height:17px;accent-color:#d4b477}
+.duplicate-auto-toggle span{display:grid;gap:4px}
+.duplicate-auto-toggle strong,.duplicate-keep-label{color:#e4edf9;font-size:9px;letter-spacing:.8px}
+.duplicate-auto-toggle small{color:var(--eden-muted);font-size:9px;line-height:1.5}
+.duplicate-keep-label{display:grid;gap:7px}
+.duplicate-keep-label select,.duplicate-sale-quantity{min-height:36px;padding:8px;background:#081321;color:#e7edf6;border:1px solid var(--eden-border);font:inherit;font-size:10px}
+.duplicate-save-button,.duplicate-sell-button{min-height:36px;padding:9px 12px;border:1px solid #c9aa6b99;background:linear-gradient(110deg,#8c6b342e,#183451);color:#f4dfb0;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer}
+.duplicate-save-button:disabled,.duplicate-sell-button:disabled{opacity:.6;cursor:wait}
+.duplicate-settings-status{grid-column:1/-1;min-height:16px;margin:0;color:#b9c9dc;font-size:9px;line-height:1.6}
+.duplicate-card-controls{display:grid;gap:8px;margin-top:9px;padding:9px;background:#091523;border:1px solid rgba(201,170,107,.22)}
+.duplicate-card-value{color:#d9c38f;font-size:8px;letter-spacing:.7px;text-align:center}
+.duplicate-card-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.duplicate-sell-button{min-width:58px}
+@media(max-width:760px){.duplicate-sale-settings{grid-template-columns:1fr}.duplicate-sale-options{grid-template-columns:1fr auto}}
+@media(max-width:440px){.duplicate-sale-options{grid-template-columns:1fr}.duplicate-auto-toggle{grid-column:1}.duplicate-keep-label,.duplicate-save-button{width:100%}}
