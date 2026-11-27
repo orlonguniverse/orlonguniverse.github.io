@@ -3,7 +3,7 @@
  const url="https://kqfwtzrfqsfampqfzoal.supabase.co";
  const key="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
  if(!window.supabase?.createClient)return;
- const client=window.supabase.createClient(url,key);
+ const client=window.accountClient||window.engagementClient||window.supabase.createClient(url,key);
  const path=location.pathname;
  const targets=path.includes("/books/trials-of-eden/account.html")
   ?[["#profilePicturePanel","account-profile"],["#cardCollectionPanel","collectible-binder"],["#tradingPost","trading-post"],["#achievementsPanel","achievements"]]
