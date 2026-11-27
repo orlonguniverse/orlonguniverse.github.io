@@ -269,6 +269,7 @@ async function loadMarketplace(){
  if(!slots.length)grid.append(text("div","eden-empty","No released cards are currently eligible for the daily exchange."));
  await loadXanthTransactions();
  await loadMysteryPacks();
+ await loadNotifications();
 }
 function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
@@ -428,6 +429,7 @@ async function loadTradingMarket(){
   }
   offersRoot.append(card);
  });
+ await loadNotifications();
 }
 async function createMarketListing(){
  const copyId=$("marketListCopy")?.value,price=Math.round(Number($("marketListPrice")?.value||0)*100),status=$("marketListingStatus");
@@ -439,6 +441,51 @@ async function createMarketListing(){
  button.textContent="LIST CARD FOR SALE";button.disabled=false;
  if(!result.error){$("marketListPrice").value="";await loadTradingMarket();const collection=await client.rpc("get_my_card_collection");if(!collection.error){owned=collection.data||[];renderCollection();}}
 }
+async function loadNotifications(){
+ const root=$("notificationList"),count=$("notificationCount");if(!root||!count||!client)return;
+ const {data,error}=await client.rpc("get_my_notifications",{p_limit:50});
+ if(error){root.replaceChildren(text("div","eden-empty","Notifications are temporarily unavailable. Check that the Stage 7F.1 migration has been installed."));count.textContent="!";return;}
+ const items=data||[],unread=items.filter(x=>!x.read_at).length;count.textContent=unread>99?"99+":String(unread);count.classList.toggle("has-unread",unread>0);root.replaceChildren();
+ if(!items.length){root.append(text("div","eden-empty","You're all caught up. New offers, achievements and events will appear here."));return;}
+ items.forEach(item=>{
+  const row=document.createElement("article");row.className="notification-item"+(item.read_at?"":" is-unread");
+  const content=document.createElement("div");content.className="notification-item-content";content.append(text("strong","notification-item-title",item.title),text("p","notification-item-body",item.body||""));
+  const date=new Date(item.created_at);content.append(text("small","notification-item-date",Number.isNaN(date.getTime())?"":date.toLocaleString("en-AU",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})));row.append(content);
+  const actions=document.createElement("div");actions.className="notification-item-actions";
+  if(item.target_url){const link=text("a","notification-open-link","OPEN");link.href=item.target_url;link.addEventListener("click",()=>{if(!item.read_at)client.rpc("mark_my_notification_read",{p_notification_id:item.notification_id});});actions.append(link);}
+  if(!item.read_at)actions.append(marketButton("MARK READ",async()=>{await client.rpc("mark_my_notification_read",{p_notification_id:item.notification_id});await loadNotifications();},true));
+  row.append(actions);root.append(row);
+ });
+}
+async function markAllNotificationsRead(){const button=$("markAllNotificationsRead");if(button)button.disabled=true;const {error}=await client.rpc("mark_all_my_notifications_read");if(error)$("notificationList").prepend(text("p","marketplace-status",error.message));await loadNotifications();if(button)button.disabled=false;}
+async function syncReaderNotifications(){await client.rpc("get_my_achievements");if(Array.isArray(window.ORLONG_EVENTS)&&window.ORLONG_EVENTS.length)await client.rpc("sync_my_event_notifications",{p_events:window.ORLONG_EVENTS});await loadNotifications();}
+async function loadWantedBoard(){
+ const target=$("wantedCardSelect"),offerCards=$("wantedOfferCards"),mine=$("myWantedPosts"),board=$("readerWantedBoard");if(!target||!offerCards||!mine||!board||!client)return;
+ const [copiesResult,mineResult,boardResult]=await Promise.all([client.rpc("get_my_market_tradeable_copies"),client.rpc("get_my_reader_wanted_posts"),client.rpc("get_reader_wanted_board")]),copies=copiesResult.data||[];
+ target.replaceChildren(new Option("Choose a released card",""));catalogue.forEach(card=>target.append(new Option((card.cardNumber||card.card_number)+" · "+(card.name||card.card_name)+" · "+String(card.rarity||"").toUpperCase(),card.id||card.card_id)));
+ offerCards.replaceChildren();if(copiesResult.error)offerCards.append(text("div","eden-empty","Your available cards could not be loaded."));else if(!copies.length)offerCards.append(text("div","eden-empty","No unreserved card copies are currently available."));else copies.forEach(copy=>{const label=document.createElement("label");label.className="market-card-check";const box=document.createElement("input");box.type="checkbox";box.value=copy.copy_id;label.append(box,text("span","",copy.card_number+" · "+copy.card_name+" ("+copy.rarity+")"));offerCards.append(label);});
+ mine.replaceChildren();if(mineResult.error)mine.append(text("div","eden-empty","Your Wanted Board requests could not be loaded."));else if(!mineResult.data?.length)mine.append(text("div","eden-empty","You haven't posted a wanted card yet."));
+ (mineResult.data||[]).forEach(post=>{const card=document.createElement("article");card.className="market-offer-card";card.append(text("strong","",post.wanted_card_number+" · "+post.wanted_card_name),text("span","market-offer-status",String(post.status).toUpperCase()));const offered=(post.offered_cards||[]).map(x=>x.card_number+" · "+x.card_name).join(" · ");card.append(text("p","market-offer-items","Offering: "+(offered||"No cards")+(Number(post.offered_xanth_cents)>0?" + "+formatXanth(post.offered_xanth_cents):"")));if(post.message)card.append(text("p","marketplace-trading-copy",post.message));if(post.status==="open")card.append(marketButton("CANCEL REQUEST",async()=>{const result=await client.rpc("cancel_reader_wanted_post",{p_post_id:post.post_id});$("wantedBoardStatus").textContent=result.error?.message||"Request cancelled. Your reserved cards and Xanth have been released.";await Promise.all([loadWantedBoard(),loadMarketplace(),loadTradingMarket(),loadNotifications()]);},true));else if(post.status==="fulfilled")card.append(text("small","marketplace-trading-copy","Fulfilled "+(post.fulfilled_at?new Date(post.fulfilled_at).toLocaleDateString("en-AU"):"")));mine.append(card);});
+ board.replaceChildren();if(boardResult.error)board.append(text("div","eden-empty","The Wanted Board is temporarily unavailable."));else if(!boardResult.data?.length)board.append(text("div","eden-empty","No readers are looking for cards right now. You could be the first to post a request."));
+ (boardResult.data||[]).forEach(post=>{
+  const card=document.createElement("article");card.className="market-offer-card wanted-request-card";const top=document.createElement("div");top.className="wanted-request-top";
+  if(post.wanted_artwork_url){const img=document.createElement("img");img.src=post.wanted_artwork_url;img.alt="";img.loading="lazy";top.append(img);}
+  const heading=document.createElement("div");heading.append(text("strong","",post.wanted_card_number+" · "+post.wanted_card_name),text("small","",post.wanted_rarity+" · Requested by "+(post.owner_name||"Reader")));top.append(heading);card.append(top);
+  const offered=(post.offered_cards||[]).map(x=>x.card_number+" · "+x.card_name).join(" · ");card.append(text("p","market-offer-items","They are offering: "+(offered||"No cards")+(Number(post.offered_xanth_cents)>0?" + "+formatXanth(post.offered_xanth_cents):"")));if(post.message)card.append(text("p","marketplace-trading-copy",post.message));
+  const matches=copies.filter(x=>x.card_id===post.wanted_card_id);
+  if(!matches.length)card.append(text("small","marketplace-trading-copy","You don't currently have an available copy of this card."));
+  else{const select=document.createElement("select");select.className="wanted-fulfil-select";matches.forEach(copy=>select.append(new Option(copy.card_number+" · "+copy.card_name+" · "+copy.rarity,copy.copy_id)));const fulfil=marketButton("FULFIL THIS REQUEST",async()=>{if(!confirm("Exchange your "+post.wanted_card_name+" for the cards and Xanth shown in this request?"))return;fulfil.disabled=true;fulfil.textContent="COMPLETING…";const result=await client.rpc("accept_reader_wanted_post",{p_post_id:post.post_id,p_wanted_copy_id:select.value});if(result.error){$("wantedBoardStatus").textContent=result.error.message;fulfil.disabled=false;fulfil.textContent="TRY AGAIN";return;}$("wantedBoardStatus").textContent="Exchange completed! The requested card, offered cards and Xanth have been transferred.";const collection=await client.rpc("get_my_card_collection");if(!collection.error){owned=collection.data||[];renderCollection();}await Promise.all([loadWantedBoard(),loadMarketplace(),loadTradingMarket(),loadNotifications()]);});card.append(select,fulfil);}
+  board.append(card);
+ });
+}
+async function createWantedPost(){
+ const target=$("wantedCardSelect"),cash=$("wantedOfferXanth"),message=$("wantedMessage"),status=$("wantedBoardStatus"),button=$("createWantedPost"),cardId=target.value,copyIds=[...$("wantedOfferCards").querySelectorAll("input:checked")].map(x=>x.value),amount=Math.round(Number(cash.value||0)*100);
+ if(!cardId){status.textContent="Choose the card you're looking for.";return;}if(!Number.isSafeInteger(amount)||amount<0){status.textContent="Enter a valid Xanth amount.";return;}if(!copyIds.length&&amount<=0){status.textContent="Offer at least one of your cards or some Xanth.";return;}
+ button.disabled=true;button.textContent="POSTING…";const {error}=await client.rpc("create_reader_wanted_post",{p_wanted_card_id:cardId,p_offer_copy_ids:copyIds,p_offer_xanth_cents:amount,p_message:message.value.trim()||null});
+ if(error){status.textContent=error.message||"Your request could not be posted.";button.disabled=false;button.textContent="TRY AGAIN";return;}
+ status.textContent="Your request is now on the Wanted Board. The offered cards and Xanth are reserved.";target.value="";cash.value="0";message.value="";
+ await Promise.all([loadWantedBoard(),loadMarketplace(),loadTradingMarket(),loadNotifications()]);button.disabled=false;button.textContent="POST TO WANTED BOARD";
+}
 function setTab(button){
  document.querySelectorAll(".eden-tab").forEach(tab=>{const active=tab===button;tab.classList.toggle("is-active",active);tab.setAttribute("aria-selected",String(active));});
  document.querySelectorAll(".eden-panel").forEach(panel=>{const active=panel.id===button.dataset.panel;panel.hidden=!active;panel.classList.toggle("is-active",active);});
@@ -449,7 +496,7 @@ async function initialise(){
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
- if(!session){$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
+ if(!session){$("notificationBell").disabled=true;$("createWantedPost").disabled=true;$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
   await loadDuplicateSaleSettings();
@@ -458,7 +505,7 @@ async function initialise(){
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
-  await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility()]);
+  await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility(),loadWantedBoard()]);await syncReaderNotifications();
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
@@ -467,6 +514,11 @@ document.addEventListener("DOMContentLoaded",async()=>{
  $("refreshReaderMarket")?.addEventListener("click",loadTradingMarket);
  $("refreshMarketOffers")?.addEventListener("click",loadTradingMarket);
  $("marketVisibilityToggle")?.addEventListener("click",toggleMarketVisibility);
+ $("notificationBell")?.addEventListener("click",async()=>{const panel=$("notificationPanel"),open=panel.hidden;panel.hidden=!open;$("notificationBell").setAttribute("aria-expanded",String(open));if(open)await loadNotifications();});
+ $("markAllNotificationsRead")?.addEventListener("click",markAllNotificationsRead);
+ $("refreshNotifications")?.addEventListener("click",loadNotifications);
+ $("createWantedPost")?.addEventListener("click",createWantedPost);
+ $("refreshWantedBoard")?.addEventListener("click",loadWantedBoard);
  if(!window.supabase?.createClient){$("sessionMessage").textContent="The sign-in service is unavailable. Please refresh and try again.";return;}
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  try{
