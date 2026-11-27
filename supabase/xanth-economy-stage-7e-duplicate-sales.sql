@@ -30,6 +30,12 @@ where c.copy_id=t.offered_copy_id and t.offered_card_id is null;
 alter table public.card_trade_offers
   alter column offered_card_id set not null;
 alter table public.card_trade_offers
+  drop constraint if exists card_trade_offers_offered_card_id_fkey;
+alter table public.card_trade_offers
+  add constraint card_trade_offers_offered_card_id_fkey
+  foreign key (offered_card_id)
+  references public.card_catalogue(card_id);
+alter table public.card_trade_offers
   alter column offered_copy_id drop not null;
 alter table public.card_trade_offers
   drop constraint if exists card_trade_offers_offered_copy_id_fkey;
