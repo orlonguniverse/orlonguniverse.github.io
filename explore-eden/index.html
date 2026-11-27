@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-7d3">
-<link rel="stylesheet" href="explore-eden.css?v=stage-7d3">
+<link rel="stylesheet" href="explore-eden.css?v=stage-7e1">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -29,6 +29,17 @@
 <section class="eden-panel is-active" id="collectionPanel" role="tabpanel" aria-labelledby="collectionTab">
 <div class="section-heading"><div><p class="eyebrow">YOUR PERSONAL BINDER</p><h2>MY COLLECTION</h2></div><p id="collectionSummary" class="section-stat">SIGN IN TO LOAD YOUR CARDS</p></div>
 <p class="section-intro">Every card you've earned belongs here. Cards you haven't discovered yet appear as mysterious silhouettes. Duplicate copies remain yours.</p>
+<section class="duplicate-sale-settings" aria-labelledby="duplicateSaleTitle">
+ <div><p class="eyebrow">YOUR COLLECTOR PREFERENCES</p><h3 id="duplicateSaleTitle">DUPLICATE MANAGEMENT</h3><p>Sell extra copies for 50% of their rarity-based Xanth value. Manual sales always leave at least one copy in your binder.</p></div>
+ <div class="duplicate-sale-options">
+  <label class="duplicate-auto-toggle"><input type="checkbox" id="autoSellDuplicates"><span><strong>AUTOMATICALLY SELL DUPLICATES</strong><small>New extra copies are sold as soon as they enter your collection.</small></span></label>
+  <label class="duplicate-keep-label" for="duplicateKeepCopies">KEEP THIS MANY OF EACH CARD
+   <select id="duplicateKeepCopies"><option value="1">Keep 1 copy</option><option value="2">Keep 2 copies</option><option value="3">Keep 3 copies</option><option value="5">Keep 5 copies</option><option value="10">Keep 10 copies</option></select>
+  </label>
+  <button class="duplicate-save-button" type="button" id="saveDuplicateSettings">SAVE PREFERENCES</button>
+ </div>
+ <p id="duplicateSettingsStatus" class="duplicate-settings-status" role="status" aria-live="polite">Automatic selling is off until you choose to enable it.</p>
+</section>
 <div class="eden-filter-row" id="collectionFilters" aria-label="Filter your cards"></div>
 <div class="eden-card-grid" id="collectionGrid"><div class="eden-empty">Sign in to see your collection.</div></div>
 </section>
@@ -84,5 +95,5 @@
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-7d3"></script>
-<script src="explore-eden.js?v=stage-7d3"></script>
+<script src="explore-eden.js?v=stage-7e1"></script>
 </body></html>
