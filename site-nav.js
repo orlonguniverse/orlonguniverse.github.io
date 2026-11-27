@@ -75,8 +75,9 @@ document.addEventListener("DOMContentLoaded",()=>{
    ["READING ROOM","/books/trials-of-eden/"],
    ["CHAPTER CONTENTS","/books/trials-of-eden/contents.html",location.pathname.endsWith("/contents.html")]
   ]);
+  const exploreEden=makeLink("EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden"));
+  exploreEden.classList.add("nav-explore-eden");
   const community=dropdown("DISCOVER",[
-   ["EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden")],
    ["EVENTS","/events.html",location.pathname.endsWith("/events.html")],
    ["EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access")],
    ["FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers")]
@@ -117,7 +118,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(exitBookOnly,instagram);
   }else{
-   navLinks.replaceChildren(startReading,read,community);
+   navLinks.replaceChildren(startReading,read,exploreEden,community);
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(main,bookOnlyEntry,instagram);
   }
