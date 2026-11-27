@@ -1,6 +1,6 @@
 -- ============================================================
 -- ORLONG COLLECTOR ECONOMY — STAGE 7C: THE MYSTERY VAULT
--- Run after Stage 7A (Xanth foundation) and Stage 7B (purchases).
+-- Run after Stage 7A (Xanth foundation) and Stage 7B (purchases). Re-run this full file to update the Vault.
 -- All pack contents are selected and granted server-side.
 -- ============================================================
 
@@ -67,16 +67,32 @@ as $$
       'Five discoveries drawn from the entire released archive. A larger opening, with more chances to find something extraordinary.',
       5,15000,'#d9b76d'
     union all
+    select 'vault:collectors-choice','The Collector’s Choice','vault','CURATED MIX',
+      'Three cards selected from the full released archive — ideal for readers who want to broaden their collection.',
+      3,6500,'#79cdbb'
+    union all
     select 'chapter:'||lpad(e.chapter_number::text,2,'0'),
       'Chapter '||e.chapter_number||' Pack','chapter','CHAPTER '||e.chapter_number,
       'Two cards drawn only from cards assigned to Chapter '||e.chapter_number||'.',
       2,3000,'#5ca7ff'
     from (select distinct chapter_number from eligible where chapter_number between 1 and 999) e
     union all
+    select 'chapter-rarity:'||lpad(e.chapter_number::text,2,'0')||':'||e.rarity,
+      'Chapter '||e.chapter_number||' · '||initcap(e.rarity),'targeted','CHAPTER + '||upper(e.rarity),
+      'Two cards guaranteed from Chapter '||e.chapter_number||' and the '||e.rarity||' rarity tier.',
+      2,4500,'#75d4bd'
+    from (select chapter_number,lower(rarity) rarity from eligible where chapter_number between 1 and 999 and rarity is not null group by chapter_number,lower(rarity) having count(*)>=2) e
+    union all
     select 'category:'||e.category_id,
       e.category_label||' Pack','category',upper(e.category_label),
       'Two cards selected from the released '||e.category_label||' collection.',2,3500,'#bd91ed'
     from (select distinct category_id,category_label from eligible where category_id is not null) e
+    union all
+    select 'category-rarity:'||e.category_id||':'||e.rarity,
+      e.category_label||' · '||initcap(e.rarity),'targeted','CATEGORY + '||upper(e.rarity),
+      'Two cards guaranteed from the '||e.category_label||' category and the '||e.rarity||' rarity tier.',
+      2,4500,'#75d4bd'
+    from (select category_id,category_label,lower(rarity) rarity from eligible where category_id is not null and rarity is not null group by category_id,category_label,lower(rarity) having count(*)>=2) e
     union all
     select 'rarity:'||r.rarity,
       initcap(r.rarity)||' Cache','rarity',upper(r.rarity)||' RARITY',
@@ -93,6 +109,12 @@ as $$
       or (p.kind='chapter' and e.chapter_number::text=ltrim(split_part(p.id,':',2),'0'))
       or (p.kind='category' and e.category_id=split_part(p.id,':',2))
       or (p.kind='rarity' and lower(e.rarity)=split_part(p.id,':',2))
+      or (p.kind='targeted' and split_part(p.id,':',1)='chapter-rarity'
+          and e.chapter_number::text=ltrim(split_part(p.id,':',2),'0')
+          and lower(e.rarity)=split_part(p.id,':',3))
+      or (p.kind='targeted' and split_part(p.id,':',1)='category-rarity'
+          and e.category_id=split_part(p.id,':',2)
+          and lower(e.rarity)=split_part(p.id,':',3))
     ) as available,p.colour
   from packs p
   where (select count(*) from eligible e where
@@ -100,8 +122,14 @@ as $$
       or (p.kind='chapter' and e.chapter_number::text=ltrim(split_part(p.id,':',2),'0'))
       or (p.kind='category' and e.category_id=split_part(p.id,':',2))
       or (p.kind='rarity' and lower(e.rarity)=split_part(p.id,':',2))
+      or (p.kind='targeted' and split_part(p.id,':',1)='chapter-rarity'
+          and e.chapter_number::text=ltrim(split_part(p.id,':',2),'0')
+          and lower(e.rarity)=split_part(p.id,':',3))
+      or (p.kind='targeted' and split_part(p.id,':',1)='category-rarity'
+          and e.category_id=split_part(p.id,':',2)
+          and lower(e.rarity)=split_part(p.id,':',3))
     ) >= p.amount
-  order by case p.kind when 'vault' then 0 when 'chapter' then 1 when 'category' then 2 else 3 end,
+  order by case p.kind when 'vault' then 0 when 'chapter' then 1 when 'category' then 2 when 'rarity' then 3 else 4 end,
            p.name;
 $$;
 
@@ -163,6 +191,12 @@ begin
             and c.category_id=split_part(p_pack_id,':',2))
         or (split_part(p_pack_id,':',1)='rarity'
             and lower(c.rarity)=split_part(p_pack_id,':',2))
+        or (split_part(p_pack_id,':',1)='chapter-rarity'
+            and c.chapter_number::text=ltrim(split_part(p_pack_id,':',2),'0')
+            and lower(c.rarity)=split_part(p_pack_id,':',3))
+        or (split_part(p_pack_id,':',1)='category-rarity'
+            and c.category_id=split_part(p_pack_id,':',2)
+            and lower(c.rarity)=split_part(p_pack_id,':',3))
       )
     order by random()
     limit pack_row.card_count
