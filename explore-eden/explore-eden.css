@@ -190,3 +190,17 @@
 @media(prefers-reduced-motion:reduce){.mystery-pack-envelope,.mystery-pack-buy,.mystery-pack-open-overlay,.mystery-pack-opening-shell,.mystery-pack-opening-shell .pack-half{transition:none!important}.mystery-pack-open-overlay.is-tearing .mystery-pack-opening-art,.mystery-pack-open-overlay.is-tearing .pack-half,.mystery-pack-open-overlay.is-tearing .mystery-pack-tear-line{animation:none!important}}
 @media(max-width:850px){.mystery-pack-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}}
 @media(max-width:600px){.mystery-vault{padding:22px 13px}.vault-heading{align-items:flex-start}.vault-sigil{width:44px;height:44px;flex-basis:44px}.mystery-pack-grid{grid-template-columns:minmax(0,300px)}.mystery-pack-card{min-height:370px}.mystery-pack-art{height:145px}.mystery-pack-envelope{transform:scale(.9) rotate(-5deg)}}
+
+/* Stage 7D — Mystery Vault discovery controls and targeted pack themes */
+.mystery-vault-tools{width:min(100%,1000px);margin:24px auto 10px;padding:17px;display:grid;grid-template-columns:minmax(220px,1.6fr) repeat(2,minmax(150px,1fr)) auto;gap:9px;align-items:end;background:rgba(8,17,30,.72);border:1px solid var(--eden-border)}
+.mystery-vault-tools label{display:block;color:#aebbd0;font-size:8px;letter-spacing:1.2px;font-weight:700}
+.vault-search-label{grid-column:1}.vault-search{grid-column:1;grid-row:2}
+.vault-search,.vault-select{box-sizing:border-box;width:100%;min-width:0;min-height:40px;padding:10px 11px;background:#0a1422;color:#e4edf9;border:1px solid rgba(135,174,220,.3);border-radius:0;font:inherit;font-size:10px}
+.mystery-vault-tools label[for="mysteryPackType"]{grid-column:2;grid-row:1}#mysteryPackType{grid-column:2;grid-row:2}
+.mystery-vault-tools label[for="mysteryPackSort"]{grid-column:3;grid-row:1}#mysteryPackSort{grid-column:3;grid-row:2}
+.vault-clear{grid-column:4;grid-row:2;min-height:40px;padding:0 14px;background:transparent;border:1px solid rgba(135,174,220,.35);color:#cbd8e8;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer}
+.vault-clear:hover{border-color:#d6b86f;color:#f1dfb5}
+.vault-results-count{width:min(100%,1000px);margin:0 auto 13px;color:#94a8c1;font-size:8px;letter-spacing:1.4px;text-align:right}
+.mystery-pack-card.theme-targeted{--pack-accent:#75d4bd}
+@media(max-width:760px){.mystery-vault-tools{grid-template-columns:1fr 1fr}.vault-search-label,.vault-search{grid-column:1/-1}.mystery-vault-tools label[for="mysteryPackType"],#mysteryPackType{grid-column:1;grid-row:auto}.mystery-vault-tools label[for="mysteryPackSort"],#mysteryPackSort{grid-column:2;grid-row:auto}.vault-clear{grid-column:1/-1;grid-row:auto}.mystery-pack-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.mystery-vault-tools{grid-template-columns:1fr}.mystery-vault-tools label[for="mysteryPackType"],#mysteryPackType,.mystery-vault-tools label[for="mysteryPackSort"],#mysteryPackSort{grid-column:1}.mystery-pack-grid{grid-template-columns:minmax(0,1fr)}}
