@@ -64,9 +64,29 @@ function renderCatalogue(){
  $("catalogueSummary").textContent=ownedMap.size+" / "+catalogue.length+" DISCOVERED";
  if(!visible.length)grid.append(text("div","eden-empty","No cards are available in this category yet."));
 }
+function formatXanth(cents){return "XƵ"+(Number(cents||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});}
+async function loadMarketplace(){
+ const wallet=$("xanthWallet"),grid=$("dailyShopGrid");
+ const [walletResult,shopResult]=await Promise.all([client.rpc("get_my_xanth_wallet"),client.rpc("get_xanth_daily_shop")]);
+ if(walletResult.error){$("xanthBalance").textContent="WALLET UNAVAILABLE";console.error(walletResult.error);}
+ else{const account=Array.isArray(walletResult.data)?walletResult.data[0]:walletResult.data;$("xanthBalance").textContent=formatXanth(account?.balance_cents);}
+ if(shopResult.error){grid.replaceChildren(text("div","eden-empty","The daily exchange could not load. Please check that the Stage 7A Xanth migration has been installed."));console.error(shopResult.error);return;}
+ const slots=shopResult.data||[];
+ $("shopDate").textContent=slots[0]?.shop_date?new Date(slots[0].shop_date+"T12:00:00+10:00").toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"}):"NO CARDS AVAILABLE";
+ grid.replaceChildren();
+ slots.forEach(slot=>{
+  const card=catalogue.find(c=>c.id===slot.card_id)||{id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,name:slot.card_name,rarity:slot.rarity,categoryId:slot.category_id,categoryLabel:slot.category_label,chapterNumber:slot.chapter_number,artworkUrl:slot.artwork_url,spoilerSafeDescription:slot.description};
+  const item=cardElement(card,owned.some(c=>c.card_id===card.id));
+  const price=text("div","shop-price",formatXanth(slot.price_cents));
+  const label=text("small","shop-slot-label","FEATURED CARD · "+String(slot.selection_mode||"automatic").toUpperCase());
+  item.append(label,price);
+  grid.append(item);
+ });
+ if(!slots.length)grid.append(text("div","eden-empty","No released cards are currently eligible for the daily exchange."));
+}
 function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
- catalogue.forEach(card=>{const item=cardElement(card,owned.some(c=>c.card_id===card.id));const button=text("button","eden-filter","PURCHASE · COMING IN STAGE 7");button.type="button";button.disabled=true;button.title="Purchasing will be introduced with the Stage 7 collector economy.";button.style.marginTop="10px";button.style.width="100%";button.style.opacity=".55";item.append(button);grid.append(item);});
+ catalogue.forEach(card=>{const item=cardElement(card,owned.some(c=>c.card_id===card.id));grid.append(item);});
 }
 async function renderReaders(readers){
  const root=$("readerDirectory");root.replaceChildren();
@@ -122,7 +142,7 @@ async function initialise(){
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
- if(!session){$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));}
+ if(!session){$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
   const [collectionResult,readerResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections")]);
@@ -130,6 +150,7 @@ async function initialise(){
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else renderReaders(readerResult.data||[]);
+  await loadMarketplace();
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
