@@ -191,6 +191,7 @@ create table if not exists public.reader_card_wanted_posts (
  wanted_card_id text not null references public.card_catalogue(card_id),
  offered_xanth_cents bigint not null default 0 check(offered_xanth_cents>=0),
  escrow_cents bigint not null default 0 check(escrow_cents>=0),
+ offered_cards_snapshot jsonb not null default '[]'::jsonb,
  message text,
  status text not null default 'open' check(status in ('open','fulfilled','cancelled')),
  created_at timestamptz not null default now(),
@@ -299,8 +300,7 @@ returns table(post_id uuid,owner_user_id uuid,owner_name text,owner_avatar text,
 language sql stable security definer set search_path=public,pg_temp as $$
  select p.post_id,p.owner_user_id,r.display_name,r.avatar_url,p.wanted_card_id,c.card_number,c.name,c.rarity,c.artwork_url,
   p.offered_xanth_cents,
-  coalesce((select jsonb_agg(jsonb_build_object('copy_id',i.copy_id,'card_id',i.card_id,'card_number',oc.card_number,'card_name',oc.name,'rarity',oc.rarity,'artwork_url',oc.artwork_url) order by oc.card_number)
-   from public.reader_card_wanted_post_items i join public.card_catalogue oc on oc.card_id=i.card_id where i.post_id=p.post_id),'[]'::jsonb),
+  p.offered_cards_snapshot,
   p.message,p.created_at
  from public.reader_card_wanted_posts p
  join public.reader_profiles r on r.user_id=p.owner_user_id
@@ -313,8 +313,7 @@ create or replace function public.get_my_reader_wanted_posts()
 returns table(post_id uuid,wanted_card_id text,wanted_card_number text,wanted_card_name text,wanted_rarity text,wanted_artwork_url text,offered_xanth_cents bigint,escrow_cents bigint,status text,message text,offered_cards jsonb,created_at timestamptz,fulfilled_at timestamptz)
 language sql stable security definer set search_path=public,pg_temp as $$
  select p.post_id,p.wanted_card_id,c.card_number,c.name,c.rarity,c.artwork_url,p.offered_xanth_cents,p.escrow_cents,p.status,p.message,
-  coalesce((select jsonb_agg(jsonb_build_object('copy_id',i.copy_id,'card_id',i.card_id,'card_number',oc.card_number,'card_name',oc.name,'rarity',oc.rarity) order by oc.card_number)
-   from public.reader_card_wanted_post_items i join public.card_catalogue oc on oc.card_id=i.card_id where i.post_id=p.post_id),'[]'::jsonb),
+  p.offered_cards_snapshot,
   p.created_at,p.fulfilled_at
  from public.reader_card_wanted_posts p join public.card_catalogue c on c.card_id=p.wanted_card_id
  where p.owner_user_id=auth.uid()
@@ -351,6 +350,14 @@ begin
   item_count:=item_count+1;
  end loop;
 
+ update public.reader_card_wanted_posts p
+ set offered_cards_snapshot=coalesce((
+  select jsonb_agg(jsonb_build_object('copy_id',i.copy_id,'card_id',i.card_id,'card_number',c.card_number,'card_name',c.name,'rarity',c.rarity,'artwork_url',c.artwork_url) order by c.card_number)
+  from public.reader_card_wanted_post_items i join public.card_catalogue c on c.card_id=i.card_id
+  where i.post_id=post
+ ),'[]'::jsonb)
+ where p.post_id=post;
+
  if coalesce(p_offer_xanth_cents,0)>0 then
   insert into public.reader_xanth_accounts(user_id) values(uid) on conflict(user_id) do nothing;
   perform 1 from public.reader_xanth_accounts where user_id=uid for update;
@@ -374,6 +381,7 @@ begin
  select * into p from public.reader_card_wanted_posts where post_id=p_post_id and owner_user_id=uid and status='open' for update;
  if not found then return false; end if;
  update public.reader_card_wanted_posts set status='cancelled',updated_at=now(),escrow_cents=0 where post_id=p_post_id;
+ delete from public.reader_card_wanted_post_items where post_id=p_post_id;
  if p.escrow_cents>0 then
   update public.reader_xanth_accounts set balance_cents=balance_cents+p.escrow_cents,updated_at=now()
   where user_id=uid returning balance_cents into bal;
@@ -422,6 +430,7 @@ begin
  update public.reader_card_copies set owner_user_id=p.owner_user_id where copy_id=p_wanted_copy_id;
  update public.reader_card_copies set owner_user_id=uid
  where copy_id in(select copy_id from public.reader_card_wanted_post_items where post_id=p_post_id);
+ delete from public.reader_card_wanted_post_items where post_id=p_post_id;
 
  if p.escrow_cents>0 then
   update public.reader_xanth_accounts set balance_cents=balance_cents+p.escrow_cents,updated_at=now()
