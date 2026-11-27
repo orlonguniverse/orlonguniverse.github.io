@@ -35,17 +35,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   else navLinks.appendChild(earlyLink);
  }
 
- // Account forms manage their own session and call the shared label updater.
+ // Attach navigation behaviour before optional Supabase session handling.
+ // This keeps Sign In working on pages (such as Events) that do not load Supabase.
  const accountButton=document.getElementById("openAccountButton");
- if(!accountButton||document.getElementById("authForm")||!window.supabase?.createClient)return;
- const client=window.supabase.createClient(
-  "https://kqfwtzrfqsfampqfzoal.supabase.co",
-  "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes"
- );
- const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
- client.auth.getSession().then(({data})=>setAccountLabel(data.session?.user||null));
- client.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>setAccountLabel(session?.user||null),0));
- if(document.getElementById("accountDialog"))return;
+ if(!accountButton||document.getElementById("authForm")||document.getElementById("accountDialog"))return;
  accountButton.addEventListener("click",()=>{
   const target=accountButton.dataset.accountTarget;
   if(target){
@@ -56,4 +49,14 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
   window.location.href=accountButton.dataset.accountHref||"books/trials-of-eden/account.html";
  });
+
+ // Session labels are an enhancement, not a requirement for navigation to work.
+ if(!window.supabase?.createClient)return;
+ const client=window.supabase.createClient(
+  "https://kqfwtzrfqsfampqfzoal.supabase.co",
+  "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes"
+ );
+ const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
+ client.auth.getSession().then(({data})=>setAccountLabel(data.session?.user||null));
+ client.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>setAccountLabel(session?.user||null),0));
 });
