@@ -135,3 +135,122 @@
 .orlong-reveal-source-title{font:800 9px/1.3 Inter,sans-serif;letter-spacing:1.6px;text-transform:uppercase;color:#9ed8ff;}
 .orlong-reveal-source-detail{font:500 12px/1.4 Inter,sans-serif;color:#fff;}
 .orlong-reveal-complete .orlong-reveal-source{border-color:var(--reveal-rarity);}
+
+
+/* Stage 6k — balanced reveal composition: card, caption, source and actions
+   occupy their own centred rows instead of competing for the same space. */
+.orlong-reveal-scene{
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1100px!important;
+  height:100svh!important;
+  min-height:0!important;
+  padding:24px 18px 22px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(8px,1fr) auto auto auto auto minmax(8px,.55fr)!important;
+  justify-items:center!important;
+  align-items:center!important;
+  row-gap:clamp(8px,1.5vh,15px)!important;
+  overflow:hidden!important;
+}
+.orlong-reveal-card-wrap{
+  grid-column:1!important;
+  grid-row:2!important;
+  justify-self:center!important;
+  align-self:center!important;
+  width:min(52vw,300px,calc((100svh - 235px)*.6667))!important;
+  max-width:100%!important;
+  margin:0!important;
+}
+.orlong-reveal-caption{
+  grid-column:1!important;
+  grid-row:3!important;
+  position:relative!important;
+  inset:auto!important;
+  width:min(90%,620px)!important;
+  margin:0!important;
+  padding:0 8px!important;
+  box-sizing:border-box!important;
+  min-height:1.4em!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1.5!important;
+  text-align:center!important;
+  letter-spacing:clamp(1.5px,.35vw,3.5px)!important;
+}
+.orlong-reveal-source{
+  grid-column:1!important;
+  grid-row:4!important;
+  box-sizing:border-box!important;
+  width:min(88vw,440px)!important;
+  max-width:100%!important;
+  min-height:54px!important;
+  margin:0!important;
+  padding:10px 18px!important;
+  justify-self:center!important;
+  align-self:center!important;
+  overflow-wrap:anywhere!important;
+}
+.orlong-reveal-source-title,.orlong-reveal-source-detail{
+  display:block!important;
+  max-width:100%!important;
+  text-align:center!important;
+  overflow-wrap:anywhere!important;
+}
+.orlong-reveal-source-detail{line-height:1.45!important;}
+.orlong-reveal-controls{
+  grid-column:1!important;
+  grid-row:5!important;
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  margin:0!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+}
+.orlong-reveal-controls button{
+  min-width:142px!important;
+  min-height:40px!important;
+  border-radius:5px!important;
+  padding:11px 18px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+.orlong-reveal-controls button[hidden]{display:none!important;}
+.orlong-reveal-overlay.orlong-reveal-complete .orlong-reveal-card-wrap{
+  transform:translateY(0) scale(1)!important;
+}
+@media(max-width:600px){
+  .orlong-reveal-scene{
+    padding:16px 14px max(18px,env(safe-area-inset-bottom))!important;
+    grid-template-rows:minmax(4px,.35fr) auto auto auto auto minmax(4px,.25fr)!important;
+    row-gap:clamp(7px,1.2vh,11px)!important;
+  }
+  .orlong-reveal-card-wrap{
+    width:min(68vw,270px,calc((100svh - 220px)*.6667))!important;
+  }
+  .orlong-reveal-caption{
+    font-size:9px!important;
+    letter-spacing:1.6px!important;
+  }
+  .orlong-reveal-source{
+    width:min(92vw,420px)!important;
+    padding:9px 12px!important;
+    gap:3px!important;
+  }
+  .orlong-reveal-source-title{font-size:8px!important;letter-spacing:1.2px!important;}
+  .orlong-reveal-source-detail{font-size:11px!important;}
+  .orlong-reveal-controls{gap:8px!important;}
+  .orlong-reveal-controls button{min-width:130px!important;min-height:38px!important;}
+}
+@media(max-height:620px){
+  .orlong-reveal-scene{padding-top:10px!important;padding-bottom:10px!important;row-gap:6px!important;}
+  .orlong-reveal-card-wrap{width:min(43vw,235px,calc((100svh - 190px)*.6667))!important;}
+  .orlong-reveal-source{min-height:44px!important;padding:7px 12px!important;}
+  .orlong-reveal-controls button{min-height:34px!important;padding:8px 14px!important;}
+}
