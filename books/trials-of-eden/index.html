@@ -1072,20 +1072,27 @@ body.focus-mode .reader {
 
     <section class="engagement-card discussion-card" id="chapterDiscussion">
       <h3>CHAPTER DISCUSSION</h3>
-      <p class="engagement-muted">Share your thoughts about this chapter. Comments are reviewed before appearing publicly. Please avoid posting personal information.</p>
+      <p class="engagement-muted">Every released chapter has its own conversation. Switch chapters without leaving the Reading Room.</p>
+      <div class="discussion-controls">
+        <label for="discussionChapterSelect">CHAPTER</label><select id="discussionChapterSelect"></select>
+        <label for="discussionSearch">SEARCH COMMENTS</label><input id="discussionSearch" type="search" placeholder="Search comments or reader names…">
+        <div class="discussion-filter-row">
+          <label for="discussionCategoryFilter">FILTER</label><select id="discussionCategoryFilter"><option value="all">All categories</option><option value="general">General discussion</option><option value="question">Questions</option><option value="theory">Theories</option></select>
+          <label for="discussionSort">SORT</label><select id="discussionSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="replies">Most replies</option></select>
+        </div>
+      </div>
       <form id="commentForm">
-        <label for="commentBody">Your comment</label>
-        <textarea id="commentBody" maxlength="2000" rows="4" placeholder="What did you think of this chapter?" required></textarea>
+        <label for="commentBody">Your comment</label><textarea id="commentBody" maxlength="2000" rows="4" placeholder="What did you think of this chapter?" required></textarea>
+        <label for="commentCategory">DISCUSSION TYPE</label><select id="commentCategory"><option value="general">General discussion</option><option value="question">Question</option><option value="theory">Theory</option></select>
         <label class="spoiler-option"><input type="checkbox" id="commentSpoiler"> This comment contains spoilers</label>
         <button type="submit" id="submitCommentButton" disabled>SUBMIT FOR REVIEW</button>
       </form>
       <p id="commentMessage" class="engagement-small" aria-live="polite">Sign in to join the discussion.</p>
       <div id="chapterComments" class="chapter-comments"><p class="engagement-muted">Approved comments will appear here.</p></div>
+      <button type="button" id="loadMoreCommentsButton" class="secondary" hidden>LOAD MORE COMMENTS</button>
     </section>
-
     <section class="engagement-card moderator-card" id="moderatorPanel" hidden>
-      <h3>AUTHOR MODERATION</h3>
-      <p class="engagement-muted">Pending comments are visible only to authorised moderators.</p>
+      <h3>DISCUSSION MODERATION</h3><p class="engagement-muted">Review reports, manage approved comments, and restore hidden or removed comments. Removed comments remain in the moderation record.</p>
       <div id="pendingComments"></div>
     </section>
   </div>
@@ -1138,7 +1145,7 @@ body.focus-mode .reader {
 <script src="chapters.js"></script>
 <script src="scene-breaks.js?v=2"></script>
 <script src="script.js"></script>
-<script src="engagement.js?v=answer-buttons-1"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
+<script src="engagement.js?v=stage-2-5"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
 
 </body>
 </html>
