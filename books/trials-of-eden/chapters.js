@@ -1,33 +1,21 @@
 /*
 ============================================================
-THE TRIALS OF EDEN — BOOK STRUCTURE
+THE TRIALS OF EDEN — STATIC FALLBACK BOOK STRUCTURE
 ============================================================
 
-THIS FILE CONTROLS BOTH the Reading Room chapter menu and
-the Book Contents page.
+The live Reading Room and Chapter Contents now load their chapter
+metadata from Supabase through book-structure.js.
 
-HOW TO ADD A CHAPTER
-1. Copy the public template file "chapter-template.html" as your working draft.
-2. Complete the manuscript in your local editor.
-3. In Supabase Dashboard → Storage → eden-chapters, upload it as <chapter-id>.html (e.g. chapter-08.html).
-4. Add its entry to EDEN_CHAPTERS under the correct Part.
-5. Set available: true only after the file is uploaded to the private bucket.
-Never put a finished manuscript HTML file in the public GitHub chapters folder.
+Use Moderator Headquarters → Chapter Management to:
+- create and organise chapters and Parts;
+- upload each finished HTML manuscript to the private eden-chapters bucket;
+- set the title, release date, visibility and Companion references.
 
-HOW TO ADD A NEW PART
-1. Add a Part object to EDEN_PARTS below.
-2. Give it a unique id, e.g. "part-11".
-3. Set each new chapter's partId to that Part id.
-4. The Contents page will group those chapters automatically.
+Do not add new chapters to this file and never put a finished
+manuscript HTML file in the public GitHub repository.
 
-OPTIONAL PROLOGUE / EPILOGUE
-Change enabled: false to enabled: true when you are ready
-to include either section. Create its HTML file in the
-chapters folder and add its entry to EDEN_CHAPTERS.
-
-IMPORTANT: ids must be unique, lowercase and hyphenated.
-The id must match the HTML filename without ".html".
-Use commas between entries.
+The entries below are a fallback used only if Supabase chapter
+metadata is temporarily unavailable.
 ============================================================
 */
 
