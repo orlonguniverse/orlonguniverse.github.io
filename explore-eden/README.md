@@ -158,3 +158,14 @@ To create an event, copy one of the commented examples in `events-config.js` int
 Each event can include a summary, full description, potential rewards and (for interactive events) as many activities as desired. Each activity has a title, description, button label and destination URL. The Events page displays reward descriptions and links to activities.
 
 **Current Stage 7 scope:** this is the editable event directory and activity-launch hub. Interactive buttons direct readers to the relevant website activities, but this first version does not yet verify completion, maintain event-specific progress, or automatically grant event rewards. Reward descriptions are informational only. A later reward-claim stage will be needed before configuring exclusive collectible rewards as automatically earnable.
+
+
+## Stage 1 — reusable access-code foundation
+
+The Stage 1 migration is `supabase/access-code-stage-1.sql`. Run the entire file in the Supabase SQL Editor after the existing reader engagement schema (which creates `reader_moderators` and `is_reader_moderator()`). It creates three protected tables: access-code campaigns, individual redemptions and permanent reader access grants. Codes are stored as SHA-256 hashes, and the plaintext is returned only once when a moderator generates a code. Readers must be signed in to redeem a code; redemption is checked and recorded server-side, including expiry and redemption limits. A successful grant remains on the reader's account after the code expires or is deactivated.
+
+The My Reading Statistics page now includes a Special Access panel for signed-in readers and an Access Code Administration panel for moderators. Moderators can create codes with one or more permission keys, an optional expiry and an optional redemption cap. Use `early_access` for the Founding Reader programme; future permissions can use keys such as `event:launch` or `feature:arena`. Share the generated code with its intended audience and save it securely when it is first displayed. A reader can redeem the same campaign only once; entering it again reports that it has already been redeemed without consuming another redemption.
+
+**Important:** the existing moderation role is reused for code administration. If your account has not already been added to `public.reader_moderators`, add your own authenticated user UUID in the Supabase SQL Editor (the same process documented in `supabase/schema.sql`), then sign out and back in. Do not grant moderator status to ordinary readers. The browser uses only the existing publishable key; never expose a service-role key.
+
+The migration creates the secure database and UI, but it is not executed automatically by GitHub. Run the SQL migration in Supabase before testing redemption or generating your first code. The default code expiry in the admin panel is 31 December 2026 at 11:59 pm in your browser's local time; you can adjust it before generating the code.
