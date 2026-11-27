@@ -69,6 +69,26 @@ function toggleFocus() {
   if (button) button.textContent = active ? "EXIT FOCUS MODE" : "ENTER FOCUS MODE";
   const exit = document.querySelector(".focus-exit");
   if (exit) exit.setAttribute("aria-pressed", String(active));
+  localStorage.setItem("edenFocusMode", String(active));
+}
+function toggleBookOnlyMode(force) {
+  const active = typeof force === "boolean" ? force : !document.body.classList.contains("book-only-mode");
+  document.body.classList.toggle("book-only-mode", active);
+  localStorage.setItem("edenBookOnlyMode", String(active));
+  const button = document.getElementById("bookOnlyToggle");
+  if (button) {
+    button.textContent = active ? "EXIT BOOK-ONLY MODE" : "BOOK-ONLY MODE";
+    button.setAttribute("aria-pressed", String(active));
+  }
+}
+function toggleMobileFocus() {
+  const active = !document.body.classList.contains("mobile-focus-mode");
+  document.body.classList.toggle("mobile-focus-mode", active);
+  const button = document.getElementById("mobileFocusToggle");
+  if (button) {
+    button.textContent = active ? "SHOW MENU" : "HIDE MENU";
+    button.setAttribute("aria-pressed", String(active));
+  }
 }
 
 function toggleCompanion() {
@@ -83,13 +103,7 @@ function applyReferenceLinePreference(showLines) {
   localStorage.setItem("edenReferenceLines", String(showLines));
 }
 
-function toggleFocus() {
-  const active=document.body.classList.toggle("focus-mode");
-  const button=document.getElementById("companionFocusButton");
-  if(button)button.textContent=active?"EXIT FOCUS MODE":"ENTER FOCUS MODE";
-  const exit=document.querySelector(".focus-exit");
-  if(exit)exit.setAttribute("aria-pressed",String(active));
-}
+
 
 function toggleCompanion() {
   const companion = document.getElementById("companion");
@@ -674,6 +688,8 @@ function toggleReadingWidgetPin() {
   localStorage.setItem("edenWidgetPinned", String(!pinned));
   if (!pinned) localStorage.setItem("edenWidgetCollapsed", "false");
   setReadingWidgetState();
+toggleBookOnlyMode(localStorage.getItem("edenBookOnlyMode") === "true");
+if (localStorage.getItem("edenFocusMode") === "true") document.body.classList.add("focus-mode");
 }
 
 function toggleReadingWidgetCollapse() {
