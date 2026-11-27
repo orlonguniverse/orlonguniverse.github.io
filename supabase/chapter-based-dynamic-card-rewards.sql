@@ -83,9 +83,9 @@ set search_path=public,pg_temp
 as $$
 begin
   perform public.sync_chapter_card_reward_pools();
-  return coalesce(new,old);
+  return null;
 end;
-$$;
+$;
 
 drop trigger if exists card_catalogue_sync_chapter_reward_pools
   on public.card_catalogue;
