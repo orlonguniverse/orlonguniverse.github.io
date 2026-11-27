@@ -29,7 +29,7 @@
   const wrap=document.createElement("div");wrap.className="orlong-reveal-card-wrap";
   const cardFace=document.createElement("div");cardFace.className="orlong-reveal-card";
   const back=document.createElement("div");back.className="orlong-reveal-card-back";
-  const front=document.createElement("div");front.className="orlong-reveal-card-front";
+  const front=document.createElement("div");front.className="orlong-reveal-card-front";front.dataset.rarity=String(card.rarity||"common").toLowerCase();
   const art=document.createElement("img");art.className="orlong-reveal-art";art.alt=(card.name||"Collectible")+" artwork";art.loading="eager";art.decoding="async";
   if(card.artwork){art.src=card.artwork;}else{art.hidden=true;}
   const frame=document.createElement("div");frame.className="orlong-reveal-frame";
