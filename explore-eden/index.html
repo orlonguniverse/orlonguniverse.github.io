@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-6d">
-<link rel="stylesheet" href="explore-eden.css?v=stage-7b2">
+<link rel="stylesheet" href="explore-eden.css?v=stage-7c1">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -53,11 +53,15 @@
 <div class="eden-card-grid" id="dailyShopGrid"><div class="eden-empty">The daily exchange is loading…</div></div>
 <p id="shopPurchaseStatus" class="shop-purchase-status" role="status" aria-live="polite"></p>
 <div class="xanth-history"><div class="shop-heading"><div><p class="eyebrow">YOUR ACCOUNT ACTIVITY</p><h3>XANTH TRANSACTION HISTORY</h3></div><p class="section-stat">LATEST 30</p></div><div id="xanthTransactions" class="xanth-transactions"><div class="eden-empty">Your transactions will appear here.</div></div></div>
-<div class="shop-coming"><strong>THE MYSTERY VAULT</strong><p>Chapter, category and rarity packs are being prepared. Each pack will draw from its own eligible card pool.</p></div>
+<section class="mystery-vault" aria-labelledby="mysteryVaultTitle">
+ <div class="vault-heading"><div><p class="eyebrow">SEALED DISCOVERIES · THE XANTHEON VAULT</p><h3 id="mysteryVaultTitle">MYSTERY PACKS</h3><p>Choose a sealed collection. Tear it open. Discover the cards waiting inside.</p></div><span class="vault-sigil" aria-hidden="true">✦</span></div>
+ <div class="mystery-pack-grid" id="mysteryPackGrid"><div class="eden-empty">Preparing the Mystery Vault…</div></div>
+ <p id="mysteryPackStatus" class="shop-purchase-status" role="status" aria-live="polite"></p>
+</section>
 </section>
 </main>
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-6k"></script>
-<script src="explore-eden.js?v=stage-7b2"></script>
+<script src="explore-eden.js?v=stage-7c1"></script>
 </body></html>
