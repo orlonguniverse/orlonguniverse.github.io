@@ -289,8 +289,8 @@ $$;
 
 -- Automatically sells newly inserted copies above the reader's configured keep
 -- limit. The oldest copies are retained; pending trade copies are protected.
--- Existing card-to-card transfers remain untouched so completed trade records
--- and their copy references are preserved.
+-- Incoming reader-to-reader trades are also checked after the offer is marked
+-- accepted; the durable card snapshot preserves the trade record if sold.
 create or replace function public.auto_sell_excess_card_copies()
 returns trigger
 language plpgsql
@@ -378,8 +378,91 @@ $$;
 
 drop trigger if exists reader_card_auto_sell_duplicates on public.reader_card_copies;
 create trigger reader_card_auto_sell_duplicates
-after insert on public.reader_card_copies
+after insert or update of owner_user_id on public.reader_card_copies
 for each row execute function public.auto_sell_excess_card_copies();
+
+-- Extend trade acceptance so the received card is checked for auto-sale
+-- after the offer is marked accepted (pending offers remain protected).
+create or replace function public.respond_to_card_trade(
+  target_offer_id uuid,
+  accept_offer boolean
+)
+returns text
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $trade$
+declare
+  reader_id uuid := auth.uid();
+  offer_row public.card_trade_offers%rowtype;
+  offered_owner uuid;
+  requested_copy_id uuid;
+begin
+  if reader_id is null then raise exception 'Authentication required'; end if;
+
+  select * into offer_row
+  from public.card_trade_offers t
+  where t.offer_id=target_offer_id
+    and t.recipient_user_id=reader_id
+  for update;
+  if not found then raise exception 'Trade offer not found'; end if;
+  if offer_row.status<>'pending' then raise exception 'This trade offer is no longer pending'; end if;
+
+  if not coalesce(accept_offer,false) then
+    update public.card_trade_offers
+    set status='declined',responded_at=now()
+    where offer_id=target_offer_id;
+    return 'declined';
+  end if;
+
+  select c.owner_user_id into offered_owner
+  from public.reader_card_copies c
+  where c.copy_id=offer_row.offered_copy_id
+  for update;
+  if offered_owner is distinct from offer_row.proposer_user_id then
+    raise exception 'The offered card is no longer owned by the proposer';
+  end if;
+
+  select c.copy_id into requested_copy_id
+  from public.reader_card_copies c
+  where c.owner_user_id=reader_id
+    and c.card_id=offer_row.requested_card_id
+    and not exists (
+      select 1 from public.card_trade_offers pending_trade
+      where pending_trade.offered_copy_id=c.copy_id
+        and pending_trade.status='pending'
+    )
+  order by c.acquired_at,c.copy_id
+  limit 1
+  for update skip locked;
+  if requested_copy_id is null then
+    raise exception 'You no longer have an available copy of the requested card';
+  end if;
+
+  update public.reader_card_copies
+  set owner_user_id=offer_row.proposer_user_id
+  where copy_id=requested_copy_id;
+
+  update public.reader_card_copies
+  set owner_user_id=reader_id
+  where copy_id=offer_row.offered_copy_id;
+
+  update public.card_trade_offers
+  set status='accepted',responded_at=now(),completed_at=now()
+  where offer_id=target_offer_id;
+
+  -- Re-touch the received copy after the offer is no longer pending.
+  -- This lets auto-sell process it without ever selling an open offer.
+  update public.reader_card_copies
+  set owner_user_id=reader_id
+  where copy_id=offer_row.offered_copy_id;
+
+  return 'accepted';
+end;
+$trade$;
+
+revoke all on function public.respond_to_card_trade(uuid,boolean) from public,anon;
+grant execute on function public.respond_to_card_trade(uuid,boolean) to authenticated;
 
 revoke all on function public.get_my_duplicate_sale_settings() from public,anon;
 revoke all on function public.set_my_duplicate_sale_settings(boolean,integer) from public,anon;
