@@ -11,7 +11,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css?v=stage-2-5">
+<link rel="stylesheet" href="style.css?v=stage-2-5b">
    
 <style>
 
@@ -1092,6 +1092,8 @@ body.focus-mode .reader {
         <div class="discussion-filter-content">
           <label for="discussionSearch">SEARCH COMMENTS OR READER NAMES</label>
           <input id="discussionSearch" type="search" placeholder="Type to search…">
+          <select id="discussionCategoryFilter" hidden aria-hidden="true" tabindex="-1"><option value="all">All</option><option value="general">Discussion</option><option value="question">Questions</option><option value="theory">Theories</option></select>
+          <select id="discussionSort" hidden aria-hidden="true" tabindex="-1"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="replies">Most replies</option></select>
           <span class="discussion-eyebrow">SORT COMMENTS</span>
           <div class="discussion-sort-buttons">
             <button type="button" class="discussion-chip is-active" data-discussion-sort="newest" aria-pressed="true">Newest</button>
@@ -1172,7 +1174,7 @@ body.focus-mode .reader {
 <script src="chapters.js"></script>
 <script src="scene-breaks.js?v=2"></script>
 <script src="script.js"></script>
-<script src="engagement.js?v=stage-2-5b"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
+<script src="engagement.js?v=stage-2-5c"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
 
 </body>
 </html>
