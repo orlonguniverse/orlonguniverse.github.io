@@ -548,7 +548,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   if(catalogueError)throw catalogueError;
   catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
   await initialise();
- }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));}
+ }catch(error){console.error("Explore Eden failed to initialise:",error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","The archive could not be loaded. Please refresh the page."));}
  // Do not reload on Supabase's INITIAL_SESSION event: it fires during page startup
  // and would create a continuous reload loop. The shared navigation handles
  // account-label updates independently.
