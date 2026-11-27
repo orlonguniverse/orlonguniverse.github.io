@@ -21,6 +21,10 @@ window.updateOrlongModeratorLink=async function(user,client){
   }
  }catch(error){existing?.remove();console.warn("Moderator navigation is unavailable:",error);}
 };
+window.enterBookOnlyMode=function(){
+ try{localStorage.setItem("orlongBookOnlyMode","true");localStorage.setItem("edenBookOnlyMode","true");}catch(error){}
+ window.location.href="/books/trials-of-eden/#chapter";
+};
 window.toggleSiteTheme=function(){
  const light=document.body.classList.toggle("light");
  document.body.classList.toggle("dark",!light);
@@ -76,7 +80,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const panel=document.createElement("div");panel.className="nav-dropdown-menu nav-main-menu-panel";
   const settingsLabel=document.createElement("span");settingsLabel.className="nav-menu-section-label";settingsLabel.textContent="SETTINGS";
   const theme=document.createElement("button");theme.type="button";theme.id="mainMenuThemeButton";theme.className="nav-menu-action";theme.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";theme.addEventListener("click",window.toggleSiteTheme);
-  const bookOnly=document.createElement("button");bookOnly.type="button";bookOnly.id="mainMenuBookOnlyButton";bookOnly.className="nav-menu-action";bookOnly.textContent="TURN ON BOOK-ONLY MODE";bookOnly.addEventListener("click",()=>{localStorage.setItem("orlongBookOnlyMode","true");localStorage.removeItem("edenBookOnlyMode");window.location.href="/books/trials-of-eden/";});
+  const bookOnly=document.createElement("button");bookOnly.type="button";bookOnly.id="mainMenuBookOnlyButton";bookOnly.className="nav-menu-action";bookOnly.textContent="TURN ON BOOK-ONLY MODE";bookOnly.addEventListener("click",()=>window.enterBookOnlyMode());
   const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";
   const guideLink=makeLink("READER GUIDE","/getting-started.html",location.pathname.endsWith("/getting-started.html"));
   guideLink.classList.add("nav-guide-link");
