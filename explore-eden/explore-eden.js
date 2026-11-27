@@ -8,18 +8,25 @@ const text=(tag,className,value)=>{const el=document.createElement(tag);if(class
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 function cardElement(card,isOwned,showUnownedArtwork=true){
  const article=document.createElement("article");article.className="eden-card"+(isOwned?" owned":"");
+ const front=document.createElement("div");front.className="eden-card-front rarity-"+String(card.rarity||"common").toLowerCase();
  const artwork=imageFor(card);
- // In My Collection, unowned cards must remain silhouettes even when the
- // public catalogue already contains their artwork. Other tabs may preview art.
  if(isOwned||(showUnownedArtwork&&artwork)){
-  const img=document.createElement("img");img.className="eden-card-art";img.src=new URL(artwork,location.origin).href;img.alt=(card.name||card.card_name)+" collectible card";img.loading="lazy";img.onerror=()=>{img.hidden=true;};article.append(img);
+  const img=document.createElement("img");img.className="eden-card-art";img.src=new URL(artwork,location.origin).href;img.alt=(card.name||card.card_name)+" collectible artwork";img.loading="lazy";img.onerror=()=>{img.hidden=true;};front.append(img);
  }else{
-  const shadow=document.createElement("div");shadow.className="eden-card-shadow";shadow.append(text("span","shadow-symbol","?"),text("small","","UNDISCOVERED"));article.append(shadow);
+  const shadow=document.createElement("div");shadow.className="eden-card-shadow";shadow.append(text("span","shadow-symbol","?"),text("small","","UNDISCOVERED"));front.append(shadow);
  }
- article.append(text("p","eden-card-number",card.cardNumber||card.card_number||"CARD"));
- article.append(text("h3","eden-card-name",isOwned?(card.name||card.card_name):"Undiscovered Card"));
- article.append(text("p","eden-card-meta",[(card.categoryLabel||card.category_label||card.categoryId||"Collectible"),card.rarity||"Unknown"].filter(Boolean).join(" · ")));
- const cardId=card.id||card.card_id||"";if(card.setId==="early-access-special-edition"||cardId.startsWith("special-"))article.append(text("span","eden-card-edition","SPECIAL EDITION"));
+ const frame=document.createElement("div");frame.className="eden-card-frame";
+ const top=document.createElement("div");top.className="eden-card-topline";
+ top.append(text("span","eden-card-number",card.cardNumber||card.card_number||"CARD"),text("span","eden-card-rarity",String(card.rarity||"COMMON").toUpperCase()));
+ const details=document.createElement("div");details.className="eden-card-front-details";
+ const name=text("h3","eden-card-name",isOwned?(card.name||card.card_name):"Undiscovered Card");
+ const description=text("p","eden-card-description",card.spoilerSafeDescription||card.spoiler_safe_description||"");
+ const footer=document.createElement("div");footer.className="eden-card-footer";
+ footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-universe","ORLONG"));
+ details.append(name,description,footer);frame.append(top,details);
+ const cardId=card.id||card.card_id||"";
+ if(card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition","SPECIAL EDITION"));
+ front.append(frame);article.append(front);
  if(isOwned)article.append(text("span","eden-card-count",Number(card.copy_count||1)+" "+(Number(card.copy_count||1)===1?"COPY":"COPIES")));
  return article;
 }
