@@ -90,15 +90,31 @@ function toggleBookOnlyMode(force) {
     document.getElementById("chapter")?.scrollIntoView({behavior:"auto",block:"start"});
   }
 }
-function toggleMobileFocus() {
-  const active = !document.body.classList.contains("mobile-focus-mode");
-  document.body.classList.toggle("mobile-focus-mode", active);
+function setMobileFocusMode(active) {
   const button = document.getElementById("mobileFocusToggle");
+  // Mobile Focus is temporary and independent of the site-wide Book-Only preference.
+  if (active && window.matchMedia && !window.matchMedia("(max-width: 700px)").matches) return;
+  if (document.body.classList.contains("book-only-mode")) active = false;
+  document.body.classList.toggle("mobile-focus-mode", Boolean(active));
   if (button) {
     button.textContent = active ? "SHOW MENU" : "HIDE MENU";
-    button.setAttribute("aria-pressed", String(active));
+    button.setAttribute("aria-pressed", String(Boolean(active)));
+    button.setAttribute("aria-label", active ? "Show the Reading Room menu" : "Hide the Reading Room menu");
   }
 }
+function toggleMobileFocus() {
+  setMobileFocusMode(!document.body.classList.contains("mobile-focus-mode"));
+}
+// Never leave the desktop layout with mobile-only navigation hidden after a resize.
+window.addEventListener("resize", () => {
+  if (window.matchMedia && !window.matchMedia("(max-width: 700px)").matches) setMobileFocusMode(false);
+});
+window.addEventListener("keydown", event => {
+  if (event.key === "Escape" && document.body.classList.contains("mobile-focus-mode")) {
+    setMobileFocusMode(false);
+    document.getElementById("mobileFocusToggle")?.focus();
+  }
+});
 
 function toggleCompanion() {
   const companion = document.getElementById("companion");
