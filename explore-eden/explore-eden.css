@@ -204,3 +204,20 @@
 .mystery-pack-card.theme-targeted{--pack-accent:#75d4bd}
 @media(max-width:760px){.mystery-vault-tools{grid-template-columns:1fr 1fr}.vault-search-label,.vault-search{grid-column:1/-1}.mystery-vault-tools label[for="mysteryPackType"],#mysteryPackType{grid-column:1;grid-row:auto}.mystery-vault-tools label[for="mysteryPackSort"],#mysteryPackSort{grid-column:2;grid-row:auto}.vault-clear{grid-column:1/-1;grid-row:auto}.mystery-pack-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.mystery-vault-tools{grid-template-columns:1fr}.mystery-vault-tools label[for="mysteryPackType"],#mysteryPackType,.mystery-vault-tools label[for="mysteryPackSort"],#mysteryPackSort{grid-column:1}.mystery-pack-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Stage 7D — transparent rarity odds guide */
+.rarity-odds-guide{width:min(100%,1000px);box-sizing:border-box;margin:18px auto 22px;padding:16px 18px;background:linear-gradient(135deg,rgba(12,23,39,.92),rgba(8,15,27,.9));border:1px solid rgba(151,177,211,.22)}
+.rarity-odds-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;color:#d8e4f3;font-size:9px;letter-spacing:1.5px}
+.rarity-odds-heading span{color:#8296b0;font-size:8px;text-align:right}
+.rarity-odds-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.rarity-odds-item{display:flex;flex-direction:column;gap:6px;min-width:0;padding:10px 11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
+.rarity-odds-item span{font-size:8px;letter-spacing:1px;color:#b8c6d8}
+.rarity-odds-item strong{font:500 clamp(15px,2vw,21px) Cinzel,serif;color:#f3f5f8}
+.rarity-odds-item.rarity-common{border-bottom:2px solid #9aa7b6}
+.rarity-odds-item.rarity-uncommon{border-bottom:2px solid #76bca0}
+.rarity-odds-item.rarity-rare{border-bottom:2px solid #70a9e8}
+.rarity-odds-item.rarity-epic{border-bottom:2px solid #b38ae8}
+.rarity-odds-item.rarity-legendary{border-bottom:2px solid #d7b35d}
+.rarity-odds-guide>p{margin:12px 0 0;color:#94a7bf;font-size:9px;line-height:1.65}
+@media(max-width:620px){.rarity-odds-list{grid-template-columns:repeat(3,minmax(0,1fr))}.rarity-odds-heading{align-items:flex-start;flex-direction:column}.rarity-odds-heading span{text-align:left}}
+@media(max-width:380px){.rarity-odds-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
