@@ -167,7 +167,7 @@ begin
   return jsonb_build_object('success',true,'balance_cents',balance_after,
                             'granted_cents',p_amount_cents);
 end;
-$;
+$$;
 
 -- Email-based wrapper lets moderators grant a reader Xanth without exposing
 -- internal account IDs in the dashboard.
@@ -180,7 +180,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path=public,auth,pg_temp
-as $
+as $$
 declare
   target_reader uuid;
 begin
@@ -192,7 +192,7 @@ begin
   if target_reader is null then raise exception 'No reader account was found for that email address'; end if;
   return public.moderator_grant_xanth(target_reader,p_amount_cents,p_description);
 end;
-$;
+$$;
 
 revoke all on function public.purchase_xanth_shop_card(integer,date) from public,anon;
 revoke all on function public.moderator_grant_xanth(uuid,bigint,text) from public,anon;
