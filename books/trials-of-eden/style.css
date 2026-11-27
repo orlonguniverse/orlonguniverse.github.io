@@ -835,13 +835,21 @@ body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggl
 @media(max-width:700px){
  .book-only-toggle{top:auto;right:12px;bottom:12px;opacity:.2}
  .book-only-toggle:hover,.book-only-toggle:focus{opacity:1}
- body.mobile-focus-mode .topbar,body.mobile-focus-mode .site-nav,body.mobile-focus-mode #siteNav,body.mobile-focus-mode .main-nav,body.mobile-focus-mode .book-header,body.mobile-focus-mode .first-reader-guide,body.mobile-focus-mode .sidebar,body.mobile-focus-mode .companion,body.mobile-focus-mode footer,body.mobile-focus-mode .reading-progress,body.mobile-focus-mode .floating-bookmark,body.mobile-focus-mode .reading-widget,body.mobile-focus-mode #reader-community{display:none!important}
- body.mobile-focus-mode .reading-layout{display:block;padding:10px 8px 30px}
- body.mobile-focus-mode .reader{border:0;box-shadow:none;padding:24px 17px}
- .mobile-focus-toggle{display:block;position:fixed;z-index:10002;top:10px;left:10px;padding:9px 12px;border:1px solid var(--blue);border-radius:3px;color:var(--text);background:var(--surface);font-size:9px;font-weight:600;letter-spacing:1px;box-shadow:0 4px 16px #0005}
- body.mobile-focus-mode .mobile-focus-toggle{opacity:.28}
- body.mobile-focus-mode .mobile-focus-toggle:focus,body.mobile-focus-mode .mobile-focus-toggle:hover{opacity:1}
- body.book-only-mode .reading-layout{padding:10px 8px 20px}
+ body.mobile-focus-mode .topbar,body.mobile-focus-mode .site-nav,body.mobile-focus-mode #siteNav,body.mobile-focus-mode .main-nav,body.mobile-focus-mode .book-header,body.mobile-focus-mode .first-reader-guide,body.mobile-focus-mode .sidebar,body.mobile-focus-mode .companion,body.mobile-focus-mode footer,body.mobile-focus-mode .reading-progress,body.mobile-focus-mode .floating-bookmark,body.mobile-focus-mode .reading-widget{display:none!important}
+  body.mobile-focus-mode .reading-layout{display:block;width:100%;max-width:none;padding:8px 0 34px}
+  body.mobile-focus-mode .reader{width:100%;max-width:900px;margin:0 auto;border:0;box-shadow:none;padding:24px 17px}
+  /* Keep the chapter quiz available while removing the rest of the community dashboard. */
+  body.mobile-focus-mode #reader-community{display:block!important;margin:22px 0 0;padding:0 12px;background:transparent}
+  body.mobile-focus-mode #reader-community>.engagement-inner>.engagement-eyebrow,
+  body.mobile-focus-mode #reader-community #communityHeading,
+  body.mobile-focus-mode #reader-community>.engagement-inner>.engagement-intro{display:none!important}
+  body.mobile-focus-mode #reader-community .engagement-grid{display:block!important}
+  body.mobile-focus-mode #reader-community .engagement-grid>section{display:none!important}
+  body.mobile-focus-mode #reader-community #chapterQuizCard{display:block!important;width:100%;max-width:760px;margin:0 auto}
+  .mobile-focus-toggle{display:block;position:fixed;z-index:10002;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));min-height:42px;padding:10px 14px;border:1px solid var(--blue);border-radius:4px;color:var(--text);background:var(--surface);font-size:10px;font-weight:700;letter-spacing:1px;box-shadow:0 4px 16px #0008;cursor:pointer}
+  body.mobile-focus-mode .mobile-focus-toggle{opacity:.94}
+  body.mobile-focus-mode .mobile-focus-toggle:focus-visible{outline:3px solid var(--blue-light);outline-offset:3px}
+body.book-only-mode .reading-layout{padding:10px 8px 20px}
  body.book-only-mode .reader{padding:24px 17px}
  body.book-only-mode .chapter-heading{padding:34px 0 25px}
 }
