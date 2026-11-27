@@ -80,3 +80,10 @@
  .topbar>.topbar-right,.topbar>.top-actions{display:flex!important;flex-wrap:wrap!important}
  .topbar>.topbar-right>.nav-dropdown>summary,.topbar>.top-actions>.nav-dropdown>summary{padding:8px 9px!important}
 }
+
+/* Stage 8A — make the book the clear primary destination. */
+.topbar .nav-start-reading{color:#fff!important;background:linear-gradient(120deg,#246bc1,#398cff)!important;border:1px solid #6aafff!important;padding:10px 15px!important;border-radius:3px!important;box-shadow:0 5px 18px #176bd033}
+.topbar .nav-start-reading:hover{background:#4b9aff!important;border-color:#a8d1ff!important;transform:translateY(-1px)}
+.topbar .nav-dropdown>summary{border-radius:3px}
+.topbar .nav-dropdown-menu{border-radius:4px}
+@media(max-width:760px){.topbar .nav-start-reading{min-height:38px}}
