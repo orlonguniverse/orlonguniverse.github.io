@@ -300,3 +300,8 @@
 .market-secondary{background:rgba(130,150,175,.1)!important}
 @media(max-width:760px){.marketplace-trading-grid{grid-template-columns:1fr}.marketplace-listing-form{grid-template-columns:1fr}.marketplace-listing-form button{grid-column:1}.market-counter-form{grid-template-columns:1fr}.market-card-check-grid{grid-template-columns:1fr}}
 @media(max-width:440px){.marketplace-trading-panel{padding:13px}.market-listing-row{grid-template-columns:minmax(0,1fr) auto}.market-listing-details img{width:42px;height:60px}}
+
+.market-visibility-control{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:18px 0;padding:16px 18px;background:rgba(13,27,43,.85);border:1px solid rgba(201,170,107,.26)}
+.market-visibility-control strong{color:#ead8b1;font:500 12px Cinzel,serif;letter-spacing:1px}
+.market-visibility-control p{margin:5px 0 0;color:var(--eden-muted);font-size:9px;line-height:1.6}
+@media(max-width:520px){.market-visibility-control{align-items:flex-start;flex-direction:column}}
