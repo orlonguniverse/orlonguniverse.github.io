@@ -129,6 +129,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
   await initialise();
   renderCatalogue();renderMarketplace();
  }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));$("marketplaceGrid").replaceChildren(text("div","eden-empty","The marketplace catalogue is temporarily unavailable."));}
- client.auth.onAuthStateChange(()=>{window.setTimeout(()=>location.reload(),0);});
+ // Do not reload on Supabase's INITIAL_SESSION event: it fires during page startup
+ // and would create a continuous reload loop. The shared navigation handles
+ // account-label updates independently.
 });
 })();
