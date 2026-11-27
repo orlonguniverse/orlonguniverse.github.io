@@ -250,6 +250,11 @@ begin
   from public.reader_card_copies c
   where c.owner_user_id = reader_id
     and c.card_id = offer_row.requested_card_id
+    and not exists (
+      select 1 from public.card_trade_offers pending_trade
+      where pending_trade.offered_copy_id = c.copy_id
+        and pending_trade.status = 'pending'
+    )
   order by c.acquired_at, c.copy_id
   limit 1
   for update skip locked;
