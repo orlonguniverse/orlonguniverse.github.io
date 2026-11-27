@@ -173,6 +173,18 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 @media(max-width:560px){.account-menu-grid{grid-template-columns:1fr 1fr;gap:8px}.account-menu-card{min-height:120px;padding:12px}.account-menu-card strong{font-size:11px}.account-section>summary{min-height:74px;padding:13px}.account-section-content{padding:2px 9px 10px}.reader-access-grants{grid-template-columns:1fr 1fr}}
 @media(max-width:380px){.account-menu-grid{grid-template-columns:1fr}.reader-access-grants{grid-template-columns:1fr}}
 
+
+.account-subsection{margin:12px 0;border:1px solid #ffffff16;background:#0a1422}
+.account-subsection>summary{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;list-style:none;color:var(--text)}
+.account-subsection>summary::-webkit-details-marker{display:none}
+.account-subsection>summary span{font-size:10px;letter-spacing:1.1px;color:var(--blue-light);font-weight:600}
+.account-subsection>summary small{flex:1;color:var(--muted);font-size:10px;line-height:1.5}
+.account-subsection>summary b{display:grid;place-items:center;width:25px;height:25px;border:1px solid var(--border);font-size:15px;font-weight:400;color:var(--blue-light)}
+.account-subsection[open]>summary b{font-size:0}
+.account-subsection[open]>summary b:before{content:"−";font-size:16px}
+.account-subsection>.panel{margin:0;border:0;border-top:1px solid #ffffff12;background:transparent}
+@media(max-width:560px){.account-subsection>summary{align-items:flex-start;flex-wrap:wrap}.account-subsection>summary small{flex-basis:calc(100% - 40px);order:3;margin-left:0}}
+
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -240,12 +252,12 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </dialog>
 </div></details>
 <details class="account-section" id="readingSection" open><summary><span class="account-section-number">02</span><span class="account-section-heading"><strong>READING</strong><small>Your progress through The Trials of Eden</small></span><span class="account-section-chevron">+</span></summary><div class="account-section-content"><section class="panel" id="readingProgressPanel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
-<section class="panel" id="challengeStatsPanel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
+<details class="account-subsection"><summary><span>CHAPTER CHALLENGES</span><small>Review your submitted quiz attempts</small><b aria-hidden="true">+</b></summary><section class="panel" id="challengeStatsPanel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section></details>
 </div></details>
 <details class="account-section" id="communitySection"><summary><span class="account-section-number">03</span><span class="account-section-heading"><strong>COMMUNITY</strong><small>Your conversations and reader activity</small></span><span class="account-section-chevron">+</span></summary><div class="account-section-content"><section class="panel" id="communityStatsPanel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
-<section class="panel" id="reactionBreakdownPanel"><h2>YOUR REACTION BREAKDOWN</h2><p class="muted">A summary of the reactions you've used across chapters.</p><div id="reactionBreakdown"></div></section>
-<section class="panel" id="commentsPanel"><h2>YOUR COMMENTS</h2><p class="muted">Your submissions, including whether each one is awaiting review, approved or hidden.</p><div class="activity-list" id="commentList"></div></section>
-<section class="panel" id="preferencesPanel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
+<details class="account-subsection"><summary><span>REACTION BREAKDOWN</span><small>See the reactions you've used most often</small><b aria-hidden="true">+</b></summary><section class="panel" id="reactionBreakdownPanel"><h2>YOUR REACTION BREAKDOWN</h2><p class="muted">A summary of the reactions you've used across chapters.</p><div id="reactionBreakdown"></div></section></details>
+<details class="account-subsection"><summary><span>MY COMMENTS</span><small>Review comment status and submissions</small><b aria-hidden="true">+</b></summary><section class="panel" id="commentsPanel"><h2>YOUR COMMENTS</h2><p class="muted">Your submissions, including whether each one is awaiting review, approved or hidden.</p><div class="activity-list" id="commentList"></div></section></details>
+<details class="account-subsection"><summary><span>CONTENT PREFERENCES</span><small>See the topics you've selected</small><b aria-hidden="true">+</b></summary><section class="panel" id="preferencesPanel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section></details>
 </section></div></details>
 <details class="account-section" id="collectionSection"><summary><span class="account-section-number">04</span><span class="account-section-heading"><strong>COLLECTION</strong><small>Your cards, milestones and trades</small></span><span class="account-section-chevron">+</span></summary><div class="account-section-content"><section class="panel" id="cardCollectionPanel" aria-labelledby="cardCollectionHeading">
 <h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
@@ -268,15 +280,15 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </div>
 </dialog>
 </section>
-<section class="panel" id="achievementsPanel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
-<section class="panel" id="tradingPost" aria-labelledby="tradingPostHeading">
+<details class="account-subsection"><summary><span>ACHIEVEMENTS</span><small>Review milestones and progress</small><b aria-hidden="true">+</b></summary><section class="panel" id="achievementsPanel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section></details>
+<details class="account-subsection"><summary><span>THE TRADING POST</span><small>Manage collection visibility and trade offers</small><b aria-hidden="true">+</b></summary><section class="panel" id="tradingPost" aria-labelledby="tradingPostHeading">
 <h2 id="tradingPostHeading">THE TRADING POST</h2>
 <p class="muted">Choose whether to share your collection, browse readers who have opted in, and make fair card-for-card offers. Your cards remain yours until a trade is accepted.</p>
 <div class="trade-visibility-row"><div><strong>PUBLIC COLLECTION</strong><p class="muted">When enabled, other signed-in readers can view your card collection and make trade offers. Your reading activity and achievements remain private.</p></div><label class="trade-toggle-label"><input type="checkbox" id="publicCollectionToggle"> <span>MAKE MY BINDER PUBLIC</span></label></div>
 <p id="tradeStatus" class="muted" role="status" aria-live="polite">Loading Trading Post...</p>
 <div class="trade-subsection"><h3>READER COLLECTIONS</h3><div id="publicCollectionDirectory" class="trade-list"><div class="empty">Loading public collections...</div></div></div>
 <div class="trade-subsection"><h3>YOUR TRADE OFFERS</h3><div id="myTradeOffers" class="trade-list"><div class="empty">Loading trade offers...</div></div></div>
-</section>
+</section></details>
 </div></details>
 <details class="account-section account-admin-section" id="administrationSection"><summary><span class="account-section-number">05</span><span class="account-section-heading"><strong>ADMINISTRATION</strong><small>Moderator tools and access-code management</small></span><span class="account-section-chevron">+</span></summary><div class="account-section-content"><section class="panel" id="accessCodeAdminPanel" aria-labelledby="accessCodeAdminHeading" hidden>
 <h2 id="accessCodeAdminHeading">ACCESS CODE ADMINISTRATION</h2>
