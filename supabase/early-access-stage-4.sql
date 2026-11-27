@@ -5,9 +5,23 @@
 -- Safe to re-run.
 -- ============================================================
 
--- A fresh run of the missions is required: Stage 3 used self-attestation,
--- so old completion flags are deliberately reset before verification.
-delete from public.early_access_mission_completions;
+-- Reset Stage 3 self-attested completion flags exactly once. This migration
+-- can then be safely re-run without wiping newly verified progress.
+create table if not exists public.early_access_migration_flags (
+  flag_key text primary key,
+  applied_at timestamptz not null default now()
+);
+alter table public.early_access_migration_flags enable row level security;
+revoke all on public.early_access_migration_flags from anon, authenticated;
+do $
+begin
+  insert into public.early_access_migration_flags(flag_key)
+  values ('verified-missions-v1') on conflict do nothing;
+  if found then
+    delete from public.early_access_mission_completions;
+  end if;
+end;
+$;
 
 create table if not exists public.early_access_mission_visits (
   user_id uuid not null references auth.users(id) on delete cascade,
