@@ -92,6 +92,17 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 .trade-history-note{color:var(--muted);font-size:10px;line-height:1.5;margin:0 0 10px}
 .trade-dismiss{margin-top:5px}
 @media(max-width:560px){.trade-visibility-row{align-items:flex-start;flex-direction:column}.trade-card-options{grid-template-columns:1fr}}
+.avatar-crop-dialog{width:min(480px,calc(100% - 28px));max-width:480px;padding:26px;background:#0d1726;color:var(--text);border:1px solid #398cff88;box-shadow:0 24px 90px #000b}
+.avatar-crop-dialog::backdrop{background:#020711dc;backdrop-filter:blur(5px)}
+.avatar-crop-content h2{font-family:Cinzel,serif;font-weight:400;font-size:20px}
+.avatar-crop-stage{position:relative;width:min(320px,75vw);aspect-ratio:1;margin:20px auto 18px;overflow:hidden;background:#050a12;border:1px solid var(--blue);touch-action:none;cursor:grab}
+.avatar-crop-stage:active{cursor:grabbing}
+#avatarCropCanvas{display:block;width:100%;height:100%}
+.avatar-crop-guide{position:absolute;inset:0;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 999px #0006;pointer-events:none}
+#avatarCropZoom{width:100%;accent-color:var(--blue)}
+.avatar-crop-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
+.avatar-crop-actions button{margin-top:0}
+@media(max-width:480px){.avatar-crop-dialog{padding:20px 16px}}
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -151,8 +162,18 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <div class="profile-picture-fields"><label for="accountAvatarInput">PROFILE PICTURE</label>
 <input id="accountAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
 <p class="muted">Choose a JPG, PNG, WebP or GIF image up to 2 MB. Your picture will be visible beside your public discussion comments.</p>
-<button class="primary" id="uploadAvatarButton" type="button">UPLOAD PROFILE PICTURE</button>
+<button class="primary" id="uploadAvatarButton" type="button">EDIT & SAVE PROFILE PICTURE</button>
 <p id="avatarUploadMessage" class="muted" role="status" aria-live="polite"></p></div></div></section>
+<dialog id="avatarCropDialog" class="avatar-crop-dialog" aria-labelledby="avatarCropHeading">
+ <div class="avatar-crop-content">
+  <p class="eyebrow">PROFILE PICTURE</p><h2 id="avatarCropHeading">ADJUST YOUR IMAGE</h2>
+  <p class="muted">Drag the image to reposition it. Use the slider to zoom in or out. The circle shows exactly what readers will see.</p>
+  <div class="avatar-crop-stage"><canvas id="avatarCropCanvas" width="320" height="320" aria-label="Profile picture crop preview"></canvas><span class="avatar-crop-guide" aria-hidden="true"></span></div>
+  <label for="avatarCropZoom">ZOOM</label><input id="avatarCropZoom" type="range" min="1" max="3" step="0.01" value="1">
+  <div class="avatar-crop-actions"><button type="button" class="secondary" id="cancelAvatarCrop">CANCEL</button><button type="button" class="primary" id="saveAvatarCrop">SAVE PROFILE PICTURE</button></div>
+  <p id="avatarCropMessage" class="muted" role="status" aria-live="polite"></p>
+ </div>
+</dialog>
 <div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
 <section class="panel" id="cardCollectionPanel" aria-labelledby="cardCollectionHeading">
 <h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
