@@ -4,7 +4,8 @@ const EARLY_ACCESS_SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const EARLY_ACCESS_SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const earlyAccessClient=window.supabase.createClient(EARLY_ACCESS_SUPABASE_URL,EARLY_ACCESS_SUPABASE_KEY);
 const byId=id=>document.getElementById(id);
-let lastCheckedUserId=null;\nlet missionRows=[];
+let lastCheckedUserId=null;
+let missionRows=[];
 
 function showGateState(state){
  byId("checkingPanel").hidden=state!=="checking";
@@ -101,7 +102,8 @@ async function verifyEarlyAccess(user){
  try{
   const {data,error}=await earlyAccessClient.rpc("has_reader_access",{required_access_key:"early_access"});
   if(error)throw error;
-  showGateState(data===true?"granted":"denied");\n  if(data===true)await loadMissions();
+  showGateState(data===true?"granted":"denied");
+  if(data===true)await loadMissions();
  }catch(error){
   console.error("Early Access permission check failed:",error);
   byId("accessErrorMessage").textContent=error.message?.includes("has_reader_access")
