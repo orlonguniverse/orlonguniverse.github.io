@@ -75,7 +75,7 @@ footer{padding:28px 20px;text-align:center;border-top:1px solid var(--line);colo
 <section class="creator"><div class="creator-inner"><p class="eyebrow">BEHIND THE CREATION</p><h2>THE ORLONG UNIVERSE</h2><p>Created by Callum Macann, Orlong is an interconnected science-fiction and fantasy universe exploring society, identity, power and the future of humanity.</p><p><a href="https://www.instagram.com/orlong_official/" target="_blank" rel="noopener noreferrer">Follow Orlong on Instagram</a> · <a href="mailto:orlonguniverse@gmail.com">Contact the creator</a></p></div></section>
 </main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br>© <span id="year">2026</span> Callum Macann. All rights reserved.</footer>
-<script>document.getElementById("year").textContent=new Date().getFullYear();document.getElementById("homeBookOnlyButton")?.addEventListener("click",()=>{localStorage.setItem("orlongBookOnlyMode","true");window.location.href="/books/trials-of-eden/";});</script>
+<script>document.getElementById("year").textContent=new Date().getFullYear();document.getElementById("homeBookOnlyButton")?.addEventListener("click",()=>window.enterBookOnlyMode());</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="site-nav.js?v=stage-8a"></script>
+<script src="site-nav.js?v=stage-8b-bookonly-entry"></script>
 </body></html>
