@@ -446,6 +446,7 @@ function renderAvatarCrop(){
  avatarCropCenterX=Math.max(half,Math.min(avatarCropImage.naturalWidth-half,avatarCropCenterX));
  avatarCropCenterY=Math.max(half,Math.min(avatarCropImage.naturalHeight-half,avatarCropCenterY));
  context.clearRect(0,0,canvas.width,canvas.height);
+ context.fillStyle="#0d1726";context.fillRect(0,0,canvas.width,canvas.height);
  context.drawImage(avatarCropImage,avatarCropCenterX-half,avatarCropCenterY-half,cropSize,cropSize,0,0,canvas.width,canvas.height);
 }
 function openAvatarCrop(){
