@@ -16,8 +16,10 @@ window.updateOrlongModeratorLink=async function(user,client){
   const {data,error}=await client.rpc("is_reader_moderator");
   if(error||data!==true){existing?.remove();return;}
   if(!nav.querySelector(".nav-moderator-link")){
-   const link=document.createElement("a");link.href="/moderator/";link.textContent="MODERATOR HQ";link.className="nav-direct-link nav-moderator-link";
-   nav.insertBefore(link,nav.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button")||null);
+   const link=document.createElement("a");link.href="/moderator/";link.textContent="MODERATOR HQ";link.className="nav-moderator-link";
+   const menu=nav.querySelector(".nav-main-menu-panel");
+   if(menu){const slot=menu.querySelector(".nav-menu-music-slot");menu.insertBefore(link,slot||null);}
+   else nav.append(link);
   }
  }catch(error){existing?.remove();console.warn("Moderator navigation is unavailable:",error);}
 };
