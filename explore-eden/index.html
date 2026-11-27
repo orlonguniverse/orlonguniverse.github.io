@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-8c-nav">
-<link rel="stylesheet" href="explore-eden.css?v=stage-7f1">
+<link rel="stylesheet" href="explore-eden.css?v=stage-8d1">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -24,7 +24,7 @@
  <summary><span><strong>NEW TO THE ARCHIVE?</strong><small>Here's what each area does. You can close this guide whenever you like.</small></span><span class="help-toggle">HOW IT WORKS</span></summary>
  <div class="eden-help-grid">
   <div><strong>MY COLLECTION</strong><p>Your personal binder. It shows the cards you own, including duplicates, and lets you manage duplicate sales.</p></div>
-  <div><strong>CARD COLLECTION</strong><p>The released card catalogue. Browse discoveries and see which cards you have not collected yet.</p></div>
+  <div><strong>CARD PROGRESS</strong><p>Track your discoveries by category. Unowned cards remain anonymous numbered slots until you collect them.</p></div>
   <div><strong>TRADING POST</strong><p>Make multi-card offers, negotiate exchanges and post cards you are looking for on the Wanted Board.</p></div>
   <div><strong>MARKETPLACE</strong><p>Spend Xanth in the daily shop, open Mystery Packs, review transactions and manage your listings.</p></div>
  </div>
@@ -33,13 +33,13 @@
 <section class="notification-panel" id="notificationPanel" aria-label="Your notifications" hidden><div class="notification-panel-heading"><div><p class="eyebrow">YOUR READER INBOX</p><h3>NOTIFICATIONS</h3></div><div><button id="markAllNotificationsRead" type="button" class="notification-text-button">MARK ALL READ</button><button id="refreshNotifications" type="button" class="notification-text-button">REFRESH</button></div></div><div id="notificationList" class="notification-list"><div class="eden-empty">Sign in to view your notifications.</div></div></section>
 <nav class="eden-tabs" aria-label="Explore Eden sections" role="tablist">
 <button class="eden-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="collectionPanel" id="collectionTab" data-panel="collectionPanel">MY COLLECTION</button>
-<button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="cataloguePanel" id="catalogueTab" data-panel="cataloguePanel">CARD COLLECTION</button>
+<button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="progressPanel" id="progressTab" data-panel="progressPanel">CARD PROGRESS</button>
 <button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="tradingPanel" id="tradingTab" data-panel="tradingPanel">TRADING POST</button>
 <button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="marketplacePanel" id="marketplaceTab" data-panel="marketplacePanel">MARKETPLACE</button>
 </nav>
 <section class="eden-panel is-active" id="collectionPanel" role="tabpanel" aria-labelledby="collectionTab">
 <div class="section-heading"><div><p class="eyebrow">YOUR PERSONAL BINDER</p><h2>MY COLLECTION</h2></div><p id="collectionSummary" class="section-stat">SIGN IN TO LOAD YOUR CARDS</p></div>
-<p class="section-intro">Every card you've earned belongs here. Cards you haven't discovered yet appear as mysterious silhouettes. Duplicate copies remain yours.</p>
+<p class="section-intro">Every card you've earned belongs here, including special editions and cards unlocked outside the normal chapter sequence. Duplicate copies remain yours.</p>
 <section class="duplicate-sale-settings" aria-labelledby="duplicateSaleTitle">
  <div><p class="eyebrow">YOUR COLLECTOR PREFERENCES</p><h3 id="duplicateSaleTitle">DUPLICATE MANAGEMENT</h3><p>Sell extra copies for 50% of their rarity-based Xanth value. Manual sales always leave at least one copy in your binder. Automatic selling applies to new copies; existing duplicates can be sold below.</p></div>
  <div class="duplicate-sale-options">
@@ -54,11 +54,10 @@
 <div class="eden-filter-row" id="collectionFilters" aria-label="Filter your cards"></div>
 <div class="eden-card-grid" id="collectionGrid"><div class="eden-empty">Sign in to see your collection.</div></div>
 </section>
-<section class="eden-panel" id="cataloguePanel" role="tabpanel" aria-labelledby="catalogueTab" hidden>
-<div class="section-heading"><div><p class="eyebrow">THE KNOWN ARCHIVE</p><h2>CARD COLLECTION</h2></div><p id="catalogueSummary" class="section-stat">RELEASED CARDS</p></div>
-<p class="section-intro">Browse the complete Eden card archive. Cards you own appear in full; undiscovered cards remain hidden as silhouettes.</p>
-<div class="eden-filter-row" id="catalogueFilters" aria-label="Filter card collection"></div>
-<div class="eden-card-grid" id="catalogueGrid"><div class="eden-empty">Loading the catalogue…</div></div>
+<section class="eden-panel" id="progressPanel" role="tabpanel" aria-labelledby="progressTab" hidden>
+<div class="section-heading"><div><p class="eyebrow">YOUR UNDISCOVERED ARCHIVE</p><h2>CARD PROGRESS</h2></div><p id="progressSummary" class="section-stat">SIGN IN TO LOAD YOUR PROGRESS</p></div>
+<p class="section-intro">Every active card has a numbered place in its category. You can see how much of the archive exists, but an undiscovered slot reveals no card name, artwork, rarity, description or card number. Discover a card to reveal its identity here.</p>
+<div id="cardProgressGrid" class="progress-category-list"><div class="eden-empty">Sign in to view your card progress.</div></div>
 </section>
 <section class="eden-panel" id="tradingPanel" role="tabpanel" aria-labelledby="tradingTab" hidden>
 <div class="section-heading"><div><p class="eyebrow">THE XANTHEON EXCHANGE</p><h2>TRADING POST</h2></div><p class="section-stat">READER-TO-READER</p></div>
