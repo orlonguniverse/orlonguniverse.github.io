@@ -28,8 +28,12 @@
      name:award.card_name,
      number:award.card_number,
      rarity:award.rarity||"common",
-     artwork:award.artwork_url||"",
+     artwork:award.artwork_url?new URL(award.artwork_url,location.origin).href:"",
      description:award.spoiler_safe_description||"A new discovery has entered your collection.",
+     category:award.category_label||"CHARACTER",
+     chapterNumber:award.chapter_number||null,
+     setId:award.set_id||"",
+     bookLabel:award.book_id==="trials-of-eden"?"THE TRIALS OF EDEN":(award.book_id||"ORLONG ARCHIVE"),
      series:award.series_id||"",
      book:award.book_id||""
     };
@@ -49,7 +53,7 @@
    userId=session?.user?.id||null;
    if(userId)window.setTimeout(poll,0);
   });
-  timer=window.setInterval(poll,4000);
+  timer=window.setInterval(poll,1000);
  }
  window.OrlongCardRevealWatcher={start,poll};
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
