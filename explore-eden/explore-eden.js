@@ -38,26 +38,31 @@ function makeFilters(container,categories,selected,onSelect){
 }
 function renderCollection(){
  const grid=$("collectionGrid"),filters=$("collectionFilters");grid.replaceChildren();
- const categoryMap=new Map(catalogue.map(c=>[c.id,c.categoryId]));
- const categories=[...new Map(catalogue.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
+ const ownedMap=new Map(owned.map(copy=>[copy.card_id,copy]));
+ const discovered=catalogue.filter(card=>ownedMap.has(card.id));
+ const categories=[...new Map(discovered.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
  makeFilters(filters,categories,activeCollectionCategory,id=>{activeCollectionCategory=id;renderCollection();});
- const visible=activeCollectionCategory==="all"?catalogue:catalogue.filter(c=>c.categoryId===activeCollectionCategory);
- const ownedMap=new Map(owned.map(c=>[c.card_id,c]));
+ const visible=activeCollectionCategory==="all"?discovered:discovered.filter(c=>c.categoryId===activeCollectionCategory);
  visible.forEach(card=>{
   const copy=ownedMap.get(card.id);
-  grid.append(cardElement(copy?{...card,copy_count:copy.copy_count}:card,Boolean(copy),false));
+  grid.append(cardElement({...card,copy_count:copy.copy_count},true));
  });
  const copies=owned.reduce((sum,c)=>sum+Number(c.copy_count||0),0);
- $("collectionSummary").textContent=copies+" COPIES · "+owned.length+" / "+catalogue.length+" DISCOVERED";
- if(!visible.length)grid.append(text("div","eden-empty","No cards are available in this category yet."));
+ $("collectionSummary").textContent=copies+" COPIES · "+discovered.length+" UNIQUE CARDS";
+ if(!visible.length)grid.append(text("div","eden-empty",discovered.length?"You haven't discovered any cards in this category yet.":"Your binder is empty. Complete Reading Room activities and Early Access missions to discover your first card."));
 }
 function renderCatalogue(){
  const grid=$("catalogueGrid"),filters=$("catalogueFilters");grid.replaceChildren();
  const categories=[...new Map(catalogue.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
  makeFilters(filters,categories,activeCatalogueCategory,id=>{activeCatalogueCategory=id;renderCatalogue();});
+ const ownedMap=new Map(owned.map(copy=>[copy.card_id,copy]));
  const visible=activeCatalogueCategory==="all"?catalogue:catalogue.filter(c=>c.categoryId===activeCatalogueCategory);
- visible.forEach(card=>grid.append(cardElement(card,owned.some(c=>c.card_id===card.id))));
- $("catalogueSummary").textContent=catalogue.length+" RELEASED CARDS";
+ visible.forEach(card=>{
+  const copy=ownedMap.get(card.id);
+  grid.append(cardElement(copy?{...card,copy_count:copy.copy_count}:card,Boolean(copy),false));
+ });
+ $("catalogueSummary").textContent=ownedMap.size+" / "+catalogue.length+" DISCOVERED";
+ if(!visible.length)grid.append(text("div","eden-empty","No cards are available in this category yet."));
 }
 function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
@@ -137,7 +142,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   const {data:databaseCards,error:catalogueError}=await client.rpc("get_public_card_catalogue");
   if(catalogueError)throw catalogueError;
   catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
-  $("catalogueSummary").textContent=catalogue.length+" RELEASED CARDS";
+  $("catalogueSummary").textContent=catalogue.length+" TOTAL CARDS";
   await initialise();
   renderCatalogue();renderMarketplace();
  }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));$("marketplaceGrid").replaceChildren(text("div","eden-empty","The marketplace catalogue is temporarily unavailable."));}
