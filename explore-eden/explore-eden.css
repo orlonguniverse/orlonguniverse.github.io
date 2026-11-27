@@ -305,3 +305,5 @@
 .market-visibility-control strong{color:#ead8b1;font:500 12px Cinzel,serif;letter-spacing:1px}
 .market-visibility-control p{margin:5px 0 0;color:var(--eden-muted);font-size:9px;line-height:1.6}
 @media(max-width:520px){.market-visibility-control{align-items:flex-start;flex-direction:column}}
+
+.market-counter-cards{grid-column:1/-1;display:grid;gap:8px;padding:10px;background:#091321;border:1px solid rgba(201,170,107,.18)}.market-counter-cards>strong{color:#e4d2aa;font:500 10px Cinzel,serif;letter-spacing:.8px}
