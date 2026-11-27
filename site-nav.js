@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   earlyLink.href="/early-access/";
   earlyLink.textContent="EARLY ACCESS";
   earlyLink.dataset.earlyAccessNav="true";
-  const eventsLink=[...navLinks.querySelectorAll("a")].find(link=>/events\\.html(?:$|[?#])/.test(link.getAttribute("href")||""));
+  const eventsLink=[...navLinks.querySelectorAll("a")].find(link=>/events\.html(?:$|[?#])/.test(link.getAttribute("href")||""));
   if(eventsLink)eventsLink.insertAdjacentElement("afterend",earlyLink);
   else navLinks.appendChild(earlyLink);
  }
