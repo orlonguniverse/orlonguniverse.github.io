@@ -485,9 +485,10 @@ async function createReaderAccessCode(){
   accountById("accessCampaignLabel").value="";
  }catch(error){
   console.error("Could not create access code:",error);
-  message.textContent=error.message?.includes("create_access_code")
-   ?"The Stage 1 database update is not installed, or your account does not have moderator access."
-   :"We couldn't create that code. Please check the details and try again.";
+  const detail=[error.message,error.details,error.hint].filter(Boolean).join(" — ");
+  message.textContent=detail
+   ? "Supabase error: "+detail
+   : "We couldn't create that code. Please check the browser console for the Supabase error.";
  }finally{button.disabled=false;button.textContent="GENERATE ACCESS CODE";}
 }
 async function loadMyAccessGrants(){
