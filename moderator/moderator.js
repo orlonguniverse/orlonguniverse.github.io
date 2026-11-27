@@ -74,6 +74,42 @@ async function loadReaderResetLog(){
  });
 }
 
-function bind(){document.querySelectorAll(".mod-tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));$("newCardButton").addEventListener("click",()=>{resetForm();window.scrollTo({top:0,behavior:"smooth"})});$("resetCardButton").addEventListener("click",resetForm);$("cardSearch").addEventListener("input",renderList);["cardName","cardDescription","cardCategory","cardRarity","cardChapterNumber"].forEach(id=>$(id).addEventListener("input",setPreview));$("cardCategory").addEventListener("change",setPreview);$("cardRarity").addEventListener("change",setPreview);$("cardArtwork").addEventListener("change",()=>{$("cropArtworkButton").disabled=!$("cardArtwork").files.length;$("uploadStatus").textContent=$("cardArtwork").files.length?"Image selected. Adjust the crop before saving.":"";if($("cardArtwork").files.length)openCrop()});$("cropArtworkButton").addEventListener("click",openCrop);$("closeCrop").addEventListener("click",()=>$("cropDialog").close());$("applyCrop").addEventListener("click",applyCrop);$("cropZoom").addEventListener("input",e=>{cropZoom=Number(e.target.value);renderCrop()});const canvas=$("cropCanvas");canvas.addEventListener("pointerdown",e=>{if(!cropImage)return;pointer={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});canvas.addEventListener("pointermove",e=>{if(!pointer||!cropImage)return;const rect=canvas.getBoundingClientRect(),aspect=canvas.width/canvas.height,sourceRatio=cropImage.naturalWidth/cropImage.naturalHeight;let bw,bh;if(sourceRatio>aspect){bh=cropImage.naturalHeight;bw=bh*aspect}else{bw=cropImage.naturalWidth;bh=bw/aspect}const w=bw/cropZoom,h=bh/cropZoom;cropX-=(e.clientX-pointer.x)*w/rect.width;cropY-=(e.clientY-pointer.y)*h/rect.height;pointer={x:e.clientX,y:e.clientY};renderCrop()});["pointerup","pointercancel","lostpointercapture"].forEach(n=>canvas.addEventListener(n,()=>pointer=null));$("cardForm").addEventListener("submit",saveCard);$("deleteCardButton").addEventListener("click",deleteCard);$("readerResetSearchButton").addEventListener("click",()=>searchResetReaders().catch(e=>say(e.message)));$("readerResetSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchResetReaders().catch(err=>say(err.message))}});$("refreshResetLog").addEventListener("click",()=>loadReaderResetLog().catch(e=>say(e.message)));loadReaderResetLog().catch(e=>console.warn(e));setPreview()}
+function brisbaneDate(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Australia/Brisbane",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
+async function loadXanthShopAdmin(){
+ const date=$("shopAdminDate").value||brisbaneDate();$("shopAdminDate").value=date;
+ const root=$("shopAdminSlots");root.textContent="Loading shop rotation…";
+ const {data,error}=await client.rpc("moderator_get_xanth_shop",{p_shop_date:date});
+ if(error){root.textContent=error.message;$("shopAdminMessage").textContent="Could not load the Xanth shop. Check the Stage 7A migration.";return}
+ const slots=data?.slots||[],eligible=data?.eligible_cards||[];
+ fillSelect($("shopCardSelect"),eligible.map(card=>({id:card.card_id,label:card.card_number+" · "+card.name+" · "+card.rarity.toUpperCase()})),"label","id","Choose a card");
+ root.replaceChildren();
+ if(!slots.length){root.append(textNode("No featured cards are available for this date."));}
+ slots.forEach(slot=>{
+  const row=document.createElement("article");row.className="shop-admin-slot";
+  const heading=document.createElement("strong");heading.textContent="SLOT "+slot.slot_number+" · "+slot.card_number+" — "+slot.name;
+  const meta=document.createElement("small");meta.textContent=slot.rarity.toUpperCase()+" · XƵ"+(Number(slot.price_cents)/100).toFixed(2)+" · "+slot.selection_mode.toUpperCase();
+  row.append(heading,meta);root.append(row);
+ });
+ $("shopAdminMessage").textContent=eligible.length+" eligible released cards available for manual selection.";
+}
+function textNode(value){const p=document.createElement("p");p.className="hint";p.textContent=value;return p}
+async function saveXanthShopOverride(event){
+ event.preventDefault();
+ const date=$("shopAdminDate").value||brisbaneDate(),slot=Number($("shopSlotNumber").value),card=$("shopCardSelect").value,raw=$("shopCardPrice").value.trim();
+ if(!card){$("shopAdminMessage").textContent="Choose a replacement card.";return}
+ let price=null;
+ if(raw!==""){const amount=Number(raw);if(!Number.isFinite(amount)||amount<=0||amount>100000000){$("shopAdminMessage").textContent="Enter a valid price greater than zero.";return}price=Math.round(amount*100);}
+ const button=$("saveShopOverride");button.disabled=true;button.textContent="SAVING…";
+ try{
+  const {error}=await client.rpc("moderator_set_xanth_shop_slot",{p_shop_date:date,p_slot_number:slot,p_card_id:card,p_price_cents:price});
+  if(error)throw error;
+  $("shopCardPrice").value="";
+  $("shopAdminMessage").textContent="Slot "+slot+" updated. The manual selection is locked for this shop date.";
+  await loadXanthShopAdmin();
+  say("Xanth daily shop override saved.");
+ }catch(error){console.error(error);$("shopAdminMessage").textContent=error.message||"Could not save the shop override.";}
+ finally{button.disabled=false;button.textContent="SAVE SLOT OVERRIDE";}
+}
+function bind(){document.querySelectorAll(".mod-tabs button").forEach(b=>b.addEventListener("click",()=>{showTab(b.dataset.tab);if(b.dataset.tab==="shop"&&!$("shopAdminDate").value)loadXanthShopAdmin().catch(e=>say(e.message));}));$("shopAdminDate").value=brisbaneDate();$("loadShopAdmin").addEventListener("click",()=>loadXanthShopAdmin().catch(e=>say(e.message)));$("shopOverrideForm").addEventListener("submit",saveXanthShopOverride);$("newCardButton").addEventListener("click",()=>{resetForm();window.scrollTo({top:0,behavior:"smooth"})});$("resetCardButton").addEventListener("click",resetForm);$("cardSearch").addEventListener("input",renderList);["cardName","cardDescription","cardCategory","cardRarity","cardChapterNumber"].forEach(id=>$(id).addEventListener("input",setPreview));$("cardCategory").addEventListener("change",setPreview);$("cardRarity").addEventListener("change",setPreview);$("cardArtwork").addEventListener("change",()=>{$("cropArtworkButton").disabled=!$("cardArtwork").files.length;$("uploadStatus").textContent=$("cardArtwork").files.length?"Image selected. Adjust the crop before saving.":"";if($("cardArtwork").files.length)openCrop()});$("cropArtworkButton").addEventListener("click",openCrop);$("closeCrop").addEventListener("click",()=>$("cropDialog").close());$("applyCrop").addEventListener("click",applyCrop);$("cropZoom").addEventListener("input",e=>{cropZoom=Number(e.target.value);renderCrop()});const canvas=$("cropCanvas");canvas.addEventListener("pointerdown",e=>{if(!cropImage)return;pointer={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});canvas.addEventListener("pointermove",e=>{if(!pointer||!cropImage)return;const rect=canvas.getBoundingClientRect(),aspect=canvas.width/canvas.height,sourceRatio=cropImage.naturalWidth/cropImage.naturalHeight;let bw,bh;if(sourceRatio>aspect){bh=cropImage.naturalHeight;bw=bh*aspect}else{bw=cropImage.naturalWidth;bh=bw/aspect}const w=bw/cropZoom,h=bh/cropZoom;cropX-=(e.clientX-pointer.x)*w/rect.width;cropY-=(e.clientY-pointer.y)*h/rect.height;pointer={x:e.clientX,y:e.clientY};renderCrop()});["pointerup","pointercancel","lostpointercapture"].forEach(n=>canvas.addEventListener(n,()=>pointer=null));$("cardForm").addEventListener("submit",saveCard);$("deleteCardButton").addEventListener("click",deleteCard);$("readerResetSearchButton").addEventListener("click",()=>searchResetReaders().catch(e=>say(e.message)));$("readerResetSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchResetReaders().catch(err=>say(err.message))}});$("refreshResetLog").addEventListener("click",()=>loadReaderResetLog().catch(e=>say(e.message)));loadReaderResetLog().catch(e=>console.warn(e));setPreview()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(error=>{console.error(error);$("accessDenied").hidden=false}));
 })();
