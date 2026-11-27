@@ -390,3 +390,8 @@
 @media(max-width:520px){
  .wanted-offer-field .market-card-check-grid{grid-template-columns:1fr}
 }
+
+/* Stage 8A — make the collectible archive feel optional and easy to leave. */
+.eden-hero-actions{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;margin:22px auto 0}
+.eden-hero-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 15px;border:1px solid #6baaff88;background:#122b48;color:#e8f3ff;text-decoration:none;font-size:9px;font-weight:700;letter-spacing:1px}
+.eden-hero-actions span{color:var(--eden-muted);font-size:9px;letter-spacing:1px}
