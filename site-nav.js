@@ -31,7 +31,7 @@ window.toggleSiteTheme=function(){
 document.addEventListener("DOMContentLoaded",()=>{
  const bookOnlyEnabled=localStorage.getItem("orlongBookOnlyMode")==="true"||localStorage.getItem("edenBookOnlyMode")==="true";
  const isReadingRoom=location.pathname==="/books/trials-of-eden/"||location.pathname==="/books/trials-of-eden/index.html";
- if(bookOnlyEnabled&&!isReadingRoom){window.location.replace("/books/trials-of-eden/");return;}
+ if(bookOnlyEnabled&&isReadingRoom)document.body.classList.add("book-only-mode");
  const saved=localStorage.getItem("orlongSiteTheme");
  if(saved==="light"||saved==="dark"){
   document.body.classList.toggle("light",saved==="light");
@@ -84,9 +84,26 @@ document.addEventListener("DOMContentLoaded",()=>{
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
-  navLinks.replaceChildren(startReading,read,community);
-  if(accountButton)navLinks.append(accountButton);
-  navLinks.append(main,instagram);
+  if(bookOnlyEnabled&&isReadingRoom){
+   const exitBookOnly=document.createElement("button");
+   exitBookOnly.type="button";
+   exitBookOnly.id="exitBookOnlyModeButton";
+   exitBookOnly.className="nav-menu-action nav-book-only-exit";
+   exitBookOnly.textContent="EXIT BOOK-ONLY MODE";
+   exitBookOnly.setAttribute("aria-label","Exit Book-Only Mode and restore website navigation");
+   exitBookOnly.addEventListener("click",()=>{
+    localStorage.setItem("orlongBookOnlyMode","false");
+    localStorage.setItem("edenBookOnlyMode","false");
+    window.location.reload();
+   });
+   navLinks.replaceChildren();
+   if(accountButton)navLinks.append(accountButton);
+   navLinks.append(exitBookOnly,instagram);
+  }else{
+   navLinks.replaceChildren(startReading,read,community);
+   if(accountButton)navLinks.append(accountButton);
+   navLinks.append(main,instagram);
+  }
   navLinks.dataset.orlongGrouped="true";
   document.addEventListener("click",event=>{if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
   document.addEventListener("keydown",event=>{if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
