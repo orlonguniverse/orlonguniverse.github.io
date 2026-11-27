@@ -35,7 +35,9 @@
      setId:award.set_id||"",
      bookLabel:award.book_id==="trials-of-eden"?"THE TRIALS OF EDEN":(award.book_id||"ORLONG ARCHIVE"),
      series:award.series_id||"",
-     book:award.book_id||""
+     book:award.book_id||"",
+     sourceLabel:award.source_label||"New collectible reward",
+     sourceDetail:award.source_detail||"A new card has been added to your collection."
     };
     await window.OrlongCardReveal.play(card);
     const {error:ackError}=await client.rpc("acknowledge_my_card_reveals",{p_queue_ids:[award.queue_id]});
