@@ -200,6 +200,10 @@ create table if not exists public.reader_card_wanted_posts (
  fulfilled_copy_id uuid references public.reader_card_copies(copy_id) on delete set null,
  fulfilled_at timestamptz
 );
+alter table public.reader_card_wanted_posts add column if not exists offered_cards_snapshot jsonb not null default '[]'::jsonb;
+alter table public.reader_card_wanted_posts drop constraint if exists reader_card_wanted_posts_fulfilled_copy_id_fkey;
+alter table public.reader_card_wanted_posts add constraint reader_card_wanted_posts_fulfilled_copy_id_fkey
+ foreign key(fulfilled_copy_id) references public.reader_card_copies(copy_id) on delete set null;
 create index if not exists reader_card_wanted_open_idx
  on public.reader_card_wanted_posts(status,created_at desc);
 
