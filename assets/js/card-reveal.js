@@ -116,7 +116,7 @@
   const eyebrow=document.createElement("p");eyebrow.className="orlong-batch-eyebrow";eyebrow.textContent="THE XANTHEON MYSTERY VAULT";
   const title=document.createElement("h2");title.className="orlong-batch-title";title.textContent="YOUR DISCOVERIES";
   const subtitle=document.createElement("p");subtitle.className="orlong-batch-subtitle";subtitle.textContent=cards.length+" cards revealed together";
-  const grid=document.createElement("div");grid.className="orlong-batch-card-grid";
+  const grid=document.createElement("div");grid.className="orlong-batch-card-grid";if(cards.length===2)grid.classList.add("batch-count-2");if(cards.length===3)grid.classList.add("batch-count-3");
   cards.forEach((card,index)=>{
    const tile=document.createElement("article");tile.className="orlong-batch-card";tile.style.setProperty("--batch-index",index);
    const art=document.createElement("div");art.className="orlong-batch-art";
