@@ -352,3 +352,41 @@
 .wanted-fulfil-select{width:100%;min-height:36px;padding:8px;background:#081321;color:#e7edf6;border:1px solid var(--eden-border);font:inherit;font-size:9px}
 .wanted-board-panel{margin-top:20px}
 @media(max-width:760px){.wanted-board-columns{grid-template-columns:1fr}.wanted-post-form{grid-template-columns:1fr}.wanted-offer-field,.wanted-post-form>.marketplace-status{grid-column:1}}
+
+
+/* Keep Wanted Board card checkboxes compact; the form's general input sizing
+   should apply to text fields, not native checkbox controls. */
+.wanted-offer-field .market-card-check{
+ display:flex;
+ align-items:center;
+ gap:9px;
+ min-width:0;
+ padding:9px 11px;
+}
+.wanted-offer-field .market-card-check input[type="checkbox"]{
+ appearance:auto;
+ -webkit-appearance:checkbox;
+ display:block;
+ flex:0 0 16px;
+ width:16px;
+ min-width:16px;
+ height:16px;
+ min-height:16px;
+ margin:0;
+ padding:0;
+ accent-color:#d4b477;
+ cursor:pointer;
+}
+.wanted-offer-field .market-card-check span{
+ display:block;
+ min-width:0;
+ overflow-wrap:anywhere;
+ line-height:1.45;
+}
+.wanted-offer-field .market-card-check-grid{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:start;
+}
+@media(max-width:520px){
+ .wanted-offer-field .market-card-check-grid{grid-template-columns:1fr}
+}
