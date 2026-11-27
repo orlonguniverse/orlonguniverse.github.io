@@ -96,16 +96,16 @@ document.addEventListener("DOMContentLoaded",()=>{
  // the intermittent temporal-dead-zone error on pages where Supabase loads first.
  const installCardRevealSystem=()=>{
   if(!document.querySelector("link[data-orlong-reveal-css]")){
-   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6h";css.dataset.orlongRevealCss="true";document.head.append(css);
+   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6i";css.dataset.orlongRevealCss="true";document.head.append(css);
   }
   const loadWatcher=()=>{
    if(window.OrlongCardRevealWatcher){window.OrlongCardRevealWatcher.start();return;}
    if(document.querySelector("script[data-orlong-reveal-watcher]"))return;
-   const watcher=document.createElement("script");watcher.src="/assets/js/card-reveal-watcher.js?v=stage-6h";watcher.dataset.orlongRevealWatcher="true";document.body.append(watcher);
+   const watcher=document.createElement("script");watcher.src="/assets/js/card-reveal-watcher.js?v=stage-6i";watcher.dataset.orlongRevealWatcher="true";document.body.append(watcher);
   };
   if(window.OrlongCardReveal){loadWatcher();return;}
   if(document.querySelector("script[data-orlong-reveal-core]"))return;
-  const reveal=document.createElement("script");reveal.src="/assets/js/card-reveal.js?v=stage-6h";reveal.dataset.orlongRevealCore="true";reveal.onload=loadWatcher;document.body.append(reveal);
+  const reveal=document.createElement("script");reveal.src="/assets/js/card-reveal.js?v=stage-6i";reveal.dataset.orlongRevealCore="true";reveal.onload=loadWatcher;document.body.append(reveal);
  };
  const initialiseSharedAccountLabel=()=>{
   if(!window.supabase?.createClient)return;
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  };
  const installSharedAudio=()=>{
   if(!document.querySelector("script[data-orlong-music]")){
-   const script=document.createElement("script");script.src="/assets/js/orlong-audio.js?v=stage-6h";script.dataset.orlongMusic="true";document.body.appendChild(script);
+   const script=document.createElement("script");script.src="/assets/js/orlong-audio.js?v=stage-6i";script.dataset.orlongMusic="true";document.body.appendChild(script);
   }
  };
  const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();};
