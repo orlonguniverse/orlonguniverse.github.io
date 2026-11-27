@@ -77,6 +77,12 @@
       "label": "Concepts & Abilities",
       "code": "CON",
       "sortOrder": 8
+    },
+    {
+      "id": "special-edition",
+      "label": "Special Edition",
+      "code": "ERA",
+      "sortOrder": 9
     }
   ],
   "sets": [
@@ -96,7 +102,7 @@
       "series": "eden",
       "book": "trials-of-eden",
       "unlockChapterId": null,
-      "description": "Ten exclusive Special Edition character cards awarded randomly for completing Early Access missions."
+      "description": "Ten exclusive Special Edition cards awarded randomly for completing Early Access missions."
     }
   ],
   "cards": [
@@ -144,9 +150,9 @@
     },
     {
       "id": "special-maya-garcia",
-      "categoryId": "characters",
-      "categoryNumber": 101,
-      "cardNumber": "CHR-101",
+      "categoryId": "special-edition",
+      "categoryNumber": 1,
+      "cardNumber": "ERA-001",
       "name": "Maya Garcia",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -158,9 +164,9 @@
     },
     {
       "id": "special-leo-lee",
-      "categoryId": "characters",
-      "categoryNumber": 102,
-      "cardNumber": "CHR-102",
+      "categoryId": "special-edition",
+      "categoryNumber": 2,
+      "cardNumber": "ERA-002",
       "name": "Leo Lee",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -172,9 +178,9 @@
     },
     {
       "id": "special-kiera-patel",
-      "categoryId": "characters",
-      "categoryNumber": 103,
-      "cardNumber": "CHR-103",
+      "categoryId": "special-edition",
+      "categoryNumber": 3,
+      "cardNumber": "ERA-003",
       "name": "Kiera Patel",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -186,9 +192,9 @@
     },
     {
       "id": "special-al-jones",
-      "categoryId": "characters",
-      "categoryNumber": 104,
-      "cardNumber": "CHR-104",
+      "categoryId": "special-edition",
+      "categoryNumber": 4,
+      "cardNumber": "ERA-004",
       "name": "Al Jones",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -200,9 +206,9 @@
     },
     {
       "id": "special-marcus-roberts",
-      "categoryId": "characters",
-      "categoryNumber": 105,
-      "cardNumber": "CHR-105",
+      "categoryId": "special-edition",
+      "categoryNumber": 5,
+      "cardNumber": "ERA-005",
       "name": "Marcus Roberts",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -214,9 +220,9 @@
     },
     {
       "id": "special-charlee-neil",
-      "categoryId": "characters",
-      "categoryNumber": 106,
-      "cardNumber": "CHR-106",
+      "categoryId": "special-edition",
+      "categoryNumber": 6,
+      "cardNumber": "ERA-006",
       "name": "Charlee Neil",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -228,9 +234,9 @@
     },
     {
       "id": "special-emily-kim",
-      "categoryId": "characters",
-      "categoryNumber": 107,
-      "cardNumber": "CHR-107",
+      "categoryId": "special-edition",
+      "categoryNumber": 7,
+      "cardNumber": "ERA-007",
       "name": "Emily Kim",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -242,9 +248,9 @@
     },
     {
       "id": "special-alek-petrov",
-      "categoryId": "characters",
-      "categoryNumber": 108,
-      "cardNumber": "CHR-108",
+      "categoryId": "special-edition",
+      "categoryNumber": 8,
+      "cardNumber": "ERA-008",
       "name": "Alek Petrov",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -256,9 +262,9 @@
     },
     {
       "id": "special-ethan-lawson",
-      "categoryId": "characters",
-      "categoryNumber": 109,
-      "cardNumber": "CHR-109",
+      "categoryId": "special-edition",
+      "categoryNumber": 9,
+      "cardNumber": "ERA-009",
       "name": "Ethan Lawson",
       "rarity": "rare",
       "setId": "early-access-special-edition",
@@ -270,9 +276,9 @@
     },
     {
       "id": "special-colin-thornsberg",
-      "categoryId": "characters",
-      "categoryNumber": 110,
-      "cardNumber": "CHR-110",
+      "categoryId": "special-edition",
+      "categoryNumber": 10,
+      "cardNumber": "ERA-010",
       "name": "Colin Thornsberg",
       "rarity": "rare",
       "setId": "early-access-special-edition",
