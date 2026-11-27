@@ -139,7 +139,6 @@ set search_path=public,pg_temp
 as $$
 declare
   target_date date := coalesce(p_shop_date,(now() at time zone 'Australia/Brisbane')::date);
-  slot_count integer;
 begin
   if auth.uid() is null or not public.is_reader_moderator() and p_shop_date is not null
      and p_shop_date <> (now() at time zone 'Australia/Brisbane')::date then
@@ -156,36 +155,32 @@ begin
     and c.card_id=s.card_id
     and (c.is_active=false or (c.unlock_chapter_id is not null and c.unlock_chapter_id<>'chapter-01'));
 
-  select count(*) into slot_count
-  from public.xanth_shop_slots where shop_date=target_date;
-
-  if slot_count < 3 then
-    with eligible as (
-      select c.card_id,c.rarity,
-             row_number() over(order by random()) as rn
-      from public.card_catalogue c
-      where c.is_active=true
-        and (c.unlock_chapter_id is null or c.unlock_chapter_id='chapter-01')
-        and not exists(
-          select 1 from public.xanth_shop_slots s
-          where s.shop_date=target_date and s.card_id=c.card_id
-        )
-    ),
-    needed as (
-      select e.card_id,e.rarity,
-             (select coalesce(max(s.slot_number),0)
-                from public.xanth_shop_slots s
-               where s.shop_date=target_date)
-             + row_number() over(order by e.rn) as slot_no
-      from eligible e
-      where e.rn <= 3-slot_count
+  with missing_slots as (
+    select gs.slot_no,
+           row_number() over(order by gs.slot_no) as rn
+    from generate_series(1,3) as gs(slot_no)
+    where not exists(
+      select 1 from public.xanth_shop_slots s
+      where s.shop_date=target_date and s.slot_number=gs.slot_no
     )
-    insert into public.xanth_shop_slots(shop_date,slot_number,card_id,price_cents)
-    select target_date,n.slot_no,n.card_id,
-           public.xanth_default_card_price(n.rarity)
-    from needed n
-    on conflict do nothing;
-  end if;
+  ),
+  eligible as (
+    select c.card_id,c.rarity,
+           row_number() over(order by random()) as rn
+    from public.card_catalogue c
+    where c.is_active=true
+      and (c.unlock_chapter_id is null or c.unlock_chapter_id='chapter-01')
+      and not exists(
+        select 1 from public.xanth_shop_slots s
+        where s.shop_date=target_date and s.card_id=c.card_id
+      )
+  )
+  insert into public.xanth_shop_slots(shop_date,slot_number,card_id,price_cents)
+  select target_date,m.slot_no,e.card_id,
+         public.xanth_default_card_price(e.rarity)
+  from missing_slots m
+  join eligible e on e.rn=m.rn
+  on conflict do nothing;
 
   return target_date;
 end;
