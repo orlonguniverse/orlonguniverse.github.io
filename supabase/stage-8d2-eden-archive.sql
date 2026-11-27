@@ -10,7 +10,7 @@ create table if not exists public.eden_archive_entries (
  category text not null check(category in ('characters','locations','creatures','organisations','history','technology','events','other')),
  summary text not null default '' check(char_length(summary)<=500),
  content text not null check(char_length(trim(content)) between 1 and 30000),
- unlock_chapter_id text references public.eden_book_chapters(chapter_id) on update cascade on delete set null,
+ unlock_chapter_id text references public.eden_book_chapters(chapter_id) on update cascade on delete restrict,
  sort_order integer not null default 0,
  is_published boolean not null default false,
  created_at timestamptz not null default now(),
