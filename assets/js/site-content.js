@@ -1,0 +1,23 @@
+(()=>{"use strict";
+const URL_BASE="https://kqfwtzrfqsfampqfzoal.supabase.co",KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
+const allowed=new Set(["text","href","src","alt","title","placeholder"]);
+const client=()=>window.supabase?.createClient?window.supabase.createClient(URL_BASE,KEY):null;
+const pagePath=()=>location.pathname.replace(/\\/g,"/")||"/";
+function apply(records){records.forEach(r=>{if(!allowed.has(r.property))return;let nodes=[];try{nodes=[...document.querySelectorAll(r.selector)]}catch(_){return}nodes.forEach(node=>{if(r.property==="text")node.textContent=r.value;else if(r.property==="href"||r.property==="src"){if(r.value==="")node.removeAttribute(r.property);else node.setAttribute(r.property,r.value)}else node.setAttribute(r.property,r.value)})})}
+function selectorFor(node){if(node.id)return "#"+CSS.escape(node.id);const parts=[];let current=node;while(current&&current!==document.body&&parts.length<6){let part=current.tagName.toLowerCase();if(current.classList.length)part+="."+[...current.classList].slice(0,2).map(CSS.escape).join(".");const parent=current.parentElement;if(parent){const same=[...parent.children].filter(x=>x.tagName===current.tagName);if(same.length>1)part+=":nth-of-type("+(same.indexOf(current)+1)+")"}parts.unshift(part);current=parent}return "body > "+parts.join(" > ")}
+async function visualEditor(db){
+ const {data,error}=await db.auth.getSession();if(error||!data.session)return;
+ const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;
+ const bar=document.createElement("div");bar.id="orlongVisualEditor";bar.innerHTML='<strong>ORLONG VISUAL EDITOR</strong><span>Choose an item on this page to edit its text, link or image.</span><button type="button" id="orlongEditorExit">EXIT EDITOR</button>';
+ Object.assign(bar.style,{position:"fixed",zIndex:"2147483647",top:"0",left:"0",right:"0",padding:"12px 16px",background:"#10243b",color:"#fff",display:"flex",gap:"14px",alignItems:"center",font:"12px Arial",boxShadow:"0 3px 16px #0008"});
+ const exit=bar.querySelector("button");Object.assign(exit.style,{marginLeft:"auto",padding:"8px 12px",cursor:"pointer"});document.body.append(bar);document.body.style.paddingTop="58px";
+ let chosen=null;
+ const outline=e=>{if(e.target.closest("#orlongVisualEditor"))return;e.target.dataset.orlongOldOutline=e.target.style.outline;e.target.style.outline="2px solid #42a5ff"};
+ const unoutline=e=>{if(e.target.closest("#orlongVisualEditor"))return;e.target.style.outline=e.target.dataset.orlongOldOutline||""};
+ document.addEventListener("pointerover",outline,true);document.addEventListener("pointerout",unoutline,true);
+ document.addEventListener("click",async e=>{if(e.target.closest("#orlongVisualEditor"))return;e.preventDefault();e.stopPropagation();chosen=e.target.closest("a,img,button,h1,h2,h3,h4,p,span,small,strong,li,label")||e.target;const node=chosen;const selector=selectorFor(node);let property="text";if(node.tagName==="A")property="href";else if(node.tagName==="IMG")property="src";const current=property==="text"?node.textContent:node.getAttribute(property)||"";const next=prompt("Edit "+property+" for "+selector+"\n\nCurrent value:",current);if(next===null)return;try{const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:pagePath(),p_selector:selector,p_property:property,p_content_value:next,p_is_published:true});if(error)throw error;if(property==="text")node.textContent=next;else if(next==="")node.removeAttribute(property);else node.setAttribute(property,next);alert("Website content saved. This change is now stored in Supabase.");}catch(err){alert(err.message||"Could not save this change.");}},true);
+ exit.addEventListener("click",()=>{document.removeEventListener("pointerover",outline,true);document.removeEventListener("pointerout",unoutline,true);bar.remove();document.body.style.paddingTop="";location.href=location.pathname+location.search.replace(/([?&])orlong-edit=1(&|$)/,"$1").replace(/[?&]$/,"")+location.hash});
+}
+async function init(){const db=client();if(!db)return;try{const {data,error}=await db.rpc("get_public_orlong_site_content",{p_page_path:pagePath()});if(!error&&Array.isArray(data))apply(data);if(new URLSearchParams(location.search).get("orlong-edit")==="1")await visualEditor(db)}catch(err){console.warn("Orlong content manager:",err)}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
