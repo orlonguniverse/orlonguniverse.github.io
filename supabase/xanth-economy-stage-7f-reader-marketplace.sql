@@ -183,6 +183,7 @@ begin
  if uid is null then raise exception 'Authentication required'; end if;
  if p_recipient_id is null or p_recipient_id=uid then raise exception 'Choose another reader'; end if;
  if coalesce(p_proposer_pays_cents,0)<0 or coalesce(p_recipient_pays_cents,0)<0 then raise exception 'Xanth amounts cannot be negative'; end if;
+ if coalesce(p_recipient_pays_cents,0)>0 then raise exception 'A new offer can only reserve Xanth from the reader sending it'; end if;
  if coalesce(array_length(p_proposer_copy_ids,1),0)+coalesce(array_length(p_recipient_copy_ids,1),0)=0 and coalesce(p_proposer_pays_cents,0)+coalesce(p_recipient_pays_cents,0)=0 then raise exception 'An offer must include cards or Xanth'; end if;
  if p_listing_id is not null then
   select * into lid from public.reader_card_market_listings where listing_id=p_listing_id and status='active' and seller_user_id=p_recipient_id for update;
@@ -254,7 +255,8 @@ begin
   update public.reader_xanth_accounts set balance_cents=balance_cents+o.escrow_cents,updated_at=now() where user_id=o.escrow_user_id;
  end if;
  new_escrow:=abs(p_proposer_pays_cents-p_recipient_pays_cents);
- new_escrow_user:=case when p_proposer_pays_cents>p_recipient_pays_cents then o.proposer_user_id when p_recipient_pays_cents>p_proposer_pays_cents then o.recipient_user_id else null end;
+ new_escrow_user:=case when uid=o.proposer_user_id and p_proposer_pays_cents>p_recipient_pays_cents then uid when uid=o.recipient_user_id and p_recipient_pays_cents>p_proposer_pays_cents then uid else null end;
+ if new_escrow_user is null then new_escrow:=0; end if;
  if new_escrow>0 then
   insert into public.reader_xanth_accounts(user_id) values(new_escrow_user) on conflict(user_id) do nothing;
   perform 1 from public.reader_xanth_accounts where user_id=new_escrow_user for update;
@@ -291,14 +293,28 @@ begin
  if not exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id) and o.proposer_pays_cents+o.recipient_pays_cents=0 then raise exception 'This offer has no value to transfer'; end if;
  insert into public.reader_xanth_accounts(user_id) values(o.proposer_user_id),(o.recipient_user_id) on conflict(user_id) do nothing;
  perform 1 from public.reader_xanth_accounts where user_id in(o.proposer_user_id,o.recipient_user_id) order by user_id for update;
+ net:=o.proposer_pays_cents-o.recipient_pays_cents;
  if o.escrow_cents>0 and o.escrow_user_id is not null then
   seller:=case when o.escrow_user_id=o.proposer_user_id then o.recipient_user_id else o.proposer_user_id end;
   insert into public.reader_xanth_accounts(user_id) values(seller) on conflict(user_id) do nothing;
   update public.reader_xanth_accounts set balance_cents=balance_cents+o.escrow_cents,updated_at=now() where user_id=seller returning balance_cents into seller_balance;
+ else
+  if net<>0 then
+   buyer:=case when net>0 then o.proposer_user_id else o.recipient_user_id end;
+   seller:=case when net>0 then o.recipient_user_id else o.proposer_user_id end;
+   insert into public.reader_xanth_accounts(user_id) values(buyer),(seller) on conflict(user_id) do nothing;
+   perform 1 from public.reader_xanth_accounts where user_id in(buyer,seller) order by user_id for update;
+   select balance_cents into buyer_balance from public.reader_xanth_accounts where user_id=buyer;
+   if buyer_balance<abs(net) then raise exception 'The paying reader no longer has enough Xanth'; end if;
+   update public.reader_xanth_accounts set balance_cents=balance_cents-abs(net),updated_at=now() where user_id=buyer;
+   update public.reader_xanth_accounts set balance_cents=balance_cents+abs(net),updated_at=now() where user_id=seller returning balance_cents into seller_balance;
+  end if;
+ end if;
+ if net<>0 then
   insert into public.reader_xanth_transactions(user_id,amount_cents,balance_after_cents,transaction_type,description,reference_id,metadata)
-  select o.escrow_user_id,-o.escrow_cents,a.balance_cents,'market_trade','Xanth reserved for accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',seller) from public.reader_xanth_accounts a where a.user_id=o.escrow_user_id;
+  select buyer,-abs(net),a.balance_cents,'market_trade','Xanth paid in accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',seller) from public.reader_xanth_accounts a where a.user_id=buyer;
   insert into public.reader_xanth_transactions(user_id,amount_cents,balance_after_cents,transaction_type,description,reference_id,metadata)
-  values(seller,o.escrow_cents,seller_balance,'market_trade','Xanth received in accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',o.escrow_user_id));
+  values(seller,abs(net),seller_balance,'market_trade','Xanth received in accepted reader offer',p_offer_id::text,jsonb_build_object('offer_id',p_offer_id,'other_reader',buyer));
  end if;
  update public.reader_card_copies c set owner_user_id=case when i.owner_side='proposer' then o.recipient_user_id else o.proposer_user_id end
  from public.reader_card_market_offer_items i where i.offer_id=p_offer_id and i.copy_id=c.copy_id;
