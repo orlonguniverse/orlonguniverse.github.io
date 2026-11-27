@@ -307,3 +307,48 @@
 @media(max-width:520px){.market-visibility-control{align-items:flex-start;flex-direction:column}}
 
 .market-counter-cards{grid-column:1/-1;display:grid;gap:8px;padding:10px;background:#091321;border:1px solid rgba(201,170,107,.18)}.market-counter-cards>strong{color:#e4d2aa;font:500 10px Cinzel,serif;letter-spacing:.8px}
+
+
+/* Stage 7F.1 — reader notification centre */
+.eden-welcome-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.notification-bell{display:inline-flex;align-items:center;gap:8px;min-height:39px;padding:9px 12px;background:#0b1726;border:1px solid rgba(201,170,107,.42);color:#e8d9b8;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer}
+.notification-bell>span:first-child{font-size:14px}
+.notification-count{display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:20px;background:#25354a;color:#dce8f6;font-size:9px}
+.notification-count.has-unread{background:#b88943;color:#101722}
+.notification-bell:disabled{opacity:.5;cursor:not-allowed}
+.notification-panel{margin:12px 0 20px;padding:19px;background:linear-gradient(145deg,#13243a,#0a1422);border:1px solid rgba(201,170,107,.28)}
+.notification-panel[hidden]{display:none}
+.notification-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px}
+.notification-panel-heading h3{margin:0;color:#f0dfba;font:500 17px Cinzel,serif;letter-spacing:1px}
+.notification-panel-heading>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.notification-text-button{padding:7px 9px;background:transparent;border:1px solid var(--eden-border);color:#c8d6e7;font-size:8px;letter-spacing:.7px;cursor:pointer}
+.notification-list{display:grid;gap:7px;max-height:440px;overflow:auto}
+.notification-item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px;background:rgba(5,13,23,.72);border:1px solid rgba(135,174,220,.14)}
+.notification-item.is-unread{border-left:3px solid #d2b06d;background:rgba(34,43,54,.72)}
+.notification-item-content{min-width:0}
+.notification-item-title{display:block;color:#e8eef7;font-size:10px}
+.notification-item-body{margin:5px 0;color:#aebbd0;font-size:9px;line-height:1.6}
+.notification-item-date{color:#788da8;font-size:8px}
+.notification-item-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.notification-open-link{color:#e2c78d;font-size:8px;font-weight:700;letter-spacing:.8px;text-decoration:none}
+.notification-open-link:hover{text-decoration:underline}
+.notification-item-actions .reader-open{min-height:28px;padding:6px 8px;font-size:7px}
+@media(max-width:650px){.eden-welcome{align-items:flex-start;flex-direction:column}.eden-welcome-actions{width:100%;justify-content:flex-start}.notification-panel-heading{align-items:flex-start;flex-direction:column}.notification-item{align-items:flex-start;flex-direction:column}.notification-item-actions{width:100%}}
+
+/* Stage 7F.1 — Wanted Board */
+.wanted-post-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin:18px 0 24px;padding:16px;background:rgba(5,13,23,.66);border:1px solid rgba(201,170,107,.22)}
+.wanted-post-form>label{display:grid;gap:6px;color:#c4d2e4;font-size:9px;letter-spacing:.5px}
+.wanted-post-form select,.wanted-post-form input{width:100%;min-width:0;min-height:38px;padding:9px;background:#081321;color:#e7edf6;border:1px solid var(--eden-border);font:inherit;font-size:10px}
+.wanted-offer-field{grid-column:1/-1;display:grid;gap:8px}
+.wanted-offer-field>strong{color:#e4d2aa;font:500 10px Cinzel,serif;letter-spacing:1px}
+.wanted-offer-field .market-card-check-grid{max-height:170px}
+.wanted-post-form>button{justify-self:start}
+.wanted-post-form>.marketplace-status{grid-column:1/-1;margin:0}
+.wanted-board-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.wanted-request-top{display:flex;align-items:center;gap:11px}
+.wanted-request-top img{width:55px;height:76px;object-fit:cover;border:1px solid rgba(201,170,107,.35)}
+.wanted-request-top>div{display:grid;gap:5px}
+.wanted-request-top small{color:var(--eden-muted);font-size:8px}
+.wanted-fulfil-select{width:100%;min-height:36px;padding:8px;background:#081321;color:#e7edf6;border:1px solid var(--eden-border);font:inherit;font-size:9px}
+.wanted-board-panel{margin-top:20px}
+@media(max-width:760px){.wanted-board-columns{grid-template-columns:1fr}.wanted-post-form{grid-template-columns:1fr}.wanted-offer-field,.wanted-post-form>.marketplace-status{grid-column:1}}
