@@ -179,7 +179,7 @@ create or replace function public.create_reader_market_offer(
  p_proposer_pays_cents bigint default 0,p_recipient_pays_cents bigint default 0,p_message text default null
 )
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
-declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; v_copy_id uuid; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
+declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; v_copy_id uuid; bal bigint; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  if p_recipient_id is null or p_recipient_id=uid then raise exception 'Choose another reader'; end if;
