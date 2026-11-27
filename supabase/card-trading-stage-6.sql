@@ -306,6 +306,32 @@ begin
 end;
 $$;
 
+-- Physical copy IDs are returned only to their authenticated owner,
+-- and copies reserved by pending offers cannot be offered again.
+create or replace function public.get_my_tradeable_card_copies()
+returns table (
+  copy_id uuid,
+  card_id text,
+  card_number text,
+  card_name text,
+  artwork_url text
+)
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $
+  select c.copy_id, c.card_id, cat.card_number, cat.name, cat.artwork_url
+  from public.reader_card_copies c
+  join public.card_catalogue cat on cat.card_id = c.card_id and cat.is_active = true
+  where c.owner_user_id = auth.uid()
+    and not exists (
+      select 1 from public.card_trade_offers t
+      where t.offered_copy_id = c.copy_id and t.status = 'pending'
+    )
+  order by cat.card_number, c.acquired_at;
+$;
+
 -- Returns only offers involving the signed-in reader, with public
 -- display names and card details needed for the Trading Post UI.
 create or replace function public.get_my_card_trades()
@@ -363,7 +389,7 @@ revoke all on function public.get_public_card_collection(uuid) from public, anon
 revoke all on function public.create_card_trade_offer(uuid, uuid, text) from public, anon;
 revoke all on function public.respond_to_card_trade(uuid, boolean) from public, anon;
 revoke all on function public.cancel_card_trade_offer(uuid) from public, anon;
-revoke all on function public.get_my_card_trades() from public, anon;
+revoke all on function public.get_my_card_trades() from public, anon;\nrevoke all on function public.get_my_tradeable_card_copies() from public, anon;
 
 grant execute on function public.set_my_card_collection_visibility(boolean) to authenticated;
 grant execute on function public.get_my_card_collection_visibility() to authenticated;
@@ -372,7 +398,7 @@ grant execute on function public.get_public_card_collection(uuid) to authenticat
 grant execute on function public.create_card_trade_offer(uuid, uuid, text) to authenticated;
 grant execute on function public.respond_to_card_trade(uuid, boolean) to authenticated;
 grant execute on function public.cancel_card_trade_offer(uuid) to authenticated;
-grant execute on function public.get_my_card_trades() to authenticated;
+grant execute on function public.get_my_card_trades() to authenticated;\ngrant execute on function public.get_my_tradeable_card_copies() to authenticated;
 
 -- Verification: tables and RPC signatures are installed.
 select table_name
@@ -392,6 +418,6 @@ where routine_schema = 'public'
     'create_card_trade_offer',
     'respond_to_card_trade',
     'cancel_card_trade_offer',
-    'get_my_card_trades'
+    'get_my_card_trades',\n    'get_my_tradeable_card_copies'
   )
 order by routine_name;
