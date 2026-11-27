@@ -56,7 +56,7 @@ create or replace function public.get_public_founding_readers()
 returns table(display_name text,qualified_at timestamptz)
 language sql stable security definer set search_path=public,pg_temp as $$
  select coalesce(nullif(trim(p.display_name),''),'Reader'),f.qualified_at
- from public.founding_readers f join public.reader_profiles p on p.user_id=f.user_id
+ from public.founding_readers f left join public.reader_profiles p on p.user_id=f.user_id
  where f.public_listing=true order by f.qualified_at asc,p.display_name asc;
 $$;
 create or replace function public.get_founding_reader_count()
