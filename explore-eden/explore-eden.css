@@ -118,3 +118,19 @@
 @media(max-width:600px){
   #dailyShopGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 }
+
+/* Stage 7B — purchase controls and wallet ledger */
+.shop-purchase-button{width:100%;min-height:42px;padding:11px 12px;border:1px solid #c9aa6b99;background:linear-gradient(110deg,#8c6b342e,#183451);color:#f4dfb0;font-size:9px;font-weight:700;letter-spacing:1.2px;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.shop-purchase-button:hover:not(:disabled){background:linear-gradient(110deg,#a9874b55,#21466b);border-color:#e4c98b;transform:translateY(-1px)}
+.shop-purchase-button:disabled{opacity:.65;cursor:wait}
+.shop-purchase-status{min-height:20px;margin:14px 0;color:#b9d9ff;font-size:11px;line-height:1.6}
+.xanth-history{margin-top:34px;padding-top:24px;border-top:1px solid var(--eden-border)}
+.xanth-transactions{display:grid;gap:8px;margin-top:16px}
+.xanth-transaction{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 15px;background:#0b1726;border:1px solid var(--eden-border)}
+.xanth-transaction>div{display:grid;gap:5px;min-width:0}
+.xanth-transaction-title{color:#e4edf9;font-size:11px;font-weight:600}
+.xanth-transaction-date{color:var(--eden-muted);font-size:9px}
+.xanth-transaction-amount{white-space:nowrap;font:500 15px Cinzel,serif}
+.xanth-transaction-amount.is-credit{color:#8ce0b1}
+.xanth-transaction-amount.is-debit{color:#f0c982}
+@media(max-width:600px){.xanth-transaction{align-items:flex-start}.xanth-transaction-amount{font-size:13px}}
