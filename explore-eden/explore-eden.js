@@ -398,6 +398,7 @@ async function loadTradingMarket(){
   card.append(title,status);
   const terms=text("p","marketplace-trading-copy","Proposer pays "+formatXanth(offer.proposer_pays_cents)+" · Recipient pays "+formatXanth(offer.recipient_pays_cents));
   card.append(terms);
+  if(Number(offer.escrow_cents||0)>0)card.append(text("p","market-offer-items","Xanth currently reserved: "+formatXanth(offer.escrow_cents)+" · released if the offer is declined or cancelled."));
   const itemSummary=(offer.items||[]).map(x=>(x.owner_side==="proposer"?"Proposer gives: ":"Recipient gives: ")+x.card_number+" · "+x.card_name).join(" | ");
   card.append(text("p","market-offer-items",itemSummary||"Xanth-only offer"));
   const history=offer.history||[];
