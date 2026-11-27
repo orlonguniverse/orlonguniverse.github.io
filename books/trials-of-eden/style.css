@@ -849,3 +849,20 @@ body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggl
 body.book-only-mode .mobile-focus-toggle,body.book-only-mode .focus-exit{display:none!important}
 body.book-only-mode .book-only-toggle{top:auto;right:18px;bottom:18px;opacity:.42;z-index:10020}
 body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggle:focus-visible{opacity:1}
+
+/* Book-Only Mode has a single exit control in the slim top navigation. */
+body.book-only-mode .topbar{display:flex!important;justify-content:flex-end!important;min-height:58px;padding:10px 5%!important;background:transparent;border-bottom:1px solid rgba(255,255,255,.06);box-shadow:none}
+body.book-only-mode .topbar>.logo{display:none!important}
+body.book-only-mode .topbar>.topbar-right,
+body.book-only-mode .topbar>.top-actions{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:10px!important;width:auto!important}
+body.book-only-mode .book-only-toggle,
+body.book-only-mode .mobile-focus-toggle{display:none!important}
+@media(max-width:760px){
+ body.book-only-mode .topbar{flex-direction:row!important;align-items:center!important;padding:9px 12px!important}
+ body.book-only-mode .topbar>.topbar-right,
+ body.book-only-mode .topbar>.top-actions{display:flex!important;flex-wrap:nowrap!important;justify-content:flex-end!important;width:100%!important;gap:5px!important}
+ body.book-only-mode .topbar-right .nav-account-button,
+ body.book-only-mode .topbar-right #openAccountButton,
+ body.book-only-mode .top-actions .nav-account-button,
+ body.book-only-mode .top-actions #openAccountButton{max-width:42vw;overflow:hidden;text-overflow:ellipsis}
+}
