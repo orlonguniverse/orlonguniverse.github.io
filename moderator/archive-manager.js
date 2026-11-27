@@ -77,8 +77,8 @@ async function saveEntry(event){
    p_sort_order:Number($("archiveEntrySort").value||0),p_is_published:$("archiveEntryPublished").checked
   });
   if(error)throw error;
-  message((editing?"Updated ":"Created ")+$("archiveEntryTitle").value.trim()+".");
-  resetForm();await load();
+  const savedTitle=$("archiveEntryTitle").value.trim();
+  resetForm();await load();message((editing?"Updated ":"Created ")+savedTitle+".");
  }catch(error){console.error(error);message(error.message||"The archive entry could not be saved.",true);}
  finally{button.disabled=false;button.textContent=$("archiveEditingId").value?"SAVE CHANGES":"SAVE ARCHIVE ENTRY";}
 }
