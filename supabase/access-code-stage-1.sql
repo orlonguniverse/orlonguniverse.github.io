@@ -71,7 +71,7 @@ create or replace function public.create_access_code(
 returns text
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = public, extensions, pg_temp
 as $$
 declare
   new_code text;
@@ -132,7 +132,7 @@ create or replace function public.redeem_access_code(input_code text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = public, extensions, pg_temp
 as $$
 declare
   reader_id uuid := auth.uid();
@@ -213,7 +213,7 @@ returns table (
 language sql
 stable
 security definer
-set search_path = public, pg_temp
+set search_path = public, extensions, pg_temp
 as $$
   select g.access_key, min(g.granted_at)
   from public.reader_access_grants g
