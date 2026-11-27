@@ -39,7 +39,7 @@ create table if not exists public.xanth_shop_days (
 create table if not exists public.xanth_shop_slots (
   shop_date date not null references public.xanth_shop_days(shop_date) on delete cascade,
   slot_number integer not null check (slot_number between 1 and 3),
-  card_id text not null references public.card_catalogue(card_id),
+  card_id text not null references public.card_catalogue(card_id) on delete cascade,
   price_cents bigint not null check (price_cents > 0),
   selection_mode text not null default 'automatic'
     check (selection_mode in ('automatic','manual')),
@@ -148,6 +148,13 @@ begin
 
   insert into public.xanth_shop_days(shop_date)
   values(target_date) on conflict(shop_date) do nothing;
+
+  -- Remove cards that have since been retired or remain unreleased.
+  delete from public.xanth_shop_slots s
+  using public.card_catalogue c
+  where s.shop_date=target_date
+    and c.card_id=s.card_id
+    and (c.is_active=false or (c.unlock_chapter_id is not null and c.unlock_chapter_id<>'chapter-01'));
 
   select count(*) into slot_count
   from public.xanth_shop_slots where shop_date=target_date;
