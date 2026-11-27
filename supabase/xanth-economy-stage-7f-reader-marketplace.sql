@@ -44,7 +44,7 @@ create table if not exists public.reader_card_market_offer_items (
   card_id text not null references public.card_catalogue(card_id),
   unique(offer_id,copy_id)
 );
-create index if not exists reader_market_offer_items_copy on public.reader_card_market_offer_items(copy_id);
+create unique index if not exists reader_market_offer_items_copy_unique on public.reader_card_market_offer_items(copy_id);
 
 create table if not exists public.reader_card_market_offer_history (
   history_id uuid primary key default gen_random_uuid(),
@@ -153,7 +153,7 @@ create or replace function public.create_reader_market_offer(
  p_proposer_pays_cents bigint default 0,p_recipient_pays_cents bigint default 0,p_message text default null
 )
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
-declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; c record; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
+declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; copy_id uuid; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  if p_recipient_id is null or p_recipient_id=uid then raise exception 'Choose another reader'; end if;
@@ -169,14 +169,14 @@ begin
  if not exists(select 1 from public.reader_card_settings s where s.user_id=p_recipient_id and s.collection_is_public) then raise exception 'That reader does not have a public collection'; end if;
  insert into public.reader_card_market_offers(listing_id,proposer_user_id,recipient_user_id,proposer_pays_cents,recipient_pays_cents)
  values(p_listing_id,uid,p_recipient_id,coalesce(p_proposer_pays_cents,0),coalesce(p_recipient_pays_cents,0)) returning offer_id into oid;
- foreach c.copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies where copy_id=c.copy_id and owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
-  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=c.copy_id;
+ foreach copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
+  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=copy_id and c0.owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
+  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=copy_id;
   select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='proposer';
  end loop;
- foreach c.copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies where copy_id=c.copy_id and owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
-  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=c.copy_id;
+ foreach copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
+  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=copy_id and c0.owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
+  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=copy_id;
  end loop;
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into rc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='recipient';
  if p_listing_id is not null and not (lid.copy_id=any(coalesce(p_recipient_copy_ids,'{}'::uuid[]))) then raise exception 'Listing card missing from offer'; end if;
@@ -191,7 +191,7 @@ create or replace function public.counter_reader_market_offer(
  p_proposer_pays_cents bigint,p_recipient_pays_cents bigint,p_message text default null
 )
 returns integer language plpgsql security definer set search_path=public,pg_temp as $$
-declare uid uuid:=auth.uid(); o public.reader_card_market_offers%rowtype; rev integer; c uuid; pc jsonb; rc jsonb;
+declare uid uuid:=auth.uid(); o public.reader_card_market_offers%rowtype; rev integer; c uuid; pc jsonb; rc jsonb; listed_copy uuid;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  select * into o from public.reader_card_market_offers where offer_id=p_offer_id and status='pending' for update;
@@ -208,6 +208,13 @@ begin
   if not exists(select 1 from public.reader_card_copies where copy_id=c and owner_user_id=o.recipient_user_id) then raise exception 'A requested card is no longer owned by its reader'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'recipient',copy_id,card_id from public.reader_card_copies where copy_id=c;
  end loop;
+ if o.listing_id is not null then
+  select copy_id into listed_copy from public.reader_card_market_listings where listing_id=o.listing_id and status='active';
+  if listed_copy is null then raise exception 'The original listing is no longer active'; end if;
+  if not exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id and copy_id=listed_copy) then
+   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'recipient',copy_id,card_id from public.reader_card_market_listings where listing_id=o.listing_id;
+  end if;
+ end if;
  if not exists(select 1 from public.reader_card_market_offer_items where offer_id=p_offer_id) and p_proposer_pays_cents+p_recipient_pays_cents=0 then raise exception 'A counter-offer must include cards or Xanth'; end if;
  rev:=o.current_revision+1;
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=p_offer_id and i.owner_side='proposer';
@@ -227,7 +234,7 @@ begin
  select * into o from public.reader_card_market_offers where offer_id=p_offer_id and status='pending' for update;
  if not found or uid not in(o.proposer_user_id,o.recipient_user_id) then raise exception 'Offer not found or no longer open'; end if;
  if (o.current_revision%2=1 and uid<>o.recipient_user_id) or (o.current_revision%2=0 and uid<>o.proposer_user_id) then raise exception 'It is the other reader’s turn to respond'; end if;
- if not p_accept then update public.reader_card_market_offers set status='declined',updated_at=now() where offer_id=p_offer_id; return 'declined'; end if;
+ if not p_accept then update public.reader_card_market_offers set status='declined',updated_at=now() where offer_id=p_offer_id; delete from public.reader_card_market_offer_items where offer_id=p_offer_id; return 'declined'; end if;
  for it in select i.*,c.owner_user_id from public.reader_card_market_offer_items i join public.reader_card_copies c on c.copy_id=i.copy_id where i.offer_id=p_offer_id for update of c loop
   if (it.owner_side='proposer' and it.owner_user_id<>o.proposer_user_id) or (it.owner_side='recipient' and it.owner_user_id<>o.recipient_user_id) then raise exception 'A card in this offer is no longer owned by its reader'; end if;
  end loop;
@@ -255,6 +262,7 @@ begin
  update public.reader_card_copies c set owner_user_id=c.owner_user_id
  from public.reader_card_market_offer_items i
  where i.offer_id=p_offer_id and i.copy_id=c.copy_id;
+ delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
  return 'accepted';
 end $$;
 
@@ -264,7 +272,7 @@ declare uid uuid:=auth.uid(); n integer;
 begin
  update public.reader_card_market_offers set status='cancelled',updated_at=now()
  where offer_id=p_offer_id and proposer_user_id=uid and status='pending';
- get diagnostics n=row_count; return n=1;
+ get diagnostics n=row_count; if n=1 then delete from public.reader_card_market_offer_items where offer_id=p_offer_id; end if; return n=1;
 end $$;
 
 create or replace function public.get_my_reader_market_offers()
@@ -313,6 +321,31 @@ begin
  return jsonb_build_object('success',true,'copies_sold',sold,'total_value_cents',total,'balance_cents',bal);
 end $$;
 
+create or replace function public.apply_my_duplicate_sale_limit(p_user_id uuid)
+returns integer language plpgsql security definer set search_path=public,pg_temp as $
+declare s public.reader_card_sale_settings%rowtype; x record; n integer; excess integer; sold integer; unit bigint; total bigint; bal bigint; total_sold integer:=0;
+begin
+ if p_user_id is distinct from auth.uid() then raise exception 'You can only manage your own duplicate collection'; end if;
+ select * into s from public.reader_card_sale_settings where user_id=p_user_id;
+ if not found or not s.auto_sell_duplicates then return 0; end if;
+ insert into public.reader_xanth_accounts(user_id) values(p_user_id) on conflict(user_id) do nothing;
+ perform 1 from public.reader_xanth_accounts where user_id=p_user_id for update;
+ for x in select c.card_id,cat.name,cat.rarity,count(*)::integer as owned from public.reader_card_copies c join public.card_catalogue cat on cat.card_id=c.card_id where c.owner_user_id=p_user_id group by c.card_id,cat.name,cat.rarity loop
+  excess:=x.owned-s.keep_copies; if excess<=0 then continue; end if;
+  with candidates as (select c.copy_id from public.reader_card_copies c where c.owner_user_id=p_user_id and c.card_id=x.card_id
+   and not exists(select 1 from public.card_trade_offers t where t.offered_copy_id=c.copy_id and t.status='pending')
+   and not exists(select 1 from public.reader_card_market_listings l where l.copy_id=c.copy_id and l.status='active')
+   and not exists(select 1 from public.reader_card_market_offer_items i join public.reader_card_market_offers o on o.offer_id=i.offer_id where i.copy_id=c.copy_id and o.status='pending')
+   order by c.acquired_at asc,c.copy_id asc limit excess for update skip locked), gone as (delete from public.reader_card_copies c using candidates z where c.copy_id=z.copy_id returning c.copy_id) select count(*)::integer into sold from gone;
+  if sold>0 then unit:=greatest(1,floor(public.xanth_rarity_price(x.rarity)::numeric*0.5)::bigint); total:=unit*sold;
+   update public.reader_xanth_accounts set balance_cents=balance_cents+total,updated_at=now() where user_id=p_user_id returning balance_cents into bal;
+   insert into public.reader_xanth_transactions(user_id,amount_cents,balance_after_cents,transaction_type,description,reference_id,metadata) values(p_user_id,total,bal,'duplicate_sale_auto','Automatically sold '||sold||' excess '||x.name||' card(s)',gen_random_uuid()::text,jsonb_build_object('card_id',x.card_id,'copies_sold',sold,'unit_value_cents',unit,'automatic',true,'keep_copies',s.keep_copies,'reconciled_existing_copies',true));
+   total_sold:=total_sold+sold;
+  end if;
+ end loop;
+ return total_sold;
+end $;
+
 create or replace function public.auto_sell_excess_card_copies()
 returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
 declare s public.reader_card_sale_settings%rowtype; cr public.card_catalogue%rowtype; cnt integer; excess integer; sold integer:=0; unit bigint; total bigint; bal bigint; x record;
@@ -355,6 +388,7 @@ revoke all on function public.cancel_reader_market_offer(uuid) from public,anon;
 revoke all on function public.get_my_reader_market_offers() from public,anon;
 revoke all on function public.sell_my_duplicate_cards(text,integer) from public,anon;
 revoke all on function public.auto_sell_excess_card_copies() from public,anon,authenticated;
+revoke all on function public.apply_my_duplicate_sale_limit(uuid) from public,anon,authenticated;
 grant execute on function public.get_my_market_tradeable_copies(),public.get_reader_card_market(),public.get_my_reader_market_offers() to authenticated;
 grant execute on function public.create_market_card_listing(uuid,bigint),public.cancel_market_card_listing(uuid),public.buy_market_card_listing(uuid) to authenticated;
 grant execute on function public.create_reader_market_offer(uuid,uuid,uuid[],uuid[],bigint,bigint,text) to authenticated;
