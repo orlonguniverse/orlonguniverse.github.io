@@ -9,3 +9,16 @@
 .nav-menu-volume-label input{width:100%;accent-color:#72bdff}
 .nav-menu-music-note{margin:9px 0 0;color:#91a9c4;font-size:9px;line-height:1.6}
 @media(max-width:760px){.nav-main-menu-panel{left:auto!important;right:0!important;max-width:90vw!important}}
+
+.nav-main-menu-panel{min-width:250px!important;width:280px!important;padding:10px!important;max-height:min(78vh,620px);overflow-y:auto}
+.nav-main-menu-panel .nav-menu-action{display:flex!important;justify-content:flex-start!important;width:100%!important;min-height:36px!important;padding:10px 12px!important;color:#c2d5ec!important;background:transparent!important;border:1px solid transparent!important;text-align:left!important;font:500 9px Inter,sans-serif!important;letter-spacing:1.1px!important;cursor:pointer}
+.nav-main-menu-panel .nav-menu-action:hover{background:#398cff18!important;border-color:#398cff55!important;color:#fff!important}
+.nav-main-menu-panel .nav-menu-statistics{margin-top:2px}
+.nav-menu-music-slot{margin:9px 3px 3px;padding:13px;background:linear-gradient(145deg,#0d2038,#081321);border:1px solid #5a9fe955}
+.nav-menu-section-label{display:block;margin-bottom:9px;color:#91caff;font-size:8px;letter-spacing:2px}
+.nav-menu-music-toggle{width:100%;padding:10px;background:#12365c;border:1px solid #65aaff88;color:#e3f3ff;font:600 9px Inter,sans-serif;letter-spacing:1.2px;cursor:pointer}
+.nav-menu-music-toggle:hover{background:#1b4d7e}
+.nav-menu-volume-label{display:grid;gap:7px;margin-top:11px;color:#a9bfd7;font-size:8px;letter-spacing:1.5px}
+.nav-menu-volume-label input{width:100%;accent-color:#72bdff}
+.nav-menu-music-note{margin:9px 0 0;color:#91a9c4;font-size:9px;line-height:1.6}
+@media(max-width:760px){.nav-main-menu-panel{left:auto!important;right:0!important;max-width:90vw!important}}
