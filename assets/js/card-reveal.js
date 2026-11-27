@@ -13,7 +13,7 @@
    overlay.remove();document.body.classList.remove("orlong-reveal-lock");active=false;
    const resolve=activeResolver;activeResolver=null;if(resolve)resolve();
    startNext();
-  },260);
+  },650);
  }
  function makeOverlay(card){
   const overlay=document.createElement("div");overlay.className="orlong-reveal-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","New collectible card reveal");
@@ -30,14 +30,26 @@
   const cardFace=document.createElement("div");cardFace.className="orlong-reveal-card";
   const back=document.createElement("div");back.className="orlong-reveal-card-back";
   const front=document.createElement("div");front.className="orlong-reveal-card-front";
-  const img=document.createElement("img");img.className="orlong-reveal-art";img.alt=(card.name||"Collectible")+" artwork";if(card.artwork){img.src=card.artwork;img.loading="eager";img.decoding="async";}else{img.hidden=true;front.classList.add("orlong-reveal-no-art");}
-  const meta=document.createElement("div");meta.className="orlong-reveal-meta";
-  const badge=document.createElement("span");badge.className="orlong-reveal-rarity";badge.textContent=rarity.label;
+  const art=document.createElement("img");art.className="orlong-reveal-art";art.alt=(card.name||"Collectible")+" artwork";art.loading="eager";art.decoding="async";
+  if(card.artwork){art.src=card.artwork;}else{art.hidden=true;}
+  const frame=document.createElement("div");frame.className="orlong-reveal-frame";
+  const top=document.createElement("div");top.className="orlong-reveal-topline";
   const number=document.createElement("span");number.className="orlong-reveal-number";number.textContent=card.number||"ORLONG ARCHIVE";
+  const rarityBadge=document.createElement("span");rarityBadge.className="orlong-reveal-rarity";rarityBadge.textContent=rarity.label;
+  top.append(number,rarityBadge);
+  const details=document.createElement("div");details.className="orlong-reveal-details";
   const name=document.createElement("h2");name.className="orlong-reveal-name";name.textContent=card.name||"UNKNOWN DISCOVERY";
   const description=document.createElement("p");description.className="orlong-reveal-description";description.textContent=card.description||"A new discovery has entered your collection.";
-  const collection=document.createElement("span");collection.className="orlong-reveal-collection";collection.textContent="ADDED TO YOUR COLLECTION";
-  meta.append(badge,number,name,description,collection);front.append(img,meta);cardFace.append(back,front);wrap.append(cardFace);
+  const footer=document.createElement("div");footer.className="orlong-reveal-footer";
+  const category=document.createElement("span");category.textContent=card.category||"CHARACTER";
+  const chapter=document.createElement("span");chapter.textContent=card.chapterNumber?"CH. "+card.chapterNumber:"CH. —";
+  const book=document.createElement("span");book.textContent=(card.bookLabel||"THE TRIALS OF EDEN").toUpperCase();
+  footer.append(category,chapter,book);details.append(name,description,footer);
+  frame.append(top,details);
+  if(card.setId==="early-access-special-edition"||String(card.id||"").startsWith("special-")){
+   const edition=document.createElement("span");edition.className="orlong-reveal-edition";edition.textContent="SPECIAL EDITION";frame.append(edition);
+  }
+  front.append(art,frame);cardFace.append(back,front);wrap.append(cardFace);
   const caption=document.createElement("p");caption.className="orlong-reveal-caption";caption.textContent="THE ORLONG FIELD STIRS";
   const controls=document.createElement("div");controls.className="orlong-reveal-controls";
   const skip=document.createElement("button");skip.type="button";skip.className="orlong-reveal-skip";skip.textContent="SKIP REVEAL";
@@ -63,9 +75,11 @@
  async function startCard(card){const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
   const art=overlay.querySelector(".orlong-reveal-art");
   if(art&&!art.hidden&&art.src&&!art.complete){
-   await Promise.race([new Promise(resolve=>{art.addEventListener("load",resolve,{once:true});art.addEventListener("error",resolve,{once:true});}),wait(1800)]);
+   await Promise.race([new Promise(resolve=>{art.addEventListener("load",resolve,{once:true});art.addEventListener("error",resolve,{once:true});}),wait(5000)]);
   }
-  if(art&&!art.hidden&&art.complete&&art.naturalWidth===0)overlay.querySelector(".orlong-reveal-card-front")?.classList.add("orlong-reveal-art-unavailable");
+  if(art&&!art.hidden&&art.complete&&art.naturalWidth===0){
+   art.hidden=true;const missing=document.createElement("div");missing.className="orlong-reveal-art-missing";missing.textContent="CARD ARTWORK COULD NOT LOAD";overlay.querySelector(".orlong-reveal-card-front")?.prepend(missing);
+  }
   const caption=overlay.querySelector(".orlong-reveal-caption"),skip=overlay.querySelector(".orlong-reveal-skip"),closeButton=overlay.querySelector(".orlong-reveal-close");
   if(card.series==="eden"||card.book==="trials-of-eden"||card.id?.startsWith("special-")||!card.series)overlay.classList.add("series-eden");
   const finishNow=()=>finish(overlay,caption,skip,closeButton);
@@ -73,13 +87,13 @@
   // One full-length score plays continuously from beginning to end.
   try{score=new Audio("/assets/audio/reveal-soundtrack.mp3");score.volume=.9;score.preload="auto";const p=score.play();if(p?.catch)p.catch(()=>{});}catch(_){}
   const sequence=[
-   ["awakening","THE ORLONG FIELD STIRS",350],
-   ["surge","ENERGY FLOWS THROUGH THE CRYSTALS",550],
-   ["eel","THE TRIALS OF EDEN AWAKEN",550],
-   ["materialising","A NEW FORM TAKES SHAPE",450],
-   ["flipping","REVEALING YOUR DISCOVERY",650],
-   ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",650],
-   ["revealed",String(card.name).toUpperCase(),900]
+   ["awakening","THE ORLONG FIELD STIRS",1600],
+   ["surge","ENERGY FLOWS THROUGH THE CRYSTALS",1900],
+   ["eel","THE TRIALS OF EDEN AWAKEN",2100],
+   ["materialising","A NEW FORM TAKES SHAPE",1500],
+   ["flipping","REVEALING YOUR DISCOVERY",1350],
+   ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",1800],
+   ["revealed",String(card.name).toUpperCase(),1700]
   ];
   for(const [stage,label,duration] of sequence){if(!overlay.isConnected||overlay.dataset.closing==="true")return;overlay.dataset.stage=stage;caption.textContent=label;await wait(duration);}
   finishNow();
