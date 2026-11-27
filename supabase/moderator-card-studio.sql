@@ -147,7 +147,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare
  v_artwork_url text;
  v_card_number text;
@@ -168,7 +168,7 @@ begin
 
  return jsonb_build_object('card_id',p_card_id,'card_number',v_card_number,'artwork_url',v_artwork_url);
 end;
-$;
+$$;
 
 revoke all on function public.delete_moderator_card(text) from public,anon;
 grant execute on function public.delete_moderator_card(text) to authenticated;
