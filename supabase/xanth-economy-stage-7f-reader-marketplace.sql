@@ -362,12 +362,13 @@ begin
  end if; return n=1;
 end $$;
 
+drop function if exists public.get_my_reader_market_offers();
 create or replace function public.get_my_reader_market_offers()
-returns table(offer_id uuid,listing_id uuid,trade_role text,other_reader_id uuid,other_reader_name text,status text,current_revision integer,proposer_pays_cents bigint,recipient_pays_cents bigint,items jsonb,history jsonb,created_at timestamptz)
+returns table(offer_id uuid,listing_id uuid,trade_role text,other_reader_id uuid,other_reader_name text,status text,current_revision integer,proposer_pays_cents bigint,recipient_pays_cents bigint,escrow_cents bigint,escrow_user_id uuid,items jsonb,history jsonb,created_at timestamptz)
 language sql stable security definer set search_path=public,pg_temp as $$
  select o.offer_id,o.listing_id,case when o.proposer_user_id=auth.uid() then 'proposer' else 'recipient' end,
         case when o.proposer_user_id=auth.uid() then o.recipient_user_id else o.proposer_user_id end,
-        p.display_name,o.status,o.current_revision,o.proposer_pays_cents,o.recipient_pays_cents,
+        p.display_name,o.status,o.current_revision,o.proposer_pays_cents,o.recipient_pays_cents,o.escrow_cents,o.escrow_user_id,
         coalesce((select jsonb_agg(jsonb_build_object('owner_side',i.owner_side,'copy_id',i.copy_id,'card_id',i.card_id,'card_number',c.card_number,'card_name',c.name,'rarity',c.rarity,'artwork_url',c.artwork_url)) from public.reader_card_market_offer_items i join public.card_catalogue c on c.card_id=i.card_id where i.offer_id=o.offer_id),'[]'::jsonb),
         coalesce((select jsonb_agg(jsonb_build_object('revision',h.revision,'sender_user_id',h.sender_user_id,'proposer_pays_cents',h.proposer_pays_cents,'recipient_pays_cents',h.recipient_pays_cents,'proposer_cards',h.proposer_cards,'recipient_cards',h.recipient_cards,'message',h.message,'created_at',h.created_at) order by h.revision) from public.reader_card_market_offer_history h where h.offer_id=o.offer_id),'[]'::jsonb),
         o.created_at
