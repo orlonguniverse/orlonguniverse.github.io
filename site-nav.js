@@ -30,7 +30,7 @@ window.toggleSiteTheme=function(){
 };
 document.addEventListener("DOMContentLoaded",()=>{
  const bookOnlyEnabled=localStorage.getItem("orlongBookOnlyMode")==="true"||localStorage.getItem("edenBookOnlyMode")==="true";
- const isReadingRoom=location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html");
+ const isReadingRoom=location.pathname==="/books/trials-of-eden/"||location.pathname==="/books/trials-of-eden/index.html";
  if(bookOnlyEnabled&&!isReadingRoom){window.location.replace("/books/trials-of-eden/");return;}
  const saved=localStorage.getItem("orlongSiteTheme");
  if(saved==="light"||saved==="dark"){
