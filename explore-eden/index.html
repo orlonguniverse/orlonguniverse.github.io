@@ -6,8 +6,8 @@
 <meta name="description" content="Discover, collect and trade Orlong Universe collectible cards.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../site-nav.css?v=stage-6d">
-<link rel="stylesheet" href="explore-eden.css?v=stage-7d2">
+<link rel="stylesheet" href="../site-nav.css?v=stage-7d3">
+<link rel="stylesheet" href="explore-eden.css?v=stage-7d3">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -52,7 +52,7 @@
 <p class="shop-note">Three featured cards, selected automatically from the released catalogue. Prices are shown in Xanths.</p>
 <div class="eden-card-grid" id="dailyShopGrid"><div class="eden-empty">The daily exchange is loading…</div></div>
 <p id="shopPurchaseStatus" class="shop-purchase-status" role="status" aria-live="polite"></p>
-<div class="xanth-history"><div class="shop-heading"><div><p class="eyebrow">YOUR ACCOUNT ACTIVITY</p><h3>XANTH TRANSACTION HISTORY</h3></div><p class="section-stat">LATEST 30</p></div><div id="xanthTransactions" class="xanth-transactions"><div class="eden-empty">Your transactions will appear here.</div></div></div>
+<details class="xanth-history"><summary class="xanth-history-summary"><span class="xanth-history-heading"><span class="eyebrow">YOUR ACCOUNT ACTIVITY</span><strong>XANTH TRANSACTION HISTORY</strong></span><span class="xanth-history-summary-side"><span class="section-stat">LATEST 30</span><span class="xanth-history-chevron" aria-hidden="true">⌄</span></span></summary><div id="xanthTransactions" class="xanth-transactions"><div class="eden-empty">Your transactions will appear here.</div></div></details>
 <section class="mystery-vault" aria-labelledby="mysteryVaultTitle">
  <div class="vault-heading"><div><p class="eyebrow">SEALED DISCOVERIES · THE XANTHEON VAULT</p><h3 id="mysteryVaultTitle">MYSTERY PACKS</h3><p>Choose a sealed collection. Tear it open. Discover the cards waiting inside.</p></div><span class="vault-sigil" aria-hidden="true">✦</span></div>
  <div class="rarity-odds-guide" aria-label="Standard card rarity odds">
@@ -83,6 +83,6 @@
 </main>
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../site-nav.js?v=stage-7d2"></script>
-<script src="explore-eden.js?v=stage-7d2"></script>
+<script src="../site-nav.js?v=stage-7d3"></script>
+<script src="explore-eden.js?v=stage-7d3"></script>
 </body></html>
