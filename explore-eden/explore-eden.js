@@ -22,7 +22,7 @@ function cardElement(card,isOwned,showUnownedArtwork=true){
  const name=text("h3","eden-card-name",isOwned?(card.name||card.card_name):"Undiscovered Card");
  const description=text("p","eden-card-description",card.spoilerSafeDescription||card.spoiler_safe_description||"");
  const footer=document.createElement("div");footer.className="eden-card-footer";
- footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-universe","ORLONG"));
+ footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-chapter",card.chapterNumber||card.chapter_number?"CH. "+(card.chapterNumber||card.chapter_number):"CH. —"),text("span","eden-card-book","THE TRIALS OF EDEN"));
  details.append(name,description,footer);frame.append(top,details);
  const cardId=card.id||card.card_id||"";
  if(card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition","SPECIAL EDITION"));
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   const raw=await response.json();
   const {data:databaseCards,error:catalogueError}=await client.rpc("get_public_card_catalogue");
   if(catalogueError)throw catalogueError;
-  catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
+  catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
   $("catalogueSummary").textContent=catalogue.length+" RELEASED CARDS";
   await initialise();
   renderCatalogue();renderMarketplace();
