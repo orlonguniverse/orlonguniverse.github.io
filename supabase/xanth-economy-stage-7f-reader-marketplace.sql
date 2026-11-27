@@ -197,14 +197,16 @@ begin
  insert into public.reader_card_market_offers(listing_id,proposer_user_id,recipient_user_id,proposer_pays_cents,recipient_pays_cents)
  values(p_listing_id,uid,p_recipient_id,coalesce(p_proposer_pays_cents,0),coalesce(p_recipient_pays_cents,0)) returning offer_id into oid;
  foreach v_copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
+  perform 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=uid for update;
+  if not found then raise exception 'One of your offered cards is no longer yours'; end if;
   if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A card in a legacy trade cannot be offered here'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A card already listed for sale cannot be added to a separate offer'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
   select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='proposer';
  end loop;
  foreach v_copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
+  perform 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=p_recipient_id for update;
+  if not found then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
   if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A requested card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A requested card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
@@ -249,13 +251,15 @@ begin
  ) then raise exception 'You can only change the cards on your side of the offer'; end if;
  delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
  foreach v_copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies where copy_id=v_copy_id and owner_user_id=o.proposer_user_id) then raise exception 'A proposed card is no longer owned by its reader'; end if;
+  perform 1 from public.reader_card_copies where copy_id=v_copy_id and owner_user_id=o.proposer_user_id for update;
+  if not found then raise exception 'A proposed card is no longer owned by its reader'; end if;
   if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A proposed card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active') then raise exception 'A proposed card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
  end loop;
  foreach v_copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies where copy_id=v_copy_id and owner_user_id=o.recipient_user_id) then raise exception 'A requested card is no longer owned by its reader'; end if;
+  perform 1 from public.reader_card_copies where copy_id=v_copy_id and owner_user_id=o.recipient_user_id for update;
+  if not found then raise exception 'A requested card is no longer owned by its reader'; end if;
   if exists(select 1 from public.card_trade_offers t0 where t0.offered_copy_id=v_copy_id and t0.status='pending') then raise exception 'A requested card is reserved by a legacy trade'; end if;
   if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and l0.listing_id is distinct from o.listing_id) then raise exception 'A requested card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
