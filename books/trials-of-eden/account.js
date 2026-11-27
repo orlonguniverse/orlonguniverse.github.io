@@ -2,6 +2,7 @@
 const ACCOUNT_SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const ACCOUNT_SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const accountClient=window.supabase.createClient(ACCOUNT_SUPABASE_URL,ACCOUNT_SUPABASE_KEY);
+window.accountClient=accountClient;
 let accountMode="signin";
 let lastDashboardUserId=undefined;
 const accountById=id=>document.getElementById(id);
