@@ -37,45 +37,32 @@ document.addEventListener("DOMContentLoaded",()=>{
  const themeButton=document.getElementById("themeButton")||document.getElementById("contentsThemeButton");
  if(themeButton)themeButton.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";
 
- // Compact shared navigation: related destinations are grouped into accessible dropdowns.
+ // One unified MAIN MENU for navigation, reader account, statistics and soundtrack.
  const navLinks=document.querySelector(".topbar-right, .top-actions");
  if(navLinks&&!navLinks.dataset.orlongGrouped){
   const accountButton=navLinks.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button");
-  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/account\.html#dashboard|account\.html\?/.test(a.getAttribute("href")||"")||/MY STATISTICS/i.test(a.textContent));
+  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/account\\.html#dashboard|account\\.html\\?/.test(a.getAttribute("href")||"")||/MY STATISTICS/i.test(a.textContent));
   navLinks.replaceChildren();
-  const makeDropdown=(label,items)=>{
-   const details=document.createElement("details");details.className="nav-dropdown";
-   const summary=document.createElement("summary");summary.textContent=label;summary.setAttribute("aria-haspopup","true");details.append(summary);
-   summary.addEventListener("click",()=>{navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");});});
-   const menu=document.createElement("div");menu.className="nav-dropdown-menu";
-   items.forEach(item=>{const link=document.createElement("a");link.href=item.href;link.textContent=item.label;if(item.current)link.setAttribute("aria-current","page");menu.append(link);});
-   details.append(menu);return details;
-  };
-  navLinks.append(
-   makeDropdown("READ",[
-    {label:"BOOK CONTENTS",href:"/books/trials-of-eden/contents.html",current:location.pathname.endsWith("/contents.html")},
-    {label:"READING ROOM",href:"/books/trials-of-eden/index.html#chapter",current:location.pathname.endsWith("/books/trials-of-eden/")}
-   ]),
-   makeDropdown("COMMUNITY",[
-    {label:"EVENTS",href:"/events.html",current:location.pathname.endsWith("/events.html")},
-    {label:"EARLY ACCESS",href:"/early-access/",current:location.pathname.startsWith("/early-access")},
-    {label:"FOUNDING READERS",href:"/founding-readers/",current:location.pathname.startsWith("/founding-readers")}
-   ]),
-   (()=>{const link=document.createElement("a");link.href="/explore-eden/";link.textContent="EXPLORE EDEN";link.className="nav-direct-link";if(location.pathname.startsWith("/explore-eden"))link.setAttribute("aria-current","page");return link;})()
-  );
-  if(accountButton)navLinks.append(accountButton);
-  if(statsLink)navLinks.append(statsLink);
-  const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Visit Orlong on Instagram");instagram.title="Orlong on Instagram";
-  instagram.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="18" cy="6" r="0.8" fill="currentColor" stroke="none"></circle></svg>';
-  navLinks.append(instagram);
-  navLinks.dataset.orlongGrouped="true";
-  // Only one navigation dropdown may remain open at a time.
-  document.addEventListener("click",event=>{
-   if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(menu=>menu.removeAttribute("open"));
-  });
-  document.addEventListener("keydown",event=>{
-   if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(menu=>menu.removeAttribute("open"));
-  });
+  const details=document.createElement("details");details.className="nav-dropdown nav-main-menu";
+  const summary=document.createElement("summary");summary.textContent="MAIN MENU";summary.setAttribute("aria-haspopup","true");details.append(summary);
+  const menu=document.createElement("div");menu.className="nav-dropdown-menu nav-main-menu-panel";
+  const addLink=(label,href,current=false)=>{const a=document.createElement("a");a.href=href;a.textContent=label;if(current)a.setAttribute("aria-current","page");menu.append(a);};
+  addLink("HOME","/");
+  addLink("BOOK CONTENTS","/books/trials-of-eden/contents.html",location.pathname.endsWith("/contents.html"));
+  addLink("READING ROOM","/books/trials-of-eden/",location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html"));
+  addLink("EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden"));
+  addLink("EVENTS","/events.html",location.pathname.endsWith("/events.html"));
+  addLink("EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access"));
+  addLink("FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers"));
+  if(accountButton){accountButton.classList.add("nav-menu-account");menu.append(accountButton);}
+  if(statsLink){statsLink.textContent="MY STATISTICS";menu.append(statsLink);}
+  const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";menu.append(musicSlot);
+  const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.textContent="INSTAGRAM";menu.append(instagram);
+  details.append(menu);
+  summary.addEventListener("click",()=>{navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");});});
+  navLinks.append(details);navLinks.dataset.orlongGrouped="true";
+  document.addEventListener("click",event=>{if(!navLinks.contains(event.target))details.removeAttribute("open");});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")details.removeAttribute("open");});
  }
  // Keep the account button's navigation behaviour independent of authentication.
  const accountButton=document.getElementById("openAccountButton");
