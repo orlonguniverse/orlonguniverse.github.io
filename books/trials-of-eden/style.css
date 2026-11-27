@@ -874,3 +874,10 @@ body.book-only-mode .mobile-focus-toggle{display:none!important}
  body.book-only-mode .top-actions .nav-account-button,
  body.book-only-mode .top-actions #openAccountButton{max-width:42vw;overflow:hidden;text-overflow:ellipsis}
 }
+
+/* Reading-copy deterrents. These discourage ordinary selection/copy actions;
+   they are not DRM and cannot prevent screenshots or browser inspection. */
+#chapterText, #chapterText * {
+  -webkit-user-select: none;
+  user-select: none;
+}
