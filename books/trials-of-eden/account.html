@@ -108,6 +108,34 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 .trade-reader-avatar-fallback{color:var(--blue-light);font-size:13px;font-weight:600}
 .trade-offer-heading{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .trade-offer-heading strong{font-family:Cinzel,serif;font-size:12px;font-weight:500;line-height:1.5}
+
+/* Stage 3 — clearer personal statistics dashboard */
+.dashboard-overview{padding:28px}
+.dashboard-jump-links{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.dashboard-jump-links a{padding:9px 12px;border:1px solid var(--border);background:var(--surface2);color:var(--blue-light);font-size:10px;letter-spacing:.5px;transition:background .18s,border-color .18s}
+.dashboard-jump-links a:hover,.dashboard-jump-links a:focus-visible{background:#1b3555;border-color:var(--blue);outline:none}
+.stats-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.stats-category{min-width:0;padding:17px;background:linear-gradient(155deg,var(--surface2),var(--surface));border:1px solid var(--border)}
+.stats-category h3{margin:0;color:var(--blue-light);font-family:Cinzel,serif;font-size:12px;font-weight:500;letter-spacing:1.5px}
+.stats-category-description{min-height:34px;margin:7px 0 14px;color:var(--muted);font-size:10px;line-height:1.6}
+.stats-category .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stats-category .stat{padding:12px;background:rgba(5,12,22,.35)}
+.stats-category .stat strong{font-size:22px}
+.stats-category .stat span{font-size:8px;letter-spacing:.7px}
+.admin-form-disclosure{margin-top:20px;border:1px solid var(--border);background:var(--surface2)}
+.admin-form-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;color:var(--blue-light);font-size:10px;font-weight:600;letter-spacing:1.2px;cursor:pointer;list-style:none}
+.admin-form-disclosure>summary::-webkit-details-marker{display:none}
+.admin-form-disclosure>summary:after{content:"+";font-size:17px}
+.admin-form-disclosure[open]>summary:after{content:"−"}
+.admin-form-disclosure[open]>summary{border-bottom:1px solid var(--border)}
+.admin-form-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;padding:6px 16px 18px}
+.admin-form-fields label,.admin-form-fields .muted,.admin-form-fields button{grid-column:1/-1}
+.admin-form-fields input{min-width:0}
+.admin-form-fields .primary{width:auto;justify-self:start;padding:13px 20px}
+.created-access-code-row{padding:12px;background:var(--surface2);border:1px solid var(--border)}
+#copyCreatedAccessCode{margin-top:0}
+@media(max-width:850px){.stats-category-grid{grid-template-columns:1fr 1fr}.stats-category:last-child{grid-column:1/-1}}
+@media(max-width:560px){.dashboard-overview{padding:19px}.stats-category-grid{grid-template-columns:1fr}.stats-category:last-child{grid-column:auto}.stats-category-description{min-height:0}.admin-form-fields{grid-template-columns:1fr;padding:4px 12px 14px}.dashboard-jump-links a{flex:1 1 calc(50% - 8px);text-align:center}}
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -137,20 +165,20 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel" id="accessCodeAdminPanel" aria-labelledby="accessCodeAdminHeading" hidden>
 <h2 id="accessCodeAdminHeading">ACCESS CODE ADMINISTRATION</h2>
 <p class="muted">Create reusable promotional codes. Access permissions are permanent for each reader who successfully redeems a code, even after that code expires.</p>
-<label for="accessCampaignLabel">CAMPAIGN NAME</label>
-<input id="accessCampaignLabel" type="text" maxlength="100" placeholder="Founding Readers — 2026" value="Founding Readers — 2026">
+<details class="admin-form-disclosure"><summary>CREATE A NEW ACCESS CODE</summary><div class="admin-form-fields">\n<label for="accessCampaignLabel">CAMPAIGN NAME</label>
+<input id="accessCampaignLabel" type="text" maxlength="100" placeholder="e.g. Founding Readers — 2026">
 <label for="accessCampaignCustomCode">CUSTOM ACCESS CODE (OPTIONAL)</label>
-<input id="accessCampaignCustomCode" type="text" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="earlyaccess2026">
+<input id="accessCampaignCustomCode" type="text" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. EDEN2026">
 <p class="muted">Use 6–40 letters or numbers. Leave blank to generate a random code.</p>
 <label for="accessCampaignKeys">ACCESS PERMISSIONS (COMMA-SEPARATED)</label>
-<input id="accessCampaignKeys" type="text" value="early_access" placeholder="early_access, event:launch">
-<label for="accessCampaignExpiry">CODE EXPIRY (YOUR LOCAL TIME)</label>
-<input id="accessCampaignExpiry" type="datetime-local" value="2026-12-31T23:59">
+<input id="accessCampaignKeys" type="text" placeholder="e.g. early_access, event:launch">
+<label for="accessCampaignExpiry">CODE EXPIRY (OPTIONAL · YOUR LOCAL TIME)</label>
+<input id="accessCampaignExpiry" type="datetime-local" >
 <label for="accessCampaignLimit">MAXIMUM REDEMPTIONS (OPTIONAL)</label>
 <input id="accessCampaignLimit" type="number" min="1" step="1" placeholder="Leave blank for unlimited">
 <button class="primary" id="createAccessCodeButton" type="button">CREATE ACCESS CODE</button>
 <p id="createAccessCodeMessage" class="muted" role="status" aria-live="polite">Only moderator accounts can create access codes.</p>
-<div class="created-access-code-row"><code id="createdAccessCode" hidden></code><button id="copyCreatedAccessCode" class="secondary" type="button">COPY CODE</button></div>
+</div></details>\n<div class="created-access-code-row"><code id="createdAccessCode" hidden></code><button id="copyCreatedAccessCode" class="secondary" type="button">COPY CODE</button></div>
 </section>
 <section class="panel" aria-labelledby="accessCodeHeading">
 <h2 id="accessCodeHeading">SPECIAL ACCESS</h2>
@@ -179,7 +207,14 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
   <p id="avatarCropMessage" class="muted" role="status" aria-live="polite"></p>
  </div>
 </dialog>
-<div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
+<section class="panel dashboard-overview" id="overviewPanel" aria-labelledby="overviewHeading">
+<div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div>
+<p class="muted">Your personal activity at a glance. These figures reflect activity saved securely to your account.</p>
+<div class="dashboard-jump-links" aria-label="Statistics sections">
+<a href="#readingProgressPanel">Reading progress</a><a href="#communityStatsPanel">Community activity</a><a href="#cardCollectionPanel">Card collection</a><a href="#achievementsPanel">Achievements</a>
+</div>
+<div class="stats-category-grid" id="personalStats"></div>
+</section>
 <section class="panel" id="cardCollectionPanel" aria-labelledby="cardCollectionHeading">
 <h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
 <p class="muted">Every card you've earned is kept here. Duplicate copies are counted separately and remain yours.</p>
@@ -210,13 +245,13 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <div class="trade-subsection"><h3>YOUR TRADE OFFERS</h3><div id="myTradeOffers" class="trade-list"><div class="empty">Loading trade offers...</div></div></div>
 </section>
 <section class="panel" id="achievementsPanel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
-<section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
-<section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
-<section class="panel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
-<section class="panel"><h2>YOUR REACTION BREAKDOWN</h2><p class="muted">A summary of the reactions you've used across chapters.</p><div id="reactionBreakdown"></div></section>
-<section class="panel"><h2>YOUR COMMENTS</h2><p class="muted">Your submissions, including whether each one is awaiting review, approved or hidden.</p><div class="activity-list" id="commentList"></div></section>
-<section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
+<section class="panel" id="readingProgressPanel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
+<section class="panel" id="challengeStatsPanel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
+<section class="panel" id="communityStatsPanel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
+<section class="panel" id="reactionBreakdownPanel"><h2>YOUR REACTION BREAKDOWN</h2><p class="muted">A summary of the reactions you've used across chapters.</p><div id="reactionBreakdown"></div></section>
+<section class="panel" id="commentsPanel"><h2>YOUR COMMENTS</h2><p class="muted">Your submissions, including whether each one is awaiting review, approved or hidden.</p><div class="activity-list" id="commentList"></div></section>
+<section class="panel" id="preferencesPanel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js?v=stage-1b"></script><script src="chapters.js"></script><script src="account.js?v=stage-2-avatar-crop"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js?v=stage-1b"></script><script src="chapters.js"></script><script src="account.js?v=stage-3a"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
 </body></html>
