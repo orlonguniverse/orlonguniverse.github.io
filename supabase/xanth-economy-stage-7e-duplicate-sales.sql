@@ -24,7 +24,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare
   reader_id uuid := auth.uid();
   settings_row public.reader_card_sale_settings%rowtype;
