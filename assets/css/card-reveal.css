@@ -276,3 +276,14 @@
 .orlong-batch-controls button[hidden]{display:none}
 @media(max-width:560px){.orlong-batch-reveal-panel{padding:14px}.orlong-batch-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.orlong-batch-card{padding:7px}.orlong-batch-art{max-height:180px}.orlong-batch-card h3{font-size:11px}.orlong-batch-card p{font-size:7px}.orlong-batch-controls{flex-wrap:wrap}.orlong-batch-controls button{flex:1;min-width:120px}}
 @media(prefers-reduced-motion:reduce){.orlong-batch-reveal-overlay,.orlong-batch-card{transition:none!important;transform:none!important}}
+
+
+/* Keep small batch reveals centred; preserve the existing five-card layout. */
+.orlong-batch-card-grid.batch-count-2{grid-template-columns:repeat(2,minmax(0,210px));justify-content:center;max-width:460px;margin-inline:auto}
+.orlong-batch-card-grid.batch-count-3{grid-template-columns:repeat(3,minmax(0,210px));justify-content:center;max-width:690px;margin-inline:auto}
+.orlong-batch-art img{display:block;width:100%;height:100%;margin:auto;object-fit:contain;object-position:center}
+@media(max-width:560px){
+ .orlong-batch-card-grid.batch-count-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:460px}
+ .orlong-batch-card-grid.batch-count-3{grid-template-columns:repeat(2,minmax(0,1fr));max-width:460px}
+ .orlong-batch-card-grid.batch-count-3 .orlong-batch-card:last-child{grid-column:1/-1;justify-self:center;width:calc(50% - 4px)}
+}
