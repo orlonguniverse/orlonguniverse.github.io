@@ -18,6 +18,10 @@ let accountMode = "signin";
 let lastHandledEngagementUserId = undefined;
 let lastEngagementChapterLoaded = null;
 let chapterEngagementTimer = null;
+let discussionChapterOverride = null;
+let discussionOffset = 0;
+const DISCUSSION_PAGE_SIZE = 20;
+let discussionRows = [];
 
 const CONTENT_INTERESTS = [
   { id:"characters", title:"Characters" },
@@ -279,108 +283,55 @@ async function loadPublicStats() {
   }, "No content preferences have been submitted yet.");
 }
 
-function createCommentElement(comment, profileName) {
-  const article = document.createElement("article");
-  article.className = "comment-item";
-  const meta = document.createElement("div");
-  meta.className = "comment-meta";
-  const author = document.createElement("div");
-  author.className = "comment-author";
-  if (profileName && profileName.avatar_url) {
-    const avatar = document.createElement("img");
-    avatar.className = "comment-avatar";
-    avatar.src = profileName.avatar_url;
-    avatar.alt = "";
-    avatar.loading = "lazy";
-    author.appendChild(avatar);
-  } else {
-    const fallback = document.createElement("span");
-    fallback.className = "comment-avatar comment-avatar-fallback";
-    fallback.textContent = (profileName && profileName.display_name ? profileName.display_name : "R").trim().charAt(0).toUpperCase();
-    author.appendChild(fallback);
-  }
-  const name = document.createElement("strong");
-  name.textContent = profileName && profileName.display_name ? profileName.display_name : "Reader";
-  const date = new Date(comment.created_at);
-  const timestamp = document.createElement("span");
-  timestamp.textContent = " · " + date.toLocaleDateString();
-  author.append(name,timestamp);
-  meta.appendChild(author);
-  const body = document.createElement("p");
-  body.className = "comment-body";
-  if (comment.contains_spoiler) {
-    const reveal = document.createElement("button");
-    reveal.type = "button";
-    reveal.className = "comment-spoiler";
-    reveal.textContent = "SPOILER — REVEAL COMMENT";
-    reveal.setAttribute("aria-expanded","false");
-    reveal.addEventListener("click", () => {
-      body.textContent = comment.body;
-      reveal.remove();
-    });
-    article.append(meta,reveal,body);
-  } else {
-    body.textContent = comment.body;
-    article.append(meta,body);
-  }
-  const tools = document.createElement("div");
-  tools.className = "comment-tools";
-  const reply = document.createElement("button");
-  reply.type = "button";
-  reply.textContent = "REPLY";
-  reply.disabled = !engagementUser;
-  reply.addEventListener("click", () => {
-    replyToComment = comment.id;
-    setMessage("commentMessage","Your reply will be submitted beneath this comment.");
-    byId("commentBody").focus();
-  });
-  const report = document.createElement("button");
-  report.type = "button";
-  report.className = "secondary";
-  report.textContent = "REPORT";
-  report.disabled = !engagementUser || comment.user_id === engagementUser.id;
-  report.addEventListener("click", () => reportComment(comment.id));
-  tools.append(reply,report);
-  article.appendChild(tools);
-  return article;
+function discussionChapterId(){return discussionChapterOverride||engagementChapterId();}
+function discussionChapterOptions(){
+ const select=byId("discussionChapterSelect");if(!select)return;
+ const chapters=(window.EDEN_CHAPTERS||[]).filter(ch=>ch.available);
+ select.replaceChildren();
+ chapters.forEach(ch=>{const o=document.createElement("option");o.value=ch.id;o.textContent=ch.number+" — "+ch.title;select.appendChild(o);});
+ select.value=discussionChapterId();if(!select.value&&chapters[0])select.value=chapters[0].id;
 }
-
-async function loadChapterComments() {
-  const container = byId("chapterComments");
-  if (!container) return;
-  const { data, error } = await engagementClient.from("chapter_comments")
-    .select("id,user_id,chapter_id,parent_id,body,contains_spoiler,created_at")
-    .eq("chapter_id",engagementChapterId()).eq("moderation_status","approved")
-    .order("created_at",{ascending:true});
-  container.replaceChildren();
-  if (error) {
-    const note = document.createElement("p");
-    note.className = "engagement-muted";
-    note.textContent = "Discussion is not available yet. The database setup may still be in progress.";
-    container.appendChild(note);
-    return;
-  }
-  if (!data || !data.length) {
-    const note = document.createElement("p");
-    note.className = "engagement-muted";
-    note.textContent = "No approved comments yet. You could be the first to start the conversation.";
-    container.appendChild(note);
-    return;
-  }
-  const userIds=[...new Set(data.map(comment=>comment.user_id).filter(Boolean))];
-  const profileMap=new Map();
-  if(userIds.length){
-    const {data:profiles}=await engagementClient.from("reader_profiles").select("user_id,display_name,avatar_url").in("user_id",userIds);
-    (profiles||[]).forEach(profile=>profileMap.set(profile.user_id,profile));
-  }
-  data.filter(comment => !comment.parent_id).forEach(comment => {
-    container.appendChild(createCommentElement(comment,profileMap.get(comment.user_id)));
-    data.filter(reply => reply.parent_id === comment.id).forEach(reply => {
-      const replyElement = createCommentElement(reply,profileMap.get(reply.user_id));
-      replyElement.style.marginLeft = "22px";
-      container.appendChild(replyElement);
-    });
-  });
+function renderDiscussionRows(){
+ const box=byId("chapterComments");if(!box)return;box.replaceChildren();
+ const q=(byId("discussionSearch")?.value||"").trim().toLowerCase();
+ const cat=byId("discussionCategoryFilter")?.value||"all",sort=byId("discussionSort")?.value||"newest";
+ let rows=discussionRows.filter(r=>(!q||r.body.toLowerCase().includes(q)||(r.profile?.display_name||"").toLowerCase().includes(q))&&(cat==="all"||r.category===cat));
+ const counts=new Map();rows.forEach(r=>{if(r.parent_id)counts.set(r.parent_id,(counts.get(r.parent_id)||0)+1);});
+ rows.sort((a,b)=>sort==="oldest"?new Date(a.created_at)-new Date(b.created_at):sort==="replies"?(counts.get(b.id)||0)-(counts.get(a.id)||0)||new Date(b.created_at)-new Date(a.created_at):new Date(b.created_at)-new Date(a.created_at));
+ if(!rows.length){const p=document.createElement("p");p.className="engagement-muted";p.textContent="No comments match these filters yet.";box.appendChild(p);return;}
+ rows.filter(r=>!r.parent_id).forEach(parent=>{
+  box.appendChild(createCommentElement(parent,parent.profile));
+  rows.filter(r=>r.parent_id===parent.id).forEach(reply=>{const el=createCommentElement(reply,reply.profile);el.classList.add("comment-reply");box.appendChild(el);});
+ });
+ rows.filter(r=>r.parent_id&&!rows.some(p=>p.id===r.parent_id)).forEach(r=>box.appendChild(createCommentElement(r,r.profile)));
+}
+function createCommentElement(comment,profile){
+ const article=document.createElement("article");article.className="comment-item";
+ const meta=document.createElement("div");meta.className="comment-meta";
+ const author=document.createElement("div");author.className="comment-author";
+ const display=profile?.display_name||"Reader";
+ if(profile?.avatar_url){const img=document.createElement("img");img.className="comment-avatar";img.src=profile.avatar_url;img.alt="";img.loading="lazy";img.onerror=()=>{const f=document.createElement("span");f.className="comment-avatar comment-avatar-fallback";f.textContent=display[0].toUpperCase();img.replaceWith(f);};author.appendChild(img);}
+ else{const f=document.createElement("span");f.className="comment-avatar comment-avatar-fallback";f.textContent=display[0].toUpperCase();author.appendChild(f);}
+ const name=document.createElement("strong");name.textContent=display;
+ const date=document.createElement("span");date.textContent=" · "+new Date(comment.created_at).toLocaleDateString();author.append(name,date);meta.appendChild(author);
+ const tag=document.createElement("span");tag.className="comment-category";tag.textContent=({general:"DISCUSSION",question:"QUESTION",theory:"THEORY"})[comment.category||"general"];meta.appendChild(tag);
+ const body=document.createElement("p");body.className="comment-body";
+ if(comment.contains_spoiler){const reveal=document.createElement("button");reveal.type="button";reveal.className="comment-spoiler";reveal.textContent="SPOILER — REVEAL COMMENT";reveal.addEventListener("click",()=>{body.textContent=comment.body;reveal.remove();});article.append(meta,reveal,body);}
+ else{body.textContent=comment.body;article.append(meta,body);}
+ const tools=document.createElement("div");tools.className="comment-tools";
+ const reply=document.createElement("button");reply.type="button";reply.textContent="REPLY";reply.disabled=!engagementUser;reply.addEventListener("click",()=>{replyToComment=comment.id;setMessage("commentMessage","Your reply will be submitted beneath this comment.");byId("commentBody").focus();});
+ const report=document.createElement("button");report.type="button";report.className="secondary";report.textContent="REPORT";report.disabled=!engagementUser||comment.user_id===engagementUser.id;report.addEventListener("click",()=>reportComment(comment.id));
+ tools.append(reply,report);article.appendChild(tools);return article;
+}
+async function loadChapterComments(reset=true){
+ const box=byId("chapterComments");if(!box)return;
+ if(reset){discussionOffset=0;discussionRows=[];box.replaceChildren();}
+ const {data,error}=await engagementClient.from("chapter_comments").select("id,user_id,chapter_id,parent_id,body,category,contains_spoiler,created_at").eq("chapter_id",discussionChapterId()).eq("moderation_status","approved").order("created_at",{ascending:false}).range(discussionOffset,discussionOffset+DISCUSSION_PAGE_SIZE-1);
+ if(error){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Discussion is temporarily unavailable. Please refresh and try again.";box.replaceChildren(p);return;}
+ const rows=data||[],ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))],profiles=new Map();
+ if(ids.length){const {data:ps}=await engagementClient.from("reader_profiles").select("user_id,display_name,avatar_url").in("user_id",ids);(ps||[]).forEach(p=>profiles.set(p.user_id,p));}
+ discussionRows=discussionRows.concat(rows.map(r=>({...r,profile:profiles.get(r.user_id)})));discussionOffset+=rows.length;renderDiscussionRows();
+ const more=byId("loadMoreCommentsButton");if(more)more.hidden=rows.length<DISCUSSION_PAGE_SIZE;
 }
 
 async function submitComment(event) {
@@ -389,8 +340,8 @@ async function submitComment(event) {
   const body = byId("commentBody").value.trim();
   if (!body) return;
   const { error } = await engagementClient.from("chapter_comments").insert({
-    user_id:engagementUser.id, chapter_id:engagementChapterId(),
-    parent_id:replyToComment, body, contains_spoiler:byId("commentSpoiler").checked,
+    user_id:engagementUser.id, chapter_id:discussionChapterId(),
+    parent_id:replyToComment, body, category:byId("commentCategory")?.value||"general", contains_spoiler:byId("commentSpoiler").checked,
     moderation_status:"pending"
   });
   if (error) { setMessage("commentMessage","Your comment could not be submitted. Please try again."); return; }
@@ -410,52 +361,34 @@ async function reportComment(commentId) {
   window.alert(error ? "We couldn't submit that report. It may already have been reported by your account." : "Thank you. Your report has been sent to the moderators.");
 }
 
-async function loadModeratorPanel() {
-  if (!engagementUser) return;
-  const { data: role } = await engagementClient.from("reader_moderators").select("user_id").eq("user_id",engagementUser.id).maybeSingle();
-  const panel = byId("moderatorPanel");
-  if (!panel) return;
-  panel.hidden = !role;
-  if (!role) return;
-  const [pending,stats] = await Promise.all([
-    engagementClient.from("chapter_comments").select("id,chapter_id,user_id,body,contains_spoiler,created_at").eq("moderation_status","pending").order("created_at",{ascending:true}),
-    engagementClient.rpc("get_author_engagement_stats")
-  ]);
-  const target = byId("pendingComments");
-  target.replaceChildren();
-  if (stats.data) {
-    const summary = document.createElement("p");
-    summary.className = "engagement-muted";
-    summary.textContent = "Unique readers with saved completions: " + (stats.data.unique_readers || 0) +
-      " · Chapter completions: " + (stats.data.chapter_completions || 0) +
-      " · Approved comments: " + (stats.data.approved_comments || 0);
-    target.appendChild(summary);
-  }
-  (pending.data || []).forEach(comment => {
-    const item = document.createElement("div");
-    item.className = "moderator-item";
-    const text = document.createElement("p");
-    text.textContent = comment.chapter_id + (comment.contains_spoiler ? " · SPOILER" : "") + "\n" + comment.body;
-    const actions = document.createElement("div");
-    actions.className = "moderator-actions";
-    [["approved","APPROVE"],["hidden","HIDE"]].forEach(([status,label]) => {
-      const button = document.createElement("button");
-      button.type = "button"; button.textContent = label;
-      button.addEventListener("click",async () => {
-        const result = await engagementClient.from("chapter_comments").update({moderation_status:status}).eq("id",comment.id);
-        if (result.error) window.alert("Could not update this comment.");
-        loadModeratorPanel(); loadChapterComments(); loadPublicStats();
-      });
-      actions.appendChild(button);
-    });
-    item.append(text,actions);
-    target.appendChild(item);
-  });
-  if (!pending.data || !pending.data.length) {
-    const empty = document.createElement("p"); empty.className = "engagement-muted"; empty.textContent = "There are no comments awaiting review."; target.appendChild(empty);
-  }
+async function moderateComment(id,status){
+ const note=window.prompt(status==="removed"?"Why are you removing this comment?":"Optional moderation note:")||"";
+ if(status==="removed"&&!note.trim())return;
+ if(!window.confirm(status==="removed"?"Remove this comment from public discussion?":"Change this comment's moderation status?"))return;
+ const {error}=await engagementClient.from("chapter_comments").update({moderation_status:status}).eq("id",id);
+ if(error){window.alert("The moderation action could not be completed.");return;}
+ await loadModeratorPanel();await loadChapterComments(true);await loadPublicStats();
 }
-
+async function loadModeratorPanel(){
+ if(!engagementUser)return;
+ const {data:role}=await engagementClient.from("reader_moderators").select("user_id").eq("user_id",engagementUser.id).maybeSingle();
+ const panel=byId("moderatorPanel");if(!panel)return;panel.hidden=!role;if(!role)return;
+ const target=byId("pendingComments");if(!target)return;target.replaceChildren();
+ const [pending,reports,approved,hidden,stats]=await Promise.all([
+  engagementClient.from("chapter_comments").select("id,chapter_id,body,contains_spoiler,created_at").eq("moderation_status","pending").order("created_at"),
+  engagementClient.from("chapter_comment_reports").select("id,reason,status,created_at,chapter_comments(id,chapter_id,body,moderation_status)").eq("status","pending").order("created_at"),
+  engagementClient.from("chapter_comments").select("id,chapter_id,body").eq("moderation_status","approved").order("created_at",{ascending:false}).limit(100),
+  engagementClient.from("chapter_comments").select("id,chapter_id,body,moderation_status").in("moderation_status",["hidden","removed"]).order("created_at",{ascending:false}).limit(100),
+  engagementClient.rpc("get_author_engagement_stats")
+ ]);
+ if(stats.data){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Pending: "+(stats.data.pending_comments||0)+" · Approved: "+(stats.data.approved_comments||0)+" · Reports: "+((reports.data||[]).length);target.appendChild(p);}
+ const addSection=(title,rows,build)=>{const h=document.createElement("h4");h.textContent=title;target.appendChild(h);if(!rows?.length){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Nothing to review here.";target.appendChild(p);return;}rows.forEach(r=>{const item=document.createElement("div");item.className="moderator-item";build(item,r);target.appendChild(item);});};
+ const button=(box,label,fn)=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.addEventListener("click",fn);box.appendChild(b);};
+ addSection("PENDING APPROVAL",pending.data,(item,r)=>{const p=document.createElement("p");p.textContent=r.chapter_id+" · "+r.body;item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"APPROVE",()=>moderateComment(r.id,"approved"));button(a,"HIDE",()=>moderateComment(r.id,"hidden"));button(a,"REMOVE",()=>moderateComment(r.id,"removed"));item.appendChild(a);});
+ addSection("REPORTED COMMENTS",reports.data,(item,r)=>{const c=Array.isArray(r.chapter_comments)?r.chapter_comments[0]:r.chapter_comments;const p=document.createElement("p");p.textContent=(c?.chapter_id||"Chapter unknown")+" · Report: "+r.reason+" · Comment: "+(c?.body||"Unavailable");item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"DISMISS REPORT",async()=>{await engagementClient.from("chapter_comment_reports").update({status:"dismissed",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);loadModeratorPanel();});if(c?.id){button(a,"HIDE COMMENT",async()=>{await moderateComment(c.id,"hidden");await engagementClient.from("chapter_comment_reports").update({status:"actioned",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);});button(a,"REMOVE COMMENT",async()=>{await moderateComment(c.id,"removed");await engagementClient.from("chapter_comment_reports").update({status:"actioned",reviewed_by:engagementUser.id,reviewed_at:new Date().toISOString()}).eq("id",r.id);});}item.appendChild(a);});
+ addSection("APPROVED COMMENTS — ADMIN CONTROL",approved.data,(item,r)=>{const p=document.createElement("p");p.textContent=r.chapter_id+" · "+r.body;item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"HIDE",()=>moderateComment(r.id,"hidden"));button(a,"REMOVE",()=>moderateComment(r.id,"removed"));item.appendChild(a);});
+ addSection("HIDDEN / REMOVED HISTORY",hidden.data,(item,r)=>{const p=document.createElement("p");p.textContent=r.chapter_id+" · "+r.moderation_status.toUpperCase()+" · "+r.body;item.appendChild(p);const a=document.createElement("div");a.className="moderator-actions";button(a,"RESTORE AS PENDING",()=>moderateComment(r.id,"pending"));button(a,"RESTORE AS APPROVED",()=>moderateComment(r.id,"approved"));item.appendChild(a);});
+}
 async function refreshEngagement() {
   // Chapter-specific data is loaded only after a chapter has actually rendered.
   // This avoids querying the same activity/comments/quiz both before and after chapter loading.
@@ -764,6 +697,12 @@ function initialiseEngagement() {
   setAccountMode("signin");
   byId("completeChapterButton")?.addEventListener("click",markChapterComplete);
   byId("commentForm")?.addEventListener("submit",submitComment);
+  discussionChapterOptions();
+  byId("discussionChapterSelect")?.addEventListener("change",ev=>{discussionChapterOverride=ev.target.value;loadChapterComments(true);});
+  byId("discussionSearch")?.addEventListener("input",renderDiscussionRows);
+  byId("discussionCategoryFilter")?.addEventListener("change",renderDiscussionRows);
+  byId("discussionSort")?.addEventListener("change",renderDiscussionRows);
+  byId("loadMoreCommentsButton")?.addEventListener("click",()=>loadChapterComments(false));
   document.querySelectorAll(".engagement-reactions button").forEach(button => {
     button.addEventListener("click",() => saveReaction(button.dataset.reaction));
   });
