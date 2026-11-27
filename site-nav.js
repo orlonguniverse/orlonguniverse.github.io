@@ -56,13 +56,14 @@ document.addEventListener("DOMContentLoaded",()=>{
    summary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");}));
    return details;
   };
-  const read=dropdown("READ",[
-   ["HOME","/"],
-   ["BOOK CONTENTS","/books/trials-of-eden/contents.html",location.pathname.endsWith("/contents.html")],
-   ["READING ROOM","/books/trials-of-eden/",location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html")],
-   ["EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden")]
+  const startReading=makeLink("START READING","/books/trials-of-eden/",location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html"));
+  startReading.classList.add("nav-start-reading");
+  const read=dropdown("THE BOOK",[
+   ["READING ROOM","/books/trials-of-eden/"],
+   ["CHAPTER CONTENTS","/books/trials-of-eden/contents.html",location.pathname.endsWith("/contents.html")]
   ]);
-  const community=dropdown("COMMUNITY",[
+  const community=dropdown("DISCOVER",[
+   ["EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden")],
    ["EVENTS","/events.html",location.pathname.endsWith("/events.html")],
    ["EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access")],
    ["FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers")]
@@ -77,7 +78,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
-  navLinks.replaceChildren(read,community);
+  navLinks.replaceChildren(startReading,read,community);
   if(accountButton)navLinks.append(accountButton);
   navLinks.append(main,instagram);
   navLinks.dataset.orlongGrouped="true";
