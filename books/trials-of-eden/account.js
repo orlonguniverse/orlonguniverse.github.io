@@ -562,32 +562,29 @@ async function loadMyAccessGrants(){
  const status=accountById("accessCodeMessage");
  if(!list)return;
  list.replaceChildren();
+ if(status)status.textContent="";
  const {data,error}=await accountClient.rpc("get_my_access_grants");
  if(error){
-  const note=document.createElement("p");note.className="muted";note.textContent="Your access permissions are temporarily unavailable. Please check that the Stage 1 database update has been installed.";
+  const note=document.createElement("div");note.className="access-grant-empty";note.textContent="Your access permissions are temporarily unavailable. Please try again shortly.";
   list.appendChild(note);return;
  }
- const grants=data||[];
- if(!grants.length){
-  const note=document.createElement("p");note.className="muted";note.textContent="You haven't unlocked any special access yet. Enter an access code above when you receive one.";
+ const grants=Array.isArray(data)?data:[];
+ const uniqueGrants=[...new Map(grants.filter(grant=>grant?.access_key).map(grant=>[String(grant.access_key).trim().toLowerCase(),grant])).values()];
+ if(!uniqueGrants.length){
+  const note=document.createElement("div");note.className="access-grant-empty";note.textContent="You haven't unlocked any special access yet. Enter an access code above when you receive one.";
   list.appendChild(note);return;
  }
- grants.forEach(grant=>{
-  const item=document.createElement("span");item.className="access-grant-pill";
-  item.textContent=String(grant.access_key||"").replace(/[_:-]+/g," ").toUpperCase();
-  list.appendChild(item);
+ uniqueGrants.forEach(grant=>{
+  const key=String(grant.access_key).trim().toLowerCase();
+  const card=document.createElement("div");card.className="access-grant-card";
+  const title=document.createElement("strong");title.textContent=key.replace(/[_:-]+/g," ").toUpperCase();
+  card.appendChild(title);
+  if(key==="early_access"){
+   const link=document.createElement("a");link.href="../../early-access/";link.textContent="OPEN EARLY ACCESS →";card.appendChild(link);
+  }
+  list.appendChild(card);
  });
- if(grants.some(grant=>grant.access_key==="early_access")){
-  const link=document.createElement("a");
-  link.href="../../early-access/";
-  link.className="access-grant-pill early-access-link";
-  link.textContent="OPEN PRIVATE EARLY ACCESS PAGE →";
-  link.style.display="inline-block";
-  link.style.marginTop="12px";
-  link.style.textDecoration="none";
-  list.appendChild(link);
- }
- if(status && !status.textContent)status.textContent="Your access permissions are saved to your account.";
+ if(status)status.textContent="Your unlocked permissions are saved to your account.";
 }
 async function redeemReaderAccessCode(){
  const input=accountById("accessCodeInput");
