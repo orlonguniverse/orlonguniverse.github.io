@@ -118,3 +118,9 @@ body.book-only-mode .top-actions .nav-book-only-exit:hover{color:#fff;border-col
  body.book-only-mode .top-actions .nav-account-button,
  body.book-only-mode .top-actions #openAccountButton{max-width:42vw;overflow:hidden;text-overflow:ellipsis}
 }
+
+
+/* Stage 8B — place the Book-Only shortcut in the navigation beside Main Menu. */
+.topbar-right .nav-book-only-entry,.top-actions .nav-book-only-entry{min-height:36px;padding:9px 11px;color:#d7e8ff;border:1px solid #398cff66;background:#398cff12;font-size:9px;letter-spacing:1px}
+.topbar-right .nav-book-only-entry:hover,.top-actions .nav-book-only-entry:hover{color:#fff;border-color:#8bbdff;background:#398cff24}
+body.book-only-mode .nav-book-only-entry{display:none!important}
