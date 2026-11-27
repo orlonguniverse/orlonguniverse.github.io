@@ -1,13 +1,11 @@
-.orlong-music-widget{position:fixed;right:18px;bottom:18px;z-index:9000;font-family:Inter,Arial,sans-serif}
-.orlong-music-controls{display:flex;gap:5px;align-items:center;justify-content:flex-end}
-.orlong-music-settings{width:36px;height:36px;border:1px solid #6baeff66;background:#071426ed;color:#d8edff;font-size:17px;cursor:pointer;box-shadow:0 8px 28px #0006}
-.orlong-music-toggle{min-width:112px;padding:12px 15px;border:1px solid #6baeff88;background:#071426ed;color:#d8edff;font:500 9px Inter,sans-serif;letter-spacing:1.5px;cursor:pointer;box-shadow:0 8px 28px #0006;backdrop-filter:blur(12px)}
-.orlong-music-toggle:hover{background:#12345a}
-.orlong-music-panel{position:absolute;right:0;bottom:calc(100% + 9px);width:min(280px,calc(100vw - 36px));padding:17px;background:#071426f5;border:1px solid #6baeff66;color:#e7f3ff;box-shadow:0 12px 35px #0009;backdrop-filter:blur(15px)}
-.orlong-music-panel[hidden]{display:none}
-.orlong-music-panel strong{font:500 12px Cinzel,serif;letter-spacing:1.5px}
-.orlong-music-panel p{font-size:10px;line-height:1.7;color:#a9bfd7}
-.orlong-music-panel label{display:grid;gap:9px;font-size:9px;letter-spacing:1.5px;color:#a9bfd7}
-.orlong-music-panel input{width:100%;accent-color:#69b5ff}
-.orlong-music-close{margin-top:13px;padding:8px 12px;background:transparent;border:1px solid #6baeff66;color:#cfe8ff;font-size:9px;letter-spacing:1.2px;cursor:pointer}
-@media(max-width:600px){.orlong-music-widget{right:10px;bottom:10px}.orlong-music-toggle{min-width:96px;padding:10px 11px}}
+.nav-main-menu-panel{min-width:260px!important;width:290px!important;padding:10px!important;max-height:min(78vh,620px);overflow-y:auto}
+.nav-main-menu-panel>a,.nav-main-menu-panel>.nav-menu-account{width:100%!important;display:flex!important;justify-content:flex-start!important;min-height:36px!important;padding:10px 12px!important;color:#c2d5ec!important;background:transparent!important;border:1px solid transparent!important;text-decoration:none!important;font:500 9px Inter,sans-serif!important;letter-spacing:1.1px!important;cursor:pointer}
+.nav-main-menu-panel>a:hover,.nav-main-menu-panel>.nav-menu-account:hover{background:#398cff18!important;border-color:#398cff55!important;color:#fff!important}
+.nav-menu-music-slot{margin:9px 3px 3px;padding:13px;background:linear-gradient(145deg,#0d2038,#081321);border:1px solid #5a9fe955}
+.nav-menu-section-label{display:block;margin-bottom:9px;color:#91caff;font-size:8px;letter-spacing:2px}
+.nav-menu-music-toggle{width:100%;padding:10px;background:#12365c;border:1px solid #65aaff88;color:#e3f3ff;font:600 9px Inter,sans-serif;letter-spacing:1.2px;cursor:pointer}
+.nav-menu-music-toggle:hover{background:#1b4d7e}
+.nav-menu-volume-label{display:grid;gap:7px;margin-top:11px;color:#a9bfd7;font-size:8px;letter-spacing:1.5px}
+.nav-menu-volume-label input{width:100%;accent-color:#72bdff}
+.nav-menu-music-note{margin:9px 0 0;color:#91a9c4;font-size:9px;line-height:1.6}
+@media(max-width:760px){.nav-main-menu-panel{left:auto!important;right:0!important;max-width:90vw!important}}
