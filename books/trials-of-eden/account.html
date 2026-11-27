@@ -59,6 +59,29 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 .achievement-progress-fill{height:100%;background:linear-gradient(90deg,#236bd2,#65adff)}
 .achievement-progress-label{font-size:9px;color:var(--muted);letter-spacing:.7px}
 @media(max-width:560px){.achievement-grid{grid-template-columns:1fr}}
+
+.trade-visibility-row{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px;background:var(--surface2);border:1px solid var(--border)}
+.trade-visibility-row strong{font-size:11px;letter-spacing:1px;color:var(--blue-light)}
+.trade-visibility-row .muted{margin:7px 0 0}
+.trade-toggle-label{display:flex;align-items:center;gap:9px;flex:0 0 auto;color:var(--text);font-size:9px;letter-spacing:1px;cursor:pointer}
+.trade-toggle-label input{width:18px;height:18px;accent-color:var(--blue)}
+.trade-subsection{margin-top:25px}.trade-subsection h3{font-family:Cinzel,serif;font-weight:400;font-size:12px;letter-spacing:1.5px}
+.trade-list{display:grid;gap:12px}
+.trade-reader,.trade-offer{padding:15px;background:var(--surface2);border:1px solid var(--border)}
+.trade-reader-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.trade-reader-heading strong{font-family:Cinzel,serif;font-size:13px;font-weight:500}
+.trade-reader-count,.trade-meta{color:var(--muted);font-size:9px;letter-spacing:.7px}
+.trade-card-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
+.trade-card-option{padding:10px;border:1px solid var(--border);background:#0b1422}
+.trade-card-option strong{display:block;font-size:11px;margin-bottom:5px}
+.trade-card-option small{display:block;color:var(--muted);font-size:9px}
+.trade-card-option select{margin-top:10px;padding:9px;font-size:10px}
+.trade-card-option button,.trade-action{margin-top:9px;padding:9px 11px;background:#1557a6;border:1px solid #398cff;color:white;font-size:9px;letter-spacing:.8px;cursor:pointer}
+.trade-action.secondary{background:transparent;border-color:var(--border);color:var(--text)}
+.trade-action:disabled{opacity:.5;cursor:wait}
+.trade-offer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.trade-status{color:var(--blue-light);font-size:9px;letter-spacing:1px}
+@media(max-width:560px){.trade-visibility-row{align-items:flex-start;flex-direction:column}.trade-card-options{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -109,6 +132,14 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </div>
 </dialog>
 </section>
+<section class="panel" id="tradingPost" aria-labelledby="tradingPostHeading">
+<h2 id="tradingPostHeading">THE TRADING POST</h2>
+<p class="muted">Choose whether to share your collection, browse readers who have opted in, and make fair card-for-card offers. Your cards remain yours until a trade is accepted.</p>
+<div class="trade-visibility-row"><div><strong>PUBLIC COLLECTION</strong><p class="muted">When enabled, other signed-in readers can view your card collection and make trade offers. Your reading activity and achievements remain private.</p></div><label class="trade-toggle-label"><input type="checkbox" id="publicCollectionToggle"> <span>MAKE MY BINDER PUBLIC</span></label></div>
+<p id="tradeStatus" class="muted" role="status" aria-live="polite">Loading Trading Post...</p>
+<div class="trade-subsection"><h3>READER COLLECTIONS</h3><div id="publicCollectionDirectory" class="trade-list"><div class="empty">Loading public collections...</div></div></div>
+<div class="trade-subsection"><h3>YOUR TRADE OFFERS</h3><div id="myTradeOffers" class="trade-list"><div class="empty">Loading trade offers...</div></div></div>
+</section>
 <section class="panel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
@@ -118,5 +149,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-achievements-stage-5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-trading-stage-6"></script>
 </body></html>
