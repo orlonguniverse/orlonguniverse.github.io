@@ -5,6 +5,8 @@
 -- character card. Rerunning this migration does not issue duplicate rewards.
 
 -- Create the Special Edition set and its ten permanent character identities.
+-- ERA has its own visible numbering series. Large internal category_number
+-- values preserve category uniqueness without consuming ordinary CHR numbers.
 insert into public.card_sets
  (set_id,title,description,universe_id,series_id,book_id,unlock_chapter_id,sort_order,is_active)
 values
@@ -17,16 +19,16 @@ on conflict (set_id) do update set
 insert into public.card_catalogue
  (card_id,category_id,category_number,card_number,name,rarity,set_id,universe_id,series_id,book_id,spoiler_safe_description,artwork_url,sort_order,is_active)
 values
- ('special-maya-garcia','characters',101,'CHR-101','Maya Garcia','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,101,true),
- ('special-leo-lee','characters',102,'CHR-102','Leo Lee','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,102,true),
- ('special-kiera-patel','characters',103,'CHR-103','Kiera Patel','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,103,true),
- ('special-al-jones','characters',104,'CHR-104','Al Jones','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,104,true),
- ('special-marcus-roberts','characters',105,'CHR-105','Marcus Roberts','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,105,true),
- ('special-charlee-neil','characters',106,'CHR-106','Charlee Neil','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,106,true),
- ('special-emily-kim','characters',107,'CHR-107','Emily Kim','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,107,true),
- ('special-alek-petrov','characters',108,'CHR-108','Alek Petrov','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,108,true),
- ('special-ethan-lawson','characters',109,'CHR-109','Ethan Lawson','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,109,true),
- ('special-colin-thornsberg','characters',110,'CHR-110','Colin Thornsberg','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,110,true)
+ ('special-maya-garcia','characters',900001,'ERA-001','Maya Garcia','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,101,true),
+ ('special-leo-lee','characters',900002,'ERA-002','Leo Lee','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,102,true),
+ ('special-kiera-patel','characters',900003,'ERA-003','Kiera Patel','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,103,true),
+ ('special-al-jones','characters',900004,'ERA-004','Al Jones','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,104,true),
+ ('special-marcus-roberts','characters',900005,'ERA-005','Marcus Roberts','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,105,true),
+ ('special-charlee-neil','characters',900006,'ERA-006','Charlee Neil','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,106,true),
+ ('special-emily-kim','characters',900007,'ERA-007','Emily Kim','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,107,true),
+ ('special-alek-petrov','characters',900008,'ERA-008','Alek Petrov','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,108,true),
+ ('special-ethan-lawson','characters',900009,'ERA-009','Ethan Lawson','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,109,true),
+ ('special-colin-thornsberg','characters',900010,'ERA-010','Colin Thornsberg','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,110,true)
 on conflict (card_id) do update set
  category_id=excluded.category_id,category_number=excluded.category_number,
  card_number=excluded.card_number,name=excluded.name,rarity=excluded.rarity,
