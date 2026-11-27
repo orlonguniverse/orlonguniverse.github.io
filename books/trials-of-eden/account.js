@@ -361,6 +361,7 @@ async function loadTradingPost(){
    view.disabled=false;
    if(error){console.error(error);view.textContent="TRY AGAIN";status.textContent="We couldn't open that public binder.";return;}
    cardHolder.replaceChildren();
+   cardsWrap.replaceChildren();
    if(!data?.length){const empty=document.createElement("p");empty.className="empty";empty.textContent="This reader's public binder is currently empty.";cardHolder.appendChild(empty);}
    (data||[]).forEach(card=>{
     const option=document.createElement("div");option.className="trade-card-option";
