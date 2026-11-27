@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const navLinks=document.querySelector(".topbar-right, .top-actions");
  if(navLinks&&!navLinks.dataset.orlongGrouped){
   const accountButton=navLinks.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button");
-  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/account\\.html#dashboard|account\\.html\\?/.test(a.getAttribute("href")||"")||/MY STATISTICS/i.test(a.textContent));
+  const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/account\.html#dashboard|account\.html\?/.test(a.getAttribute("href")||"")||/MY STATISTICS/i.test(a.textContent));
   navLinks.replaceChildren();
   const details=document.createElement("details");details.className="nav-dropdown nav-main-menu";
   const summary=document.createElement("summary");summary.textContent="MAIN MENU";summary.setAttribute("aria-haspopup","true");details.append(summary);
