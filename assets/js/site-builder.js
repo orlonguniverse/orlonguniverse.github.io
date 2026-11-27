@@ -1,0 +1,117 @@
+(()=>{"use strict";
+const $=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
+const safeUrl=value=>{try{const u=new URL(value,location.origin);return ["http:","https:"].includes(u.protocol)?u.href:null}catch(_){return null}};
+const style=()=>{if(document.getElementById("orlongBuilderStyles"))return;const s=$("style");s.id="orlongBuilderStyles";s.textContent=`
+.orlong-custom-section{box-sizing:border-box;margin:34px auto;padding:30px 32px;border:1px solid rgba(120,160,205,.24);border-radius:5px;color:inherit;background:rgba(14,29,47,.72);font-family:Inter,Arial,sans-serif;line-height:1.75}
+.orlong-custom-section.width-narrow{max-width:760px}.orlong-custom-section.width-standard{max-width:1040px}.orlong-custom-section.width-wide{max-width:1280px}.orlong-custom-section.width-full{max-width:none;width:100%;border-radius:0}
+.orlong-custom-section.theme-default{background:transparent}.orlong-custom-section.theme-panel{background:rgba(14,29,47,.78)}.orlong-custom-section.theme-blue{background:linear-gradient(135deg,#102e4e,#0a1728);border-color:#315b85}.orlong-custom-section.theme-light{background:#edf2f8;color:#17283b;border-color:#cbd7e5}
+.orlong-custom-section.align-center{text-align:center}.orlong-custom-section h2{font-family:Cinzel,Georgia,serif;font-size:clamp(20px,3vw,30px);letter-spacing:1px;margin:0 0 16px}.orlong-custom-section h3{font-family:Cinzel,Georgia,serif;font-size:19px;margin:22px 0 9px}.orlong-custom-section p{font-size:14px;line-height:1.9;white-space:pre-wrap}.orlong-builder-callout{padding:18px 20px;border-left:3px solid #5ba7ec;background:rgba(80,145,205,.12);margin:18px 0}.theme-light .orlong-builder-callout{background:#dce8f5}.orlong-builder-image{display:block;max-width:100%;height:auto;margin:18px auto;border-radius:4px}.orlong-builder-caption{font-size:12px;opacity:.75;text-align:center;margin-top:-10px}.orlong-builder-button{display:inline-block;margin:14px 8px 8px 0;padding:12px 20px;background:#2f77b9;color:#fff!important;text-decoration:none!important;border-radius:3px;font-weight:700;font-size:12px;letter-spacing:.8px}.orlong-builder-divider{border:0;border-top:1px solid currentColor;opacity:.2;margin:26px 0}.orlong-custom-section details{padding:14px 0;border-bottom:1px solid rgba(130,160,190,.25)}.orlong-custom-section summary{cursor:pointer;font-weight:700}.orlong-custom-section .orlong-builder-block{margin:12px 0}
+.orlong-builder-panel{position:fixed;z-index:2147483646;right:16px;top:70px;width:min(430px,calc(100vw - 32px));max-height:calc(100vh - 90px);overflow:auto;padding:18px;background:#0b1727;color:#f4f7fb;border:1px solid #426181;box-shadow:0 12px 40px #0009;font:13px Inter,Arial,sans-serif}.orlong-builder-panel h2{font:600 17px Cinzel,Georgia,serif;margin:0 0 12px}.orlong-builder-panel p{font-size:11px;line-height:1.6;color:#afc1d4}.orlong-builder-panel button,.orlong-builder-panel select,.orlong-builder-panel input,.orlong-builder-panel textarea{font:12px Inter,Arial,sans-serif}.orlong-builder-panel button{padding:8px 10px;border:1px solid #496886;background:#183553;color:#fff;cursor:pointer}.orlong-builder-panel button.danger{background:#512d36;border-color:#87505b}.orlong-builder-panel .builder-row{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}.orlong-builder-panel .builder-entry{padding:11px;border:1px solid #30465e;margin:8px 0}.orlong-builder-panel .builder-entry strong{display:block;margin-bottom:7px}.orlong-builder-panel label{display:grid;gap:5px;margin:10px 0;color:#c7d8e8;font-size:10px;letter-spacing:.5px}.orlong-builder-panel input,.orlong-builder-panel textarea,.orlong-builder-panel select{width:100%;box-sizing:border-box;padding:9px;background:#101f31;color:#fff;border:1px solid #405a76}.orlong-builder-panel textarea{min-height:90px}.orlong-builder-panel .builder-close{float:right}.orlong-builder-panel .builder-status{color:#a9d4ff;min-height:18px}
+@media(max-width:600px){.orlong-custom-section{padding:22px 17px;margin:22px 10px}.orlong-builder-panel{top:62px;right:8px;width:calc(100vw - 16px)}}
+`;document.head.append(s)};
+function makeBlock(block){
+ const wrap=$("div","orlong-builder-block");
+ if(block.type==="heading"){wrap.append($("h3","",block.text||""));return wrap}
+ if(block.type==="text"){wrap.append($("p","",block.text||""));return wrap}
+ if(block.type==="callout"){wrap.append($("div","orlong-builder-callout",block.text||""));return wrap}
+ if(block.type==="divider"){wrap.append($("hr","orlong-builder-divider"));return wrap}
+ if(block.type==="image"){const url=safeUrl(block.url||"");if(!url)return wrap;const img=$("img","orlong-builder-image");img.src=url;img.alt=block.alt||"";if(block.width)img.style.width=block.width;wrap.append(img);if(block.caption)wrap.append($("div","orlong-builder-caption",block.caption));return wrap}
+ if(block.type==="button"){const url=safeUrl(block.url||"");if(!url)return wrap;const a=$("a","orlong-builder-button",block.text||"LEARN MORE");a.href=url;if(/^https?:/.test(url))a.rel="noopener noreferrer";wrap.append(a);return wrap}
+ if(block.type==="accordion"){(block.items||[]).forEach(item=>{const d=$("details"),s=$("summary","",item.title||"More information"),p=$("p","",item.text||"");d.append(s,p);wrap.append(d)});return wrap}
+ return wrap
+}
+function renderSection(record){
+ const data=record.data||{},section=$("section","orlong-custom-section width-"+(data.width||"standard")+" theme-"+(data.theme||"default")+(data.align==="center"?" align-center":""));
+ section.dataset.orlongSectionId=record.id;
+ if(data.title)section.append($("h2","",data.title));
+ (data.blocks||[]).forEach(b=>section.append(makeBlock(b)));
+ return section
+}
+async function render(db,path){
+ style();const {data,error}=await db.rpc("get_public_orlong_site_sections",{p_page_path:path});
+ if(error){console.warn("Orlong page sections:",error.message);return}
+ const inserted=new Map();
+ (Array.isArray(data)?data:[]).forEach(record=>{
+  const section=renderSection(record);let anchor=null;
+  try{anchor=document.querySelector(record.anchorSelector||"main")}catch(_){}
+  if(!anchor)anchor=document.querySelector("main")||document.body;
+  if(anchor.tagName.toLowerCase()==="main"||anchor===document.body){anchor.append(section);return}
+  const key=record.anchorSelector||"main",previous=inserted.get(key);
+  if(previous&&previous.parentNode){previous.insertAdjacentElement("afterend",section)}else anchor.insertAdjacentElement("afterend",section);
+  inserted.set(key,section);
+ });
+}
+async function start(db,path,bar){
+ const {data,error}=await db.auth.getSession();if(error||!data.session)return;
+ const {data:allowed}=await db.rpc("is_reader_moderator");if(allowed!==true)return;
+ style();
+ const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS");
+ Object.assign(add.style,{padding:"8px 11px",background:"#236caa",color:"#fff",border:"1px solid #6faee4",cursor:"pointer"});
+ Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
+ bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));
+ const panel=$("aside","orlong-builder-panel");panel.hidden=true;document.body.append(panel);
+ const status=$("p","builder-status","Choose a section to manage its content.");
+ const head=$("h2","","PAGE BUILDER");const close=$("button","builder-close","CLOSE");close.type="button";close.addEventListener("click",()=>panel.hidden=true);
+ const body=$("div");panel.append(close,head,$("p","","Build page sections using headings, text, collapsible menus, images, buttons and dividers. Changes are saved to Supabase."),status,body);
+ let sections=[];
+ const message=t=>status.textContent=t;
+ const save=async(section)=>{
+  const {data:result,error:saveError}=await db.rpc("save_moderator_orlong_site_section",{p_section_id:section.id||null,p_page_path:path,p_anchor_selector:section.anchorSelector||"main",p_sort_order:section.sortOrder||0,p_section_data:section.data,p_is_published:section.published!==false});
+  if(saveError)throw saveError;section.id=result.section_id;return section;
+ };
+ const reload=async()=>{const {data,error:loadError}=await db.rpc("get_moderator_orlong_site_sections",{p_page_path:path});if(loadError)throw loadError;sections=Array.isArray(data)?data:[];body.replaceChildren();if(!sections.length){body.append($("p","","No custom sections on this page yet. Select ADD SECTION to create one."));return}
+ sections.forEach((section,index)=>{
+  const entry=$("div","builder-entry"),title=$("strong","",section.data?.title||"Untitled section "+(index+1)),meta=$("p","",(section.data?.blocks||[]).length+" content blocks · "+(section.published?"PUBLISHED":"DRAFT"));
+  const actions=$("div","builder-row");
+  const edit=$("button","","EDIT SECTION");edit.addEventListener("click",()=>editSection(section));
+  const block=$("button","","＋ ADD CONTENT");block.addEventListener("click",()=>addBlock(section));
+  const up=$("button","","↑");up.title="Move section up";up.disabled=index===0;up.addEventListener("click",()=>moveSection(section,-1));
+  const down=$("button","","↓");down.title="Move section down";down.disabled=index===sections.length-1;down.addEventListener("click",()=>moveSection(section,1));
+  const del=$("button","danger","DELETE");del.addEventListener("click",()=>deleteSection(section));
+  actions.append(edit,block,up,down,del);entry.append(title,meta,actions);body.append(entry);
+ });
+ };
+ const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
+ const choose=(label,values,value)=>{const wrap=$("label","",label),field=$("select");values.forEach(v=>{const o=$("option","",v[1]);o.value=v[0];field.append(o)});field.value=value;wrap.append(field);return {wrap,field}};
+ const dialog=async(title,fields,onSave)=>{
+  body.replaceChildren();const h=$("h2","",title);body.append(h);
+  fields.forEach(f=>body.append(f.wrap));
+  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",reload);
+  saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await reload();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
+  actions.append(saveBtn,cancel);body.append(actions);
+ };
+ const editSection=section=>{
+  const title=input("SECTION TITLE",section.data.title||""),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],section.data.theme||"default"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],section.data.width||"standard"),align=choose("ALIGNMENT",[["left","Left"],["center","Centred"]],section.data.align||"left"),anchor=input("INSERT AFTER CSS SELECTOR",section.anchorSelector||"main");
+  dialog("EDIT SECTION",[title.wrap,theme.wrap,width.wrap,align.wrap,anchor.wrap],async()=>{section.data={...section.data,title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:align.field.value};section.anchorSelector=anchor.field.value.trim()||"main";await save(section)});
+ };
+ const addSection=async()=>{
+  const title=input("SECTION TITLE","New section"),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],"panel"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],"standard"),anchor=input("INSERT AFTER CSS SELECTOR","main");
+  dialog("CREATE SECTION",[title.wrap,theme.wrap,width.wrap,anchor.wrap],async()=>{const section={pagePath:path,anchorSelector:anchor.field.value.trim()||"main",sortOrder:sections.length?Math.max(...sections.map(s=>s.sortOrder||0))+1:0,published:true,data:{title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:"left",blocks:[]}};await save(section)});
+ };
+ const addBlock=section=>{
+  const type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text box / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],"text");
+  const fields=[type];const dynamic=()=>{fields.slice(1).forEach(f=>f.wrap.remove());fields.splice(1);const t=type.field.value;
+   if(t==="heading"||t==="text"||t==="callout"){fields.push(input(t==="heading"?"HEADING TEXT":"TEXT CONTENT","",true))}
+   if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS (one per line: title | content)","First item | Enter the content here",true))}
+   if(t==="image"){fields.push(input("IMAGE URL (or upload below)",""));fields.push(input("IMAGE ALT TEXT",""));fields.push(input("IMAGE CAPTION",""));const fileWrap=$("label","","UPLOAD IMAGE");const file=$("input");file.type="file";file.accept="image/png,image/jpeg,image/webp,image/gif";fileWrap.append(file);fields.push({wrap:fileWrap,field:file})}
+   if(t==="button"){fields.push(input("BUTTON TEXT","Learn more"));fields.push(input("DESTINATION URL","/"))}
+  };
+  type.field.addEventListener("change",dynamic);dynamic();
+  dialog("ADD CONTENT BLOCK",fields.map(f=>f.wrap),async()=>{
+   const t=type.field.value,v=fields.slice(1).map(f=>f.field.value);
+   let block={type:t};
+   if(t==="heading"||t==="text"||t==="callout")block.text=v[0];
+   if(t==="accordion"){block.title=v[0];block.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const filePath=path.replace(/[^a-z0-9]/gi,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image URL or upload an image.");block.url=url;block.alt=v[1];block.caption=v[2];}
+   if(t==="button"){block.text=v[0];block.url=v[1];if(!safeUrl(block.url))throw new Error("Enter a valid button destination.");}
+   section.data.blocks=[...(section.data.blocks||[]),block];await save(section);
+  });
+ };
+ const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
+ const deleteSection=async section=>{if(!confirm("Delete this custom section and all its content?"))return;const {error:delError}=await db.rpc("delete_moderator_orlong_site_section",{p_section_id:section.id});if(delError){message(delError.message);return}await reload();message("Section deleted.")};
+ add.addEventListener("click",()=>{panel.hidden=false;addSection()});
+ manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message(e.message))});
+ try{await reload()}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
+}
+window.OrlongSiteBuilder={render,start};
+})();
