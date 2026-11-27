@@ -61,7 +61,7 @@ function renderBookContents() {
         details.append(number, name);
         const status = document.createElement("span");
         status.className = "contents-chapter-status";
-        status.textContent = chapter.available ? "READ CHAPTER" : "COMING SOON";
+        status.textContent = chapter.available ? "READ CHAPTER" : (chapter.accessLocked ? "SPECIAL ACCESS REQUIRED" : "COMING SOON");
         item.append(details, status);
         list.appendChild(item);
       });
