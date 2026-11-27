@@ -75,7 +75,7 @@ as $$
     union all
     select 'category:'||e.category_id,
       e.category_label||' Pack','category',upper(e.category_label),
-      'Two cards selected from the released '..::text,2,3500,'#bd91ed'
+      'Two cards selected from the released '||e.category_label||' collection.',2,3500,'#bd91ed'
     from (select distinct category_id,category_label from eligible where category_id is not null) e
     union all
     select 'rarity:'||r.rarity,
