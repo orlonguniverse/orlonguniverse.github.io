@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Discover announcements, activities and special events across the Orlong Universe.">
+<title>Events | Orlong Universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site-nav.css">
+<style>
+:root{color-scheme:dark;--bg:#090e18;--surface:#101a2a;--surface2:#162338;--text:#e9edf5;--muted:#9ca9bc;--border:#ffffff18;--accent:#398cff;--accent2:#8bbdff}
+body.light{color-scheme:light;--bg:#f2efe8;--surface:#fff;--surface2:#e9e5dc;--text:#242a34;--muted:#687080;--border:#17243a20;--accent:#1557a6;--accent2:#174f91}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh}
+.events-hero{text-align:center;padding:76px 20px 58px;background:radial-gradient(ellipse at 50% 0%,#17447755,transparent 68%);border-bottom:1px solid var(--border)}
+.eyebrow{color:var(--accent2);font-size:10px;letter-spacing:4px;text-transform:uppercase}
+h1,h2,h3{font-family:Cinzel,serif;font-weight:500}.events-hero h1{font-size:clamp(32px,6vw,58px);letter-spacing:5px;margin:17px 0 12px}.events-hero p:last-child{max-width:650px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.9}
+.events-wrap{max-width:1120px;margin:0 auto;padding:38px 24px 90px}
+.event-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.event-filters{display:flex;gap:8px;flex-wrap:wrap}.event-filter{padding:10px 14px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:9px;letter-spacing:1px;cursor:pointer}.event-filter[aria-pressed=true]{border-color:var(--accent);background:var(--surface2);color:var(--text)}
+.event-count{color:var(--muted);font-size:10px;letter-spacing:1px}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px}
+.event-card{display:flex;flex-direction:column;min-width:0;background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;overflow:hidden}
+.event-card:before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.event-topline{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+.event-type,.event-status{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2)}
+.event-status{padding:6px 8px;border:1px solid var(--border);color:var(--muted)}
+.event-card h2{font-size:21px;line-height:1.4;margin:7px 0 10px}
+.event-dates{font-size:10px;color:var(--muted);letter-spacing:.8px;margin-bottom:15px}
+.event-summary{font-size:13px;line-height:1.8;color:var(--text);margin:0 0 12px}
+.event-description{font-size:12px;line-height:1.9;color:var(--muted);white-space:pre-line}
+.event-section{border-top:1px solid var(--border);padding-top:15px;margin-top:18px}
+.event-section h3{font-size:12px;letter-spacing:1.4px;margin:0 0 12px}
+.event-rewards,.event-activities{display:grid;gap:9px}
+.event-reward{padding:11px 12px;background:var(--surface2);font-size:11px;line-height:1.7}
+.event-activity{padding:13px;background:var(--surface2);border:1px solid var(--border)}
+.event-activity strong{display:block;font-size:12px;margin-bottom:6px}
+.event-activity p{margin:0 0 10px;color:var(--muted);font-size:11px;line-height:1.7}
+.event-action{display:inline-flex;align-items:center;justify-content:center;padding:11px 14px;background:transparent;border:1px solid var(--accent);color:var(--accent2);font-size:9px;font-weight:600;letter-spacing:1px;text-decoration:none}
+.event-action:hover{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.event-note{margin-top:auto;padding-top:17px;color:var(--muted);font-size:10px;line-height:1.7}
+.events-empty{padding:42px 24px;text-align:center;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:13px;line-height:1.9}
+.events-empty strong{display:block;color:var(--text);font-family:Cinzel,serif;font-weight:500;font-size:16px;margin-bottom:8px}
+footer{padding:32px 20px;text-align:center;border-top:1px solid var(--border);color:var(--muted);font-size:10px}
+@media(max-width:600px){.events-wrap{padding:26px 15px 60px}.events-hero{padding:55px 18px 42px}.event-card{padding:19px}}
+</style>
+</head>
+<body class="dark">
+<nav class="topbar" aria-label="Main navigation">
+<a href="index.html" class="logo">ORLONG</a>
+<div class="topbar-right">
+<a href="index.html">HOME</a>
+<a href="books/trials-of-eden/contents.html">BOOK CONTENTS</a>
+<a href="books/trials-of-eden/index.html#chapter">READING ROOM</a>
+<a href="events.html" aria-current="page">EVENTS</a>
+<button type="button" id="openAccountButton" class="nav-account-button" data-account-href="books/trials-of-eden/account.html">SIGN IN</button>
+<a href="books/trials-of-eden/account.html#dashboard">MY STATISTICS</a>
+<button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+</div>
+</nav>
+<header class="events-hero">
+<p class="eyebrow">THE ORLONG COMMUNITY</p>
+<h1>EVENTS</h1>
+<p>Discover what's happening across the Orlong Universe — from community announcements to interactive reader activities and special rewards.</p>
+</header>
+<main class="events-wrap">
+<div class="event-toolbar">
+<div class="event-filters" role="group" aria-label="Filter events">
+<button class="event-filter" data-filter="all" aria-pressed="true">ALL EVENTS</button>
+<button class="event-filter" data-filter="live" aria-pressed="false">LIVE NOW</button>
+<button class="event-filter" data-filter="upcoming" aria-pressed="false">UPCOMING</button>
+<button class="event-filter" data-filter="ended" aria-pressed="false">PAST EVENTS</button>
+</div>
+<span class="event-count" id="eventCount" aria-live="polite"></span>
+</div>
+<section class="event-grid" id="eventGrid" aria-live="polite"></section>
+</main>
+<footer><p>ORLONG UNIVERSE · EVENTS AND COMMUNITY ACTIVITIES</p></footer>
+<script src="events-config.js"></script>
+<script src="site-nav.js"></script>
+<script>
+(()=>{
+ const grid=document.getElementById("eventGrid"),count=document.getElementById("eventCount");
+ const events=(window.ORLONG_EVENTS||[]).filter(event=>event&&event.published!==false);
+ const today=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());};
+ const dateValue=value=>{if(!value)return null;const parts=value.split("-").map(Number);return new Date(parts[0],parts[1]-1,parts[2]);};
+ const stateOf=event=>{const now=today(),start=dateValue(event.startDate),end=dateValue(event.endDate);if(start&&now<start)return "upcoming";if(end&&now>end)return "ended";return "live";};
+ const prettyDate=value=>value?dateValue(value).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}):"Date to be announced";
+ const make=(tag,className,text)=>{const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
+ const render=(filter="all")=>{
+  grid.replaceChildren();
+  const visible=events.filter(event=>filter==="all"||stateOf(event)===filter).sort((a,b)=>{const order={live:0,upcoming:1,ended:2};return order[stateOf(a)]-order[stateOf(b)]||(a.startDate||"").localeCompare(b.startDate||"");});
+  count.textContent=visible.length+" EVENT"+(visible.length===1?"":"S");
+  if(!visible.length){const empty=make("div","events-empty");const strong=make("strong","","No events "+(filter==="all"?"just yet":filter==="live"?"are live right now":filter==="upcoming"?"are scheduled":"to show")+".");empty.append(strong,document.createTextNode("Check back soon for announcements, activities and opportunities across Orlong."));grid.appendChild(empty);return;}
+  visible.forEach(event=>{
+   const card=make("article","event-card");
+   const top=make("div","event-topline");
+   top.append(make("span","event-type",event.type==="interactive"?"INTERACTIVE EVENT":"ANNOUNCEMENT"),make("span","event-status",stateOf(event).toUpperCase()));
+   const eyebrow=make("p","eyebrow",event.eyebrow||"ORLONG EVENT");
+   const title=make("h2","",event.title||"Untitled event");
+   const dates=make("div","event-dates",(event.startDate?prettyDate(event.startDate):"")+(event.endDate?" — "+prettyDate(event.endDate):event.startDate?"":"DATES TO BE ANNOUNCED"));
+   const summary=make("p","event-summary",event.summary||"");
+   const description=make("p","event-description",event.description||"");
+   card.append(top,eyebrow,title,dates,summary,description);
+   if(Array.isArray(event.rewards)&&event.rewards.length){const section=make("section","event-section");section.appendChild(make("h3","","POTENTIAL REWARDS"));const list=make("div","event-rewards");event.rewards.forEach(reward=>list.appendChild(make("div","event-reward","✦  "+reward)));section.appendChild(list);card.appendChild(section);}
+   if(event.type==="interactive"&&Array.isArray(event.activities)&&event.activities.length){const section=make("section","event-section");section.appendChild(make("h3","","TAKE PART"));const list=make("div","event-activities");event.activities.forEach(activity=>{const item=make("div","event-activity");item.append(make("strong","",activity.title||"Activity"),make("p","",activity.description||""));if(activity.actionUrl){const link=make("a","event-action",activity.buttonLabel||"TAKE PART");link.href=activity.actionUrl;item.appendChild(link);}list.appendChild(item);});section.appendChild(list);card.appendChild(section);}
+   const note=make("p","event-note",event.type==="interactive"?"Choose an activity above to take part.":"This is an information-only announcement.");card.appendChild(note);
+   grid.appendChild(card);
+  });
+ };
+ document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>{document.querySelectorAll("[data-filter]").forEach(other=>other.setAttribute("aria-pressed",String(other===button)));render(button.dataset.filter);}));
+ render();
+})();
+</script>
+</body>
+</html>
