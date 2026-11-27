@@ -35,6 +35,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   else navLinks.appendChild(earlyLink);
  }
 
+ // Public Founding Readers acknowledgements page.
+ const foundingNavLinks=document.querySelector(".topbar-right, .top-actions");
+ if(foundingNavLinks&&!foundingNavLinks.querySelector("[data-founding-readers-nav]")){
+  const foundingLink=document.createElement("a");foundingLink.href="/founding-readers/";foundingLink.textContent="FOUNDING READERS";foundingLink.dataset.foundingReadersNav="true";
+  const earlyAccessLink=foundingNavLinks.querySelector("[data-early-access-nav]");
+  if(earlyAccessLink)earlyAccessLink.insertAdjacentElement("afterend",foundingLink);else foundingNavLinks.appendChild(foundingLink);
+ }
  // Keep the account button's navigation behaviour independent of authentication.
  const accountButton=document.getElementById("openAccountButton");
  if(accountButton&&!document.getElementById("authForm")&&!document.getElementById("accountDialog")){
