@@ -271,10 +271,6 @@ async function loadMarketplace(){
  await loadMysteryPacks();
  await loadNotifications();
 }
-function renderMarketplace(){
- const grid=$("marketplaceGrid");grid.replaceChildren();
- catalogue.forEach(card=>{const item=cardElement(card,owned.some(c=>c.card_id===card.id));grid.append(item);});
-}
 async function renderReaders(readers){
  const root=$("readerDirectory");root.replaceChildren();
  if(!readers.length){root.append(text("div","eden-empty","No readers have made their collections public yet. You can change your binder visibility in My Account."));return;}
@@ -530,8 +526,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
   catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
   $("catalogueSummary").textContent=catalogue.length+" TOTAL CARDS";
   await initialise();
-  renderCatalogue();renderMarketplace();
- }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));$("marketplaceGrid").replaceChildren(text("div","eden-empty","The marketplace catalogue is temporarily unavailable."));}
+  renderCatalogue();
+ }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));}
  // Do not reload on Supabase's INITIAL_SESSION event: it fires during page startup
  // and would create a continuous reload loop. The shared navigation handles
  // account-label updates independently.
