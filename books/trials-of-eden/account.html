@@ -186,7 +186,7 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 @media(max-width:560px){.account-subsection>summary{align-items:flex-start;flex-wrap:wrap}.account-subsection>summary small{flex-basis:calc(100% - 40px);order:3;margin-left:0}}
 
 </style>
-<link rel="stylesheet" href="../../site-nav.css"></head><body>
+<link rel="stylesheet" href="../../site-nav.css"><style>.founding-reader-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.founding-reader-actions button{margin-top:0}.founding-reader-settings .status{margin:12px 0}@media(max-width:600px){.founding-reader-actions button{width:100%}}</style></head><body>
 <nav class="topbar" aria-label="Main navigation">
   <a href="../../index.html" class="logo">ORLONG</a>
   <div class="topbar-right">
@@ -232,7 +232,16 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <p id="accessCodeMessage" class="muted" role="status" aria-live="polite"></p>
 <div id="readerAccessGrantList" class="reader-access-grants" aria-live="polite"></div>
 </section>
-<section class="panel profile-picture-panel" id="profilePicturePanel" aria-labelledby="profilePictureHeading">
+<section class="panel founding-reader-settings" id="foundingReaderSettings" aria-labelledby="foundingReaderSettingsHeading">
+<h2 id="foundingReaderSettingsHeading">FOUNDING READER ACKNOWLEDGEMENT</h2>
+<p class="muted">If you qualified for Founding Reader status by receiving Early Access before 1 January 2027, that status is yours permanently. You can choose whether your display name appears on the public acknowledgements page. This choice never changes your access, rewards or status, and you can change it at any time.</p>
+<div id="foundingReaderEligibility" class="muted" role="status" aria-live="polite">Checking your Founding Reader status…</div>
+<div id="foundingReaderPrivacyControls" hidden>
+<p id="foundingReaderListingStatus" class="status" aria-live="polite"></p>
+<div class="founding-reader-actions"><button class="primary" id="foundingReaderOptIn" type="button">SHOW MY NAME PUBLICLY</button><button class="secondary" id="foundingReaderOptOut" type="button">HIDE MY NAME</button></div>
+</div>
+<p class="muted"><a href="../../founding-readers/">VIEW THE FOUNDING READERS ACKNOWLEDGEMENTS →</a></p>
+</section><section class="panel profile-picture-panel" id="profilePicturePanel" aria-labelledby="profilePictureHeading">
 <h2 id="profilePictureHeading">YOUR PROFILE</h2><div class="profile-picture-editor">
 <img id="accountAvatarPreview" class="account-avatar" src="" alt="Your profile picture" hidden>
 <div class="profile-picture-fields"><label for="accountAvatarInput">PROFILE PICTURE</label>
@@ -314,5 +323,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </div></details>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js?v=stage-1b"></script><script src="chapters.js"></script><script src="account.js?v=stage-3b"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js?v=stage-1b"></script><script src="chapters.js"></script><script src="account.js?v=stage-4a"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
 </body></html>
