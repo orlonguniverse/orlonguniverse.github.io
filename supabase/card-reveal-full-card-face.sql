@@ -61,3 +61,9 @@ $$;
 
 revoke all on function public.claim_my_card_reveals(integer) from public,anon;
 grant execute on function public.claim_my_card_reveals(integer) to authenticated;
+
+-- Confirm the released Chapter One card records have their public artwork paths.
+select card_id,card_number,name,artwork_url
+from public.card_catalogue
+where unlock_chapter_id='chapter-01'
+order by category_number;
