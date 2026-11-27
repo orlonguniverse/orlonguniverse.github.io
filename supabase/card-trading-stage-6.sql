@@ -251,8 +251,8 @@ begin
   where c.owner_user_id = reader_id
     and c.card_id = offer_row.requested_card_id
   order by c.acquired_at, c.copy_id
-  for update skip locked
-  limit 1;
+  limit 1
+  for update skip locked;
 
   if requested_copy_id is null then
     raise exception 'You no longer have an available copy of the requested card';
@@ -260,14 +260,10 @@ begin
 
   update public.reader_card_copies
   set owner_user_id = offer_row.proposer_user_id
-  where copy_id = offer_row.offered_copy_id;
-
-  update public.reader_card_copies
-  set owner_user_id = offer_row.proposer_user_id
   where copy_id = requested_copy_id;
 
-  -- The proposer receives the requested card and the recipient
-  -- receives the offered card. Correct the first transfer below.
+  -- The proposer receives the requested card; the recipient receives
+  -- the offered card. Both updates commit atomically with the offer.
   update public.reader_card_copies
   set owner_user_id = reader_id
   where copy_id = offer_row.offered_copy_id;
