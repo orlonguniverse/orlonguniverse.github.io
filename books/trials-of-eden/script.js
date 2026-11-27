@@ -785,7 +785,7 @@ document.addEventListener("click", event => {
 // Build the chapter menu, but do not load manuscript content until Supabase confirms a signed-in session.
 renderChapterDirectory();
 updateChapterNavigation();
-window.startEdenReader = function (session) {
+window.startEdenReader = async function (session) {
   const target = document.getElementById("chapterContent");
   if (!target) return;
   if (!session || !session.user) {
@@ -796,5 +796,8 @@ window.startEdenReader = function (session) {
     updateChapterNavigation();
     return;
   }
+  if (window.EDEN_STRUCTURE_READY) await window.EDEN_STRUCTURE_READY;
+  renderChapterDirectory();
+  updateChapterNavigation();
   loadChapter(getChapterIdFromUrl());
 };
