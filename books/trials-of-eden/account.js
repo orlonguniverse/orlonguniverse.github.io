@@ -447,6 +447,49 @@ async function uploadProfilePicture(){
  finally{button.disabled=false;}
 }
 
+async function loadAccessCodeAdmin(){
+ const panel=accountById("accessCodeAdminPanel");
+ if(!panel)return;
+ panel.hidden=true;
+ try{
+  const {data,error}=await accountClient.rpc("is_reader_moderator");
+  if(error)throw error;
+  if(data===true)panel.hidden=false;
+ }catch(error){console.warn("Access-code administration is unavailable:",error);}
+}
+async function createReaderAccessCode(){
+ const button=accountById("createAccessCodeButton");
+ const message=accountById("createAccessCodeMessage");
+ const output=accountById("createdAccessCode");
+ const label=accountById("accessCampaignLabel").value.trim();
+ const keys=accountById("accessCampaignKeys").value.split(",").map(value=>value.trim()).filter(Boolean);
+ const expiryValue=accountById("accessCampaignExpiry").value;
+ const limitValue=accountById("accessCampaignLimit").value.trim();
+ if(!label||!keys.length){message.textContent="Enter a campaign name and at least one access permission.";return;}
+ const expiry=expiryValue?new Date(expiryValue):null;
+ if(expiryValue&&Number.isNaN(expiry.getTime())){message.textContent="Please choose a valid expiry date.";return;}
+ const limit=limitValue?Number.parseInt(limitValue,10):null;
+ if(limitValue&&(!Number.isInteger(limit)||limit<1)){message.textContent="The redemption limit must be a whole number greater than zero.";return;}
+ button.disabled=true;button.textContent="CREATING CODE…";message.textContent="Generating a secure access code…";output.hidden=true;
+ try{
+  const {data,error}=await accountClient.rpc("create_access_code",{
+   campaign_label:label,
+   granted_access_keys:keys,
+   code_expires_at:expiry?expiry.toISOString():null,
+   redemption_limit:limit
+  });
+  if(error)throw error;
+  output.textContent=data;
+  output.hidden=false;
+  message.textContent="Code created. Copy and save it now — the plaintext code is shown only once.";
+  accountById("accessCampaignLabel").value="";
+ }catch(error){
+  console.error("Could not create access code:",error);
+  message.textContent=error.message?.includes("create_access_code")
+   ?"The Stage 1 database update is not installed, or your account does not have moderator access."
+   :"We couldn't create that code. Please check the details and try again.";
+ }finally{button.disabled=false;button.textContent="GENERATE ACCESS CODE";}
+}
 async function loadMyAccessGrants(){
  const list=accountById("readerAccessGrantList");
  const status=accountById("accessCodeMessage");
@@ -514,7 +557,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
-  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost(),loadMyAccessGrants()]);
+  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost(),loadMyAccessGrants(),loadAccessCodeAdmin()]);
  }
 }
 async function submitAccount(event){
@@ -527,7 +570,7 @@ async function submitAccount(event){
 async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}window.updateOrlongAccountLabel?.(null);lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
- accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
+ accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("createAccessCodeButton")?.addEventListener("click",createReaderAccessCode);accountById("copyCreatedAccessCode")?.addEventListener("click",async()=>{const code=accountById("createdAccessCode")?.textContent||"";try{await navigator.clipboard.writeText(code);accountById("createAccessCodeMessage").textContent="Access code copied. Keep it somewhere safe."; }catch(error){accountById("createAccessCodeMessage").textContent="Select and copy the code shown above.";}});accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
  const {data}=await accountClient.auth.getSession();await showSession(data.session);
  accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
 });
