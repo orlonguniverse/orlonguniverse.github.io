@@ -186,6 +186,7 @@ begin
  if coalesce(p_proposer_pays_cents,0)<0 or coalesce(p_recipient_pays_cents,0)<0 then raise exception 'Xanth amounts cannot be negative'; end if;
  if coalesce(p_recipient_pays_cents,0)>0 then raise exception 'A new offer can only reserve Xanth from the reader sending it'; end if;
  if coalesce(array_length(p_proposer_copy_ids,1),0)+coalesce(array_length(p_recipient_copy_ids,1),0)=0 and coalesce(p_proposer_pays_cents,0)+coalesce(p_recipient_pays_cents,0)=0 then raise exception 'An offer must include cards or Xanth'; end if;
+ if coalesce(array_length(p_proposer_copy_ids,1),0)=0 and coalesce(p_proposer_pays_cents,0)=0 then raise exception 'An offer must include at least one of your cards or some Xanth'; end if;
  if p_listing_id is not null then
   select * into lid from public.reader_card_market_listings where listing_id=p_listing_id and status='active' and seller_user_id=p_recipient_id for update;
   if not found then raise exception 'This listing is no longer available'; end if;
