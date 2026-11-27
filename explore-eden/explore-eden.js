@@ -502,6 +502,8 @@ async function initialise(){
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
   await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility(),loadWantedBoard()]);await syncReaderNotifications();
+ window.setInterval(()=>{if(document.visibilityState==="visible")loadNotifications();},60000);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadNotifications();});
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
