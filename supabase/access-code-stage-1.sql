@@ -26,11 +26,7 @@ create table if not exists public.access_code_campaigns (
   redemption_count integer not null default 0 check (redemption_count >= 0),
   is_active boolean not null default true,
   created_by uuid references auth.users(id) on delete set null,
-  created_at timestamptz not null default now(),
-  check (access_keys <@ array(
-    select distinct key
-    from unnest(access_keys) as key
-  ))
+  created_at timestamptz not null default now()
 );
 
 create table if not exists public.access_code_redemptions (
