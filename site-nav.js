@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  // the intermittent temporal-dead-zone error on pages where Supabase loads first.
  const installCardRevealSystem=()=>{
   if(!document.querySelector("link[data-orlong-reveal-css]")){
-   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6j";css.dataset.orlongRevealCss="true";document.head.append(css);
+   const css=document.createElement("link");css.rel="stylesheet";css.href="/assets/css/card-reveal.css?v=stage-6k";css.dataset.orlongRevealCss="true";document.head.append(css);
   }
   const loadWatcher=()=>{
    if(window.OrlongCardRevealWatcher){window.OrlongCardRevealWatcher.start();return;}
