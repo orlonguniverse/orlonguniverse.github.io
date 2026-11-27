@@ -47,6 +47,18 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 @media(max-width:480px){.card-detail-layout{grid-template-columns:1fr}.card-detail-art-wrap{max-width:240px;margin:0 auto}.card-detail-art{max-height:42vh}.card-detail-information h3{font-size:20px}}
 @media(max-width:420px){.card-collection-grid{grid-template-columns:1fr 1fr;gap:9px}.owned-card{padding:8px}.owned-card h3{font-size:11px}}
 
+
+.achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.achievement-item{padding:16px;background:var(--surface2);border:1px solid var(--border)}
+.achievement-item.is-unlocked{border-color:#398cff88;background:linear-gradient(135deg,#173253,#111d2d)}
+.achievement-topline{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.achievement-title{font-family:Cinzel,serif;font-size:13px;letter-spacing:.5px}
+.achievement-status{font-size:9px;letter-spacing:1px;color:var(--blue-light)}
+.achievement-description{margin:8px 0;color:var(--muted);font-size:11px;line-height:1.7}
+.achievement-progress{height:6px;margin:12px 0 7px;background:#080d16;overflow:hidden}
+.achievement-progress-fill{height:100%;background:linear-gradient(90deg,#236bd2,#65adff)}
+.achievement-progress-label{font-size:9px;color:var(--muted);letter-spacing:.7px}
+@media(max-width:560px){.achievement-grid{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="../../site-nav.css"></head><body>
 <nav class="topbar" aria-label="Main navigation">
@@ -97,6 +109,7 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 </div>
 </dialog>
 </section>
+<section class="panel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
 <section class="panel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
@@ -105,5 +118,5 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel"><h2>YOUR CONTENT PREFERENCES</h2><p class="muted">The topics you've selected when telling us what you'd like to see more of.</p><div id="preferenceList"></div></section>
 </section></main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br><a href="contents.html">Return to book contents</a></footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-binder-stage-4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../site-nav.js"></script><script src="chapters.js"></script><script src="account.js?v=card-achievements-stage-5"></script>
 </body></html>
