@@ -49,7 +49,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare
   reader_id uuid := auth.uid();
   offered_card text;
@@ -106,7 +106,7 @@ language sql
 stable
 security definer
 set search_path=public,pg_temp
-as $
+as $$
   select t.offer_id,
          case when t.proposer_user_id=auth.uid() then 'outgoing' else 'incoming' end,
          case when t.proposer_user_id=auth.uid() then t.recipient_user_id else t.proposer_user_id end,
