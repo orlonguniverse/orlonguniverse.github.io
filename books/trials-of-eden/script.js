@@ -75,6 +75,7 @@ function toggleBookOnlyMode(force) {
   const active = typeof force === "boolean" ? force : !document.body.classList.contains("book-only-mode");
   document.body.classList.toggle("book-only-mode", active);
   localStorage.setItem("edenBookOnlyMode", String(active));
+  localStorage.setItem("orlongBookOnlyMode", String(active));
   const button = document.getElementById("bookOnlyToggle");
   if (button) {
     button.textContent = active ? "EXIT BOOK-ONLY MODE" : "BOOK-ONLY MODE";
@@ -688,8 +689,6 @@ function toggleReadingWidgetPin() {
   localStorage.setItem("edenWidgetPinned", String(!pinned));
   if (!pinned) localStorage.setItem("edenWidgetCollapsed", "false");
   setReadingWidgetState();
-toggleBookOnlyMode(localStorage.getItem("edenBookOnlyMode") === "true");
-if (localStorage.getItem("edenFocusMode") === "true") document.body.classList.add("focus-mode");
 }
 
 function toggleReadingWidgetCollapse() {
@@ -722,6 +721,10 @@ if (sizeControl) sizeControl.addEventListener("input", event => applyReaderSize(
 
 // The script is loaded after the HTML controls, so they can be connected here.
 setReadingWidgetState();
+const bookOnlyPreference = localStorage.getItem("orlongBookOnlyMode") === "true" || localStorage.getItem("edenBookOnlyMode") === "true";
+toggleBookOnlyMode(bookOnlyPreference);
+if (bookOnlyPreference) localStorage.setItem("orlongBookOnlyMode","true");
+if (localStorage.getItem("edenFocusMode") === "true") document.body.classList.add("focus-mode");
 
 const pinButton = document.getElementById("pinReadingWidget");
 const collapseButton = document.getElementById("collapseReadingWidget");
