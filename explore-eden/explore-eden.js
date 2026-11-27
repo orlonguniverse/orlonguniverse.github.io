@@ -53,22 +53,52 @@ function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
  catalogue.forEach(card=>{const item=cardElement(card,owned.some(c=>c.card_id===card.id));const button=text("button","eden-filter","PURCHASE · COMING IN STAGE 7");button.type="button";button.disabled=true;button.title="Purchasing will be introduced with the Stage 7 collector economy.";button.style.marginTop="10px";button.style.width="100%";button.style.opacity=".55";item.append(button);grid.append(item);});
 }
-function renderReaders(readers){
+async function renderReaders(readers){
  const root=$("readerDirectory");root.replaceChildren();
  if(!readers.length){root.append(text("div","eden-empty","No readers have made their collections public yet. You can change your binder visibility in My Account."));return;}
+ const copiesResult=await client.rpc("get_my_tradeable_card_copies");
+ const myCopies=copiesResult.error?[]:(copiesResult.data||[]);
  readers.forEach(reader=>{
-  const item=document.createElement("article");item.className="reader-card";
+  const item=document.createElement("article");item.className="reader-card";item.style.display="block";
+  const top=document.createElement("div");top.className="reader-card-top";top.style.display="flex";top.style.justifyContent="space-between";top.style.alignItems="center";top.style.gap="12px";
   const identity=document.createElement("div");identity.className="reader-identity";
   let avatar;
   if(reader.avatar_url){avatar=document.createElement("img");avatar.src=reader.avatar_url;avatar.alt="";avatar.className="reader-avatar";avatar.loading="lazy";}
   else{avatar=text("span","reader-avatar reader-avatar-fallback",(reader.display_name||"R").trim().charAt(0).toUpperCase());}
   const details=document.createElement("div");details.append(text("div","reader-name",reader.display_name||"Reader"),text("div","reader-count",Number(reader.unique_cards||0)+" UNIQUE CARDS · "+Number(reader.total_copies||0)+" COPIES"));
   identity.append(avatar,details);
-  const link=text("a","reader-open","OPEN TRADING POST");link.href="../books/trials-of-eden/account.html#collectionSection";
-  item.append(identity,link);root.append(item);
+  const view=text("button","reader-open","VIEW COLLECTION");view.type="button";
+  const holder=document.createElement("div");holder.hidden=true;holder.style.marginTop="14px";
+  view.addEventListener("click",async()=>{
+   if(!holder.hidden){holder.hidden=true;view.textContent="VIEW COLLECTION";return;}
+   view.disabled=true;view.textContent="LOADING…";
+   const {data,error}=await client.rpc("get_public_card_collection",{target_reader_id:reader.reader_id});
+   view.disabled=false;
+   if(error){console.error(error);view.textContent="TRY AGAIN";return;}
+   holder.replaceChildren();
+   if(!data?.length){holder.append(text("p","reader-count","This public binder is currently empty."));}
+   (data||[]).forEach(card=>{
+    const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid rgba(135,174,220,.16)";
+    const info=document.createElement("div");info.append(text("strong","reader-name",(card.card_number||"CARD")+" · "+card.card_name),text("div","reader-count",card.category_label+" · "+card.rarity+" · "+card.copy_count+" owned"));
+    row.append(info);
+    if(myCopies.length){
+     const controls=document.createElement("div");controls.style.cssText="display:flex;gap:6px;align-items:center;flex-wrap:wrap";
+     const select=document.createElement("select");select.setAttribute("aria-label","Choose a card to offer for "+card.card_name);select.style.cssText="max-width:210px;padding:8px;background:#091321;color:#dceaff;border:1px solid rgba(135,174,220,.35);font-size:10px";
+     const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Choose your offer card";select.append(placeholder);
+     myCopies.forEach(copy=>{const opt=document.createElement("option");opt.value=copy.copy_id;opt.textContent=copy.card_number+" · "+copy.card_name;select.append(opt);});
+     const send=text("button","reader-open","MAKE OFFER");send.type="button";send.disabled=true;select.addEventListener("change",()=>send.disabled=!select.value);
+     send.addEventListener("click",async()=>{send.disabled=true;send.textContent="SENDING…";const result=await client.rpc("create_card_trade_offer",{target_recipient_id:reader.reader_id,offered_copy:select.value,requested_card:card.card_id});if(result.error){console.error(result.error);send.disabled=false;send.textContent="TRY AGAIN";return;}send.textContent="OFFER SENT";select.disabled=true;});
+     controls.append(select,send);row.append(controls);
+    }else row.append(text("span","reader-count","You have no available copies to offer."));
+    holder.append(row);
+   });
+   holder.hidden=false;view.textContent="HIDE COLLECTION";
+  });
+  top.append(identity,view);
+  item.append(top,holder);root.append(item);
  });
-}
-function setTab(button){
+ if(copiesResult.error){const note=text("p","reader-count","Your tradeable cards could not be loaded. You can still browse collections; check the Stage 6 Trading Post migration to make offers.");root.prepend(note);}
+}function setTab(button){
  document.querySelectorAll(".eden-tab").forEach(tab=>{const active=tab===button;tab.classList.toggle("is-active",active);tab.setAttribute("aria-selected",String(active));});
  document.querySelectorAll(".eden-panel").forEach(panel=>{const active=panel.id===button.dataset.panel;panel.hidden=!active;panel.classList.toggle("is-active",active);});
 }
