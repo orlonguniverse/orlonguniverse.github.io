@@ -782,6 +782,31 @@ document.addEventListener("click", event => {
   }
 });
 
+// Discourage ordinary copying from the manuscript area. This is a deterrent only:
+// authorised readers still receive the text in their browser and can reproduce it
+// through screenshots, developer tools or other means.
+document.addEventListener("contextmenu", event => {
+  if (event.target.closest("#chapterText")) event.preventDefault();
+});
+document.addEventListener("dragstart", event => {
+  if (event.target.closest("#chapterText")) event.preventDefault();
+});
+const selectionIsInsideManuscript = () => {
+  const selection = window.getSelection();
+  return !!(selection && selection.anchorNode &&
+    document.getElementById("chapterText")?.contains(selection.anchorNode));
+};
+document.addEventListener("copy", event => {
+  if (selectionIsInsideManuscript()) event.preventDefault();
+});
+document.addEventListener("cut", event => {
+  if (selectionIsInsideManuscript()) event.preventDefault();
+});
+document.addEventListener("keydown", event => {
+  if (!selectionIsInsideManuscript() || !(event.ctrlKey || event.metaKey)) return;
+  if (["a","c","x","p"].includes(event.key.toLowerCase())) event.preventDefault();
+});
+
 // Build the chapter menu, but do not load manuscript content until Supabase confirms a signed-in session.
 renderChapterDirectory();
 updateChapterNavigation();
