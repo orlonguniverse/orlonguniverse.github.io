@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],activeCollectionCategory="all",activeCatalogueCategory="all",mysteryPacks=[];
+let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",mysteryPacks=[];
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false){
@@ -95,31 +95,53 @@ async function sellDuplicateCopies(cardId,quantity,button){
 }
 function renderCollection(){
  const grid=$("collectionGrid"),filters=$("collectionFilters");grid.replaceChildren();
- const ownedMap=new Map(owned.map(copy=>[copy.card_id,copy]));
- const discovered=catalogue.filter(card=>ownedMap.has(card.id));
+ const discovered=owned.map(copy=>({...copy,id:copy.card_id,name:copy.card_name,cardNumber:copy.card_number,categoryId:copy.category_code||copy.category_label,categoryLabel:copy.category_label}));
  const categories=[...new Map(discovered.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
  makeFilters(filters,categories,activeCollectionCategory,id=>{activeCollectionCategory=id;renderCollection();});
  const visible=activeCollectionCategory==="all"?discovered:discovered.filter(c=>c.categoryId===activeCollectionCategory);
- visible.forEach(card=>{
-  const copy=ownedMap.get(card.id);
-  grid.append(cardElement({...card,copy_count:copy.copy_count},true,true,true));
- });
+ visible.forEach(card=>grid.append(cardElement(card,true,true,true)));
  const copies=owned.reduce((sum,c)=>sum+Number(c.copy_count||0),0);
  $("collectionSummary").textContent=copies+" COPIES · "+discovered.length+" UNIQUE CARDS";
  if(!visible.length)grid.append(text("div","eden-empty",discovered.length?"You haven't discovered any cards in this category yet.":"Your binder is empty. Complete Reading Room activities and Early Access missions to discover your first card."));
 }
-function renderCatalogue(){
- const grid=$("catalogueGrid"),filters=$("catalogueFilters");grid.replaceChildren();
- const categories=[...new Map(catalogue.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
- makeFilters(filters,categories,activeCatalogueCategory,id=>{activeCatalogueCategory=id;renderCatalogue();});
- const ownedMap=new Map(owned.map(copy=>[copy.card_id,copy]));
- const visible=activeCatalogueCategory==="all"?catalogue:catalogue.filter(c=>c.categoryId===activeCatalogueCategory);
- visible.forEach(card=>{
-  const copy=ownedMap.get(card.id);
-  grid.append(cardElement(copy?{...card,copy_count:copy.copy_count}:card,Boolean(copy),false));
+function undiscoveredProgressSlot(slot){
+ const article=text("article","eden-card progress-undiscovered","");
+ const front=document.createElement("div");front.className="eden-card-front progress-unknown";
+ const shadow=document.createElement("div");shadow.className="eden-card-shadow";
+ shadow.append(text("span","shadow-symbol","?"),text("small","","UNDISCOVERED"));
+ const frame=document.createElement("div");frame.className="eden-card-frame";
+ const top=document.createElement("div");top.className="eden-card-topline";
+ top.append(text("span","eden-card-number","SLOT "+String(slot.slot_number).padStart(2,"0")),text("span","eden-card-rarity","UNREVEALED"));
+ const details=document.createElement("div");details.className="eden-card-front-details";
+ details.append(text("h3","eden-card-name","Undiscovered"));
+ const footer=document.createElement("div");footer.className="eden-card-footer";
+ footer.append(text("span","eden-card-category","UNKNOWN"),text("span","eden-card-chapter","—"),text("span","eden-card-book","THE TRIALS OF EDEN"));
+ details.append(footer);frame.append(top,details);front.append(shadow,frame);article.append(front);return article;
+}
+function renderCardProgress(){
+ const root=$("cardProgressGrid");root.replaceChildren();
+ if(!cardProgress.length){root.append(text("div","eden-empty","No active card slots are available yet."));$("progressSummary").textContent="NO CARDS AVAILABLE";return;}
+ const groups=new Map();
+ cardProgress.forEach(slot=>{if(!groups.has(slot.category_id))groups.set(slot.category_id,{label:slot.category_label,sort:slot.category_sort_order,slots:[]});groups.get(slot.category_id).slots.push(slot);});
+ let total=0,discovered=0;
+ [...groups.values()].sort((a,b)=>a.sort-b.sort).forEach(group=>{
+  const section=document.createElement("section");section.className="progress-category";
+  const heading=document.createElement("div");heading.className="progress-category-heading";
+  const title=text("h3","",group.label);
+  const ownedCount=group.slots.filter(slot=>slot.is_owned).length,categoryTotal=Number(group.slots[0]?.category_total||group.slots.length);
+  total+=categoryTotal;discovered+=ownedCount;
+  const count=text("span","progress-category-count",ownedCount+" / "+categoryTotal+" DISCOVERED");
+  heading.append(title,count);
+  const track=document.createElement("div");track.className="progress-meter";track.setAttribute("role","progressbar");track.setAttribute("aria-label",group.label+" discovery progress");track.setAttribute("aria-valuemin","0");track.setAttribute("aria-valuemax",String(categoryTotal));track.setAttribute("aria-valuenow",String(ownedCount));
+  const fill=document.createElement("span");fill.style.width=(categoryTotal?Math.min(100,ownedCount/categoryTotal*100):0)+"%";track.append(fill);
+  const grid=document.createElement("div");grid.className="eden-card-grid progress-slot-grid";
+  group.slots.forEach(slot=>{
+   if(slot.is_owned)grid.append(cardElement({id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,card_number:slot.card_number,name:slot.card_name,card_name:slot.card_name,rarity:slot.rarity,categoryLabel:group.label,category_label:group.label,spoilerSafeDescription:slot.spoiler_safe_description,artworkUrl:slot.artwork_url,artwork_url:slot.artwork_url,copy_count:slot.copy_count},true,false));
+   else grid.append(undiscoveredProgressSlot(slot));
+  });
+  section.append(heading,track,grid);root.append(section);
  });
- $("catalogueSummary").textContent=ownedMap.size+" / "+catalogue.length+" DISCOVERED";
- if(!visible.length)grid.append(text("div","eden-empty","No cards are available in this category yet."));
+ $("progressSummary").textContent=discovered+" / "+total+" UNIQUE CARDS DISCOVERED";
 }
 function formatXanth(cents){return "XƵ"+(Number(cents||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});}
 async function loadXanthTransactions(){
@@ -492,15 +514,17 @@ async function initialise(){
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
- if(!session){$("notificationBell").disabled=true;$("createWantedPost").disabled=true;$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
+ if(!session){$("notificationBell").disabled=true;$("createWantedPost").disabled=true;$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("progressSummary").textContent="SIGN IN REQUIRED";$("cardProgressGrid").replaceChildren(text("div","eden-empty","Sign in to see your numbered card slots."));$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
   await loadDuplicateSaleSettings();
-  const [collectionResult,readerResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections")]);
+  const [collectionResult,readerResult,progressResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections"),client.rpc("get_my_card_progress")]);
   if(collectionResult.error){$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection is temporarily unavailable. Please check that the Stage 3 binder migration has been installed."));$("collectionSummary").textContent="COLLECTION UNAVAILABLE";}
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
+  if(progressResult.error){console.error(progressResult.error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","Card progress is unavailable. Please run the Stage 8D.1 progress tracker migration in Supabase."));$("progressSummary").textContent="PROGRESS UNAVAILABLE";}
+  else{cardProgress=progressResult.data||[];renderCardProgress();}
   await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility(),loadWantedBoard()]);await syncReaderNotifications();
  window.setInterval(()=>{if(document.visibilityState==="visible")loadNotifications();},60000);
  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadNotifications();});
@@ -520,15 +544,10 @@ document.addEventListener("DOMContentLoaded",async()=>{
  if(!window.supabase?.createClient){$("sessionMessage").textContent="The sign-in service is unavailable. Please refresh and try again.";return;}
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  try{
-  const response=await fetch("card-catalogue.json",{cache:"no-cache"});
-  if(!response.ok)throw new Error("Catalogue request failed");
-  const raw=await response.json();
   const {data:databaseCards,error:catalogueError}=await client.rpc("get_public_card_catalogue");
   if(catalogueError)throw catalogueError;
   catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
-  $("catalogueSummary").textContent=catalogue.length+" TOTAL CARDS";
   await initialise();
-  renderCatalogue();
  }catch(error){console.error("Explore Eden failed to initialise:",error);$("catalogueGrid").replaceChildren(text("div","eden-empty","The catalogue could not be loaded. Please refresh the page."));}
  // Do not reload on Supabase's INITIAL_SESSION event: it fires during page startup
  // and would create a continuous reload loop. The shared navigation handles
