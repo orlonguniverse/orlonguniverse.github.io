@@ -82,7 +82,7 @@ begin
 exception when unique_violation then
   raise exception 'That card copy is already committed to another pending trade';
 end;
-$;
+$$;
 
 -- Trade history now reads the durable card snapshot rather than relying on
 -- the physical offered copy still existing in the collection.
@@ -130,7 +130,7 @@ as $$
   join public.card_catalogue requested on requested.card_id=t.requested_card_id
   where auth.uid() in (t.proposer_user_id,t.recipient_user_id)
   order by t.created_at desc;
-$;
+$$;
 
 revoke all on function public.create_card_trade_offer(uuid,uuid,text) from public,anon;
 revoke all on function public.get_my_card_trades() from public,anon;
