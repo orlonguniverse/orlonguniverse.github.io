@@ -13,7 +13,7 @@ create table if not exists public.early_access_migration_flags (
 );
 alter table public.early_access_migration_flags enable row level security;
 revoke all on public.early_access_migration_flags from anon, authenticated;
-do $
+do $ea$
 begin
   insert into public.early_access_migration_flags(flag_key)
   values ('verified-missions-v1') on conflict do nothing;
@@ -21,7 +21,7 @@ begin
     delete from public.early_access_mission_completions;
   end if;
 end;
-$;
+$ea$;
 
 create table if not exists public.early_access_mission_visits (
   user_id uuid not null references auth.users(id) on delete cascade,
