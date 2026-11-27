@@ -35,28 +35,52 @@ document.addEventListener("DOMContentLoaded",()=>{
   else navLinks.appendChild(earlyLink);
  }
 
- // Attach navigation behaviour before optional Supabase session handling.
- // This keeps Sign In working on pages (such as Events) that do not load Supabase.
+ // Keep the account button's navigation behaviour independent of authentication.
  const accountButton=document.getElementById("openAccountButton");
- if(!accountButton||document.getElementById("authForm")||document.getElementById("accountDialog"))return;
- accountButton.addEventListener("click",()=>{
-  const target=accountButton.dataset.accountTarget;
-  if(target){
-   const panel=document.querySelector(target);
-   if(panel)panel.scrollIntoView({behavior:"smooth",block:"start"});
-   else window.location.href=accountButton.dataset.accountHref||"account.html";
-   return;
-  }
-  window.location.href=accountButton.dataset.accountHref||"books/trials-of-eden/account.html";
- });
+ if(accountButton&&!document.getElementById("authForm")&&!document.getElementById("accountDialog")){
+  accountButton.addEventListener("click",()=>{
+   const target=accountButton.dataset.accountTarget;
+   if(target){
+    const panel=document.querySelector(target);
+    if(panel)panel.scrollIntoView({behavior:"smooth",block:"start"});
+    else window.location.href=accountButton.dataset.accountHref||"account.html";
+    return;
+   }
+   window.location.href=accountButton.dataset.accountHref||"books/trials-of-eden/account.html";
+  });
+ }
 
- // Session labels are an enhancement, not a requirement for navigation to work.
- if(!window.supabase?.createClient)return;
- const client=window.supabase.createClient(
-  "https://kqfwtzrfqsfampqfzoal.supabase.co",
-  "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes"
- );
- const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
- client.auth.getSession().then(({data})=>setAccountLabel(data.session?.user||null));
- client.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>setAccountLabel(session?.user||null),0));
+ // Load Supabase when a page does not already include it, so the signed-in
+ // username is shown consistently throughout the entire website.
+ const initialiseSharedAccountLabel=()=>{
+  if(!window.supabase?.createClient)return;
+  if(!window.orlongNavigationClient){
+   window.orlongNavigationClient=window.supabase.createClient(
+    "https://kqfwtzrfqsfampqfzoal.supabase.co",
+    "sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes"
+   );
+  }
+  const client=window.orlongNavigationClient;
+  const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
+  client.auth.getSession().then(({data,error})=>{
+   if(!error)setAccountLabel(data.session?.user||null);
+  }).catch(()=>{});
+  client.auth.onAuthStateChange((_event,session)=>{
+   window.setTimeout(()=>setAccountLabel(session?.user||null),0);
+  });
+ };
+ if(window.supabase?.createClient){
+  initialiseSharedAccountLabel();
+ }else{
+  if(!window.__orlongSupabaseLoad){
+   window.__orlongSupabaseLoad=new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+    script.onload=resolve;
+    script.onerror=reject;
+    document.head.appendChild(script);
+   });
+  }
+  window.__orlongSupabaseLoad.then(initialiseSharedAccountLabel).catch(()=>{});
+ }
 });
