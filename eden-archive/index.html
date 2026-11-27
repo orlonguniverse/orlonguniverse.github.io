@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Eden Archive | Orlong Universe</title>
+<meta name="description" content="Unlock the hidden lore of Eden through the cards you collect in The Trials of Eden.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../site-nav.css?v=stage-8c-nav">
+<link rel="stylesheet" href="archive.css?v=stage-8d2">
+</head>
+<body class="dark">
+<nav class="topbar" aria-label="Main navigation">
+<a href="../index.html" class="logo">ORLONG</a>
+<div class="topbar-right">
+<a href="../index.html">HOME</a><a href="../books/trials-of-eden/contents.html">BOOK CONTENTS</a><a href="../books/trials-of-eden/index.html#chapter">READING ROOM</a><a href="../explore-eden/">EXPLORE EDEN</a>
+<button type="button" id="openAccountButton" class="nav-account-button" data-account-href="../books/trials-of-eden/account.html">SIGN IN</button>
+<a href="../books/trials-of-eden/account.html#dashboard">MY STATISTICS</a>
+</div></nav>
+<header class="archive-hero">
+<p class="eyebrow">THE TRIALS OF EDEN · COLLECTIBLE LORE LIBRARY</p>
+<h1>THE EDEN ARCHIVE</h1>
+<p>Every card holds a fragment of a much larger story. Discover the people, places, creatures and events hidden throughout Eden.</p>
+<div class="archive-hero-links"><a href="../explore-eden/">← RETURN TO EXPLORE EDEN</a><span>YOUR DISCOVERIES UNLOCK THE RECORD</span></div>
+</header>
+<main class="archive-shell">
+<section class="archive-welcome">
+<div><p class="eyebrow">YOUR PERSONAL DISCOVERY RECORD</p><h2 id="archiveHeading">THE RECORDS</h2><p id="archiveStatus" role="status" aria-live="polite">Connecting to the Eden Archive…</p></div>
+<div class="archive-count" id="archiveCount">— ENTRIES UNLOCKED</div>
+</section>
+<section id="archiveSignIn" class="archive-message" hidden>
+<h2>YOUR ARCHIVE AWAITS</h2><p>Sign in to see the lore entries you've unlocked through your collected cards.</p><a class="archive-primary" href="../books/trials-of-eden/account.html">SIGN IN TO CONTINUE</a>
+</section>
+<section id="archiveContent" hidden>
+<div class="archive-controls">
+<label for="archiveSearch">SEARCH YOUR UNLOCKED RECORDS</label>
+<input id="archiveSearch" type="search" placeholder="Search titles and summaries…" autocomplete="off">
+<div id="archiveFilters" class="archive-filters" aria-label="Filter archive category"></div>
+</div>
+<div id="archiveEntryGrid" class="archive-entry-grid"></div>
+<div id="archiveEmpty" class="archive-message" hidden><h2>THE ARCHIVE IS QUIET</h2><p>You haven't unlocked any records yet. Collect cards in Explore Eden to reveal the secrets connected to them.</p><a class="archive-primary" href="../explore-eden/">EXPLORE EDEN</a></div>
+</section>
+</main>
+<footer class="archive-footer">ORLONG UNIVERSE · THE EDEN ARCHIVE<br><a href="../books/trials-of-eden/">RETURN TO THE READING ROOM</a></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../site-nav.js?v=stage-8c-nav"></script>
+<script src="archive.js?v=stage-8d2"></script>
+</body></html>
