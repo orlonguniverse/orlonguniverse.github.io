@@ -169,3 +169,14 @@ The My Reading Statistics page now includes a Special Access panel for signed-in
 **Important:** the existing moderation role is reused for code administration. If your account has not already been added to `public.reader_moderators`, add your own authenticated user UUID in the Supabase SQL Editor (the same process documented in `supabase/schema.sql`), then sign out and back in. Do not grant moderator status to ordinary readers. The browser uses only the existing publishable key; never expose a service-role key.
 
 The migration creates the secure database and UI, but it is not executed automatically by GitHub. Run the SQL migration in Supabase before testing redemption or generating your first code. The default code expiry in the admin panel is 31 December 2026 at 11:59 pm in your browser's local time; you can adjust it before generating the code.
+
+
+## Early Access — Special Edition character packs
+
+The Founding Reader Special Edition set contains ten character cards, numbered CHR-101 through CHR-110. The cards are awarded randomly from one shared pool whenever an Early Access mission is completed. The same character can be awarded more than once, so duplicate copies are intentional and can be traded through the existing Trading Post.
+
+The ten cards are Maya Garcia, Leo Lee, Kiera Patel, Al Jones, Marcus Roberts, Charlee Neil, Emily Kim, Alek Petrov, Ethan Lawson and Colin Thornsberg. Their card-front artwork is intentionally pending; the catalogue currently displays undiscovered silhouettes until the artwork is approved and uploaded.
+
+The Early Access journey contains ten missions. The original eight testing activities remain, with Explore Eden and Founding Readers added as missions nine and ten. The old eight concept-card rewards (CON-101–CON-108) are retired and removed, including their existing copies and claims. Existing mission completion progress is retained, and completed missions receive a random Special Edition card during the migration.
+
+Run `supabase/early-access-special-edition-character-packs.sql` in the Supabase SQL Editor after the existing Early Access Stage 4 and collectible-card migrations. This migration updates the reward function and should be run before testing the updated Early Access page.
