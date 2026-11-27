@@ -425,29 +425,62 @@ async function loadTradingPost(){
  });
 }
 
-async function uploadProfilePicture(){
- const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
- const file=input?.files?.[0];
+let avatarCropImage=null,avatarCropObjectUrl=null,avatarCropCenterX=0,avatarCropCenterY=0,avatarCropZoom=1,avatarCropPointer=null;
+function renderAvatarCrop(){
+ const canvas=accountById("avatarCropCanvas"),context=canvas?.getContext("2d");
+ if(!canvas||!context||!avatarCropImage)return;
+ const base=Math.min(avatarCropImage.naturalWidth,avatarCropImage.naturalHeight);
+ const cropSize=base/avatarCropZoom,half=cropSize/2;
+ avatarCropCenterX=Math.max(half,Math.min(avatarCropImage.naturalWidth-half,avatarCropCenterX));
+ avatarCropCenterY=Math.max(half,Math.min(avatarCropImage.naturalHeight-half,avatarCropCenterY));
+ context.clearRect(0,0,canvas.width,canvas.height);
+ context.drawImage(avatarCropImage,avatarCropCenterX-half,avatarCropCenterY-half,cropSize,cropSize,0,0,canvas.width,canvas.height);
+}
+function openAvatarCrop(){
+ const input=accountById("accountAvatarInput"),file=input?.files?.[0],message=accountById("avatarUploadMessage");
  if(!file){if(message)message.textContent="Choose an image first.";return;}
- if(!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)){message.textContent="Please choose a JPG, PNG, WebP or GIF image.";return;}
- if(file.size>2*1024*1024){message.textContent="That image is larger than 2 MB. Please choose a smaller file.";return;}
- const result=await accountClient.auth.getUser();
- const user=result.data.user;
- if(!user){message.textContent="Please sign in again before uploading.";return;}
+ if(!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)){message.textContent="Please choose a JPG, PNG, WebP or GIF image.";input.value="";return;}
+ if(file.size>2*1024*1024){message.textContent="That image is larger than 2 MB. Please choose a smaller file.";input.value="";return;}
+ if(avatarCropObjectUrl)URL.revokeObjectURL(avatarCropObjectUrl);
+ avatarCropObjectUrl=URL.createObjectURL(file);
+ avatarCropImage=new Image();
+ avatarCropImage.onload=()=>{
+  avatarCropCenterX=avatarCropImage.naturalWidth/2;avatarCropCenterY=avatarCropImage.naturalHeight/2;avatarCropZoom=1;
+  accountById("avatarCropZoom").value="1";renderAvatarCrop();
+  const dialog=accountById("avatarCropDialog");if(!dialog.open)dialog.showModal();
+ };
+ avatarCropImage.onerror=()=>{message.textContent="That image could not be opened. Please choose another one.";};
+ avatarCropImage.src=avatarCropObjectUrl;
+}
+async function saveAvatarCrop(){
+ const button=accountById("saveAvatarCrop"),message=accountById("avatarCropMessage"),canvas=accountById("avatarCropCanvas");
+ if(!canvas||!avatarCropImage)return;
+ button.disabled=true;message.textContent="Preparing your profile picture...";
+ try{
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error("The image could not be prepared.")),"image/jpeg",0.92));
+  await uploadProfilePicture(blob);
+  accountById("avatarCropDialog").close();
+ }catch(error){console.error("Could not save cropped profile picture:",error);message.textContent=error.message||"We could not prepare that image. Please try again.";}
+ finally{button.disabled=false;}
+}
+async function uploadProfilePicture(blob){
+ const button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
+ const result=await accountClient.auth.getUser(),user=result.data.user;
+ if(!user){message.textContent="Please sign in again before uploading.";throw new Error("Please sign in again before uploading.");}
  button.disabled=true;message.textContent="Uploading your profile picture...";
  try{
-  const uploaded=await accountClient.storage.from("reader-avatars").upload(user.id+"/avatar",file,{upsert:true,contentType:file.type,cacheControl:"3600"});
+  const uploaded=await accountClient.storage.from("reader-avatars").upload(user.id+"/avatar.jpg",blob,{upsert:true,contentType:"image/jpeg",cacheControl:"3600"});
   if(uploaded.error)throw uploaded.error;
-  const urlResult=accountClient.storage.from("reader-avatars").getPublicUrl(user.id+"/avatar");
+  const urlResult=accountClient.storage.from("reader-avatars").getPublicUrl(user.id+"/avatar.jpg");
   const publicUrl=urlResult.data.publicUrl+"?v="+Date.now();
   const updated=await accountClient.from("reader_profiles").update({avatar_url:publicUrl}).eq("user_id",user.id);
   if(updated.error)throw updated.error;
   const preview=accountById("accountAvatarPreview");preview.src=publicUrl;preview.hidden=false;
-  input.value="";message.textContent="Your profile picture has been updated.";
- }catch(error){console.error("Profile picture upload failed:",error);message.textContent=error.message||"We couldn't upload that picture. Please try again.";}
+  accountById("accountAvatarInput").value="";
+  message.textContent="Your profile picture has been updated.";
+ }catch(error){console.error("Profile picture upload failed:",error);message.textContent=error.message||"We could not upload that picture. Please try again.";throw error;}
  finally{button.disabled=false;}
 }
-
 async function loadAccessCodeAdmin(){
  const panel=accountById("accessCodeAdminPanel");
  if(!panel)return;
@@ -590,7 +623,15 @@ async function submitAccount(event){
 async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}window.updateOrlongAccountLabel?.(null);lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
- accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("createAccessCodeButton")?.addEventListener("click",createReaderAccessCode);accountById("copyCreatedAccessCode")?.addEventListener("click",async()=>{const code=accountById("createdAccessCode")?.textContent||"";try{await navigator.clipboard.writeText(code);accountById("createAccessCodeMessage").textContent="Access code copied. Keep it somewhere safe."; }catch(error){accountById("createAccessCodeMessage").textContent="Select and copy the code shown above.";}});accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
+ accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",openAvatarCrop);
+ accountById("accountAvatarInput")?.addEventListener("change",openAvatarCrop);
+ accountById("avatarCropZoom")?.addEventListener("input",event=>{avatarCropZoom=Number(event.target.value)||1;renderAvatarCrop();});
+ accountById("cancelAvatarCrop")?.addEventListener("click",()=>accountById("avatarCropDialog").close());
+ accountById("saveAvatarCrop")?.addEventListener("click",saveAvatarCrop);
+ const cropCanvas=accountById("avatarCropCanvas");
+ cropCanvas?.addEventListener("pointerdown",event=>{if(!avatarCropImage)return;avatarCropPointer={x:event.clientX,y:event.clientY};cropCanvas.setPointerCapture(event.pointerId);});
+ cropCanvas?.addEventListener("pointermove",event=>{if(!avatarCropPointer||!avatarCropImage)return;const rect=cropCanvas.getBoundingClientRect(),cropSize=Math.min(avatarCropImage.naturalWidth,avatarCropImage.naturalHeight)/avatarCropZoom;avatarCropCenterX-=(event.clientX-avatarCropPointer.x)*cropSize/rect.width;avatarCropCenterY-=(event.clientY-avatarCropPointer.y)*cropSize/rect.height;avatarCropPointer={x:event.clientX,y:event.clientY};renderAvatarCrop();});
+ ["pointerup","pointercancel","lostpointercapture"].forEach(name=>cropCanvas?.addEventListener(name,()=>{avatarCropPointer=null;}));accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("createAccessCodeButton")?.addEventListener("click",createReaderAccessCode);accountById("copyCreatedAccessCode")?.addEventListener("click",async()=>{const code=accountById("createdAccessCode")?.textContent||"";try{await navigator.clipboard.writeText(code);accountById("createAccessCodeMessage").textContent="Access code copied. Keep it somewhere safe."; }catch(error){accountById("createAccessCodeMessage").textContent="Select and copy the code shown above.";}});accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
  const {data}=await accountClient.auth.getSession();await showSession(data.session);
  accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
 });
