@@ -5,7 +5,7 @@
 -- Readers may sell surplus physical copies for 50% of the
 -- rarity-based Xanth value. Auto-sell can be enabled per reader
 -- and configured to retain a chosen number of each card.
--- Pending trade copies are never sold. One copy is always retained
+-- Copies referenced by trade offers are never sold, preserving trade history. One copy is always retained
 -- by manual sales; automatic settings may retain 1–100 copies.
 -- ============================================================
 
@@ -123,7 +123,7 @@ begin
     where c.owner_user_id=reader_id and c.card_id=p_card_id
       and not exists (
         select 1 from public.card_trade_offers t
-        where t.offered_copy_id=c.copy_id and t.status='pending'
+        where t.offered_copy_id=c.copy_id
       )
     order by c.acquired_at desc,c.copy_id desc
     limit least(p_quantity,total_owned-1)
@@ -137,7 +137,7 @@ begin
   select count(*)::integer into sold_count from deleted;
 
   if sold_count=0 then
-    raise exception 'No duplicate copies are available to sell. A copy may be reserved in a pending trade';
+    raise exception 'No duplicate copies are available to sell. A copy may be reserved by a trade offer';
   end if;
 
   total_value := unit_value*sold_count;
@@ -219,7 +219,7 @@ begin
     where c.owner_user_id=new.owner_user_id and c.card_id=new.card_id
       and not exists (
         select 1 from public.card_trade_offers t
-        where t.offered_copy_id=c.copy_id and t.status='pending'
+        where t.offered_copy_id=c.copy_id
       )
     order by c.acquired_at desc,c.copy_id desc
     limit excess_count
