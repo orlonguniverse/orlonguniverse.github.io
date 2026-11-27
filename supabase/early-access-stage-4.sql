@@ -144,7 +144,12 @@ begin
 end;
 $$;
 
-create or replace function public.get_my_early_access_missions()
+-- Stage 3 returned only the original ten columns. Stage 4 adds reward and
+-- verification fields, so PostgreSQL requires this function to be dropped
+-- and recreated. This removes only the function definition, not reader data.
+drop function if exists public.get_my_early_access_missions();
+
+create function public.get_my_early_access_missions()
 returns table (
  mission_key text,title text,category text,description text,instructions text,
  action_label text,action_url text,sort_order integer,is_completed boolean,
