@@ -145,7 +145,7 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <p id="accessCodeMessage" class="muted" role="status" aria-live="polite">Access permissions you've unlocked will appear below.</p>
 <div id="readerAccessGrantList" class="reader-access-grants"><p class="muted">Loading your access permissions...</p></div>
 </section>
-<section class="panel profile-picture-panel" aria-labelledby="profilePictureHeading">
+<section class="panel profile-picture-panel" id="profilePicturePanel" aria-labelledby="profilePictureHeading">
 <h2 id="profilePictureHeading">YOUR PROFILE</h2><div class="profile-picture-editor">
 <img id="accountAvatarPreview" class="account-avatar" src="" alt="Your profile picture" hidden>
 <div class="profile-picture-fields"><label for="accountAvatarInput">PROFILE PICTURE</label>
@@ -154,7 +154,7 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <button class="primary" id="uploadAvatarButton" type="button">UPLOAD PROFILE PICTURE</button>
 <p id="avatarUploadMessage" class="muted" role="status" aria-live="polite"></p></div></div></section>
 <div class="panel"><div class="section-row"><div><p class="eyebrow">WELCOME BACK</p><h2 id="profileName">READER</h2></div><button class="secondary" id="signOutButton" type="button">SIGN OUT</button></div><p class="muted">These figures are based on activity saved to your account. Reading progress stored only in your browser is not included.</p><div class="stats-grid" id="personalStats"></div></div>
-<section class="panel" aria-labelledby="cardCollectionHeading">
+<section class="panel" id="cardCollectionPanel" aria-labelledby="cardCollectionHeading">
 <h2 id="cardCollectionHeading">YOUR CARD COLLECTION</h2>
 <p class="muted">Every card you've earned is kept here. Duplicate copies are counted separately and remain yours.</p>
 <p id="cardCollectionSummary" class="card-collection-summary" aria-live="polite">Loading your collection...</p>
@@ -183,7 +183,7 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <div class="trade-subsection"><h3>READER COLLECTIONS</h3><div id="publicCollectionDirectory" class="trade-list"><div class="empty">Loading public collections...</div></div></div>
 <div class="trade-subsection"><h3>YOUR TRADE OFFERS</h3><div id="myTradeOffers" class="trade-list"><div class="empty">Loading trade offers...</div></div></div>
 </section>
-<section class="panel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
+<section class="panel" id="achievementsPanel" aria-labelledby="achievementHeading"><h2 id="achievementHeading">YOUR ACHIEVEMENTS</h2><p class="muted">Milestones are unlocked automatically as you read, participate and collect. Your progress is private to your account.</p><p id="achievementSummary" class="card-collection-summary" aria-live="polite">Loading your achievements...</p><div id="achievementGrid" class="activity-list"><div class="empty">Loading achievements...</div></div></section>
 <section class="panel"><h2>YOUR READING PROGRESS</h2><p class="muted">Your progress is measured against chapters currently released in the Reading Room. You can mark or unmark any released chapter below.</p><div class="progress-caption" id="progressSummary">Loading your progress...</div><div class="progress-track" id="accountProgressTrack" role="progressbar" aria-label="Released chapters completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="accountProgressFill"></div></div><div class="activity-list" id="releasedChapterProgress"></div></section>
 <section class="panel"><h2>YOUR CHAPTER CHALLENGES</h2><p class="muted">Every submitted quiz attempt is recorded separately and cannot be edited after submission.</p><div class="activity-list" id="quizAttemptList"></div></section>
 <section class="panel"><h2>YOUR CHAPTER REACTIONS</h2><p class="muted">Your current saved reaction for each chapter. Change or remove a reaction whenever you like.</p><div class="activity-list" id="reactionList"></div></section>
