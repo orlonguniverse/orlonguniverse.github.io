@@ -2,6 +2,11 @@
 -- Run once in Supabase SQL Editor after card-foundation.sql and schema.sql.
 -- All catalogue writes and uploads are restricted to reader_moderators.
 
+insert into public.card_categories (category_id,label,category_code,description,sort_order,is_active)
+values ('special-edition','Special Edition','ERA','Limited and promotional card editions.',9,true)
+on conflict (category_id) do update set label=excluded.label,category_code=excluded.category_code,
+ description=excluded.description,sort_order=excluded.sort_order,is_active=true;
+
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('orlong-card-artwork','orlong-card-artwork',true,12582912,
        array['image/png','image/jpeg','image/webp'])
@@ -105,7 +110,7 @@ begin
    select category_code into v_code from public.card_categories where category_id=p_category_id;
    select coalesce(max(category_number),0)+1 into v_number
    from public.card_catalogue
-   where category_id=p_category_id and card_number not like 'ERA-%';
+   where category_id=p_category_id;
    v_card_number := v_code||'-'||lpad(v_number::text,3,'0');
    insert into public.card_catalogue(
     card_id,category_id,category_number,card_number,name,rarity,set_id,
