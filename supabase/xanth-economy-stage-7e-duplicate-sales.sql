@@ -22,10 +22,9 @@ revoke all on public.reader_card_sale_settings from public, anon, authenticated;
 create or replace function public.get_my_duplicate_sale_settings()
 returns jsonb
 language plpgsql
-stable
 security definer
 set search_path=public,pg_temp
-as $$
+as $
 declare
   reader_id uuid := auth.uid();
   settings_row public.reader_card_sale_settings%rowtype;
@@ -164,8 +163,10 @@ begin
 end;
 $$;
 
--- Automatically sells only copies above the reader's configured keep
+-- Automatically sells newly inserted copies above the reader's configured keep
 -- limit. The oldest copies are retained; pending trade copies are protected.
+-- Existing card-to-card transfers remain untouched so completed trade records
+-- and their copy references are preserved.
 create or replace function public.auto_sell_excess_card_copies()
 returns trigger
 language plpgsql
@@ -253,7 +254,7 @@ $$;
 
 drop trigger if exists reader_card_auto_sell_duplicates on public.reader_card_copies;
 create trigger reader_card_auto_sell_duplicates
-after insert or update of owner_user_id on public.reader_card_copies
+after insert on public.reader_card_copies
 for each row execute function public.auto_sell_excess_card_copies();
 
 revoke all on function public.get_my_duplicate_sale_settings() from public,anon;
