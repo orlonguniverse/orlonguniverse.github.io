@@ -560,13 +560,19 @@ grant execute on function public.get_xanth_mystery_packs() to authenticated;
 grant execute on function public.purchase_xanth_mystery_pack(text) to authenticated;
 
 -- Verification 1: the configured rarity order, odds and card values.
-select rarity,weight,
-       round(weight/(select sum(public.xanth_rarity_weight(r)) from
-         unnest(array['common','uncommon','rare','epic','legendary']) r)::numeric*100,2) as standard_draw_percent,
-       public.xanth_rarity_price(rarity)/100.0 as base_value_xanth
-from unnest(array['common','uncommon','rare','epic','legendary']) rarity
-cross join lateral (select public.xanth_rarity_weight(rarity) as weight) w
-order by array_position(array['common','uncommon','rare','epic','legendary'],rarity);
+select r.rarity,w.weight,
+       round(
+         w.weight /
+         (select sum(public.xanth_rarity_weight(rr.rarity))
+          from unnest(array['common','uncommon','rare','epic','legendary']::text[]) as rr(rarity))
+         * 100,2
+       ) as standard_draw_percent,
+       public.xanth_rarity_price(r.rarity)/100.0 as base_value_xanth
+from unnest(array['common','uncommon','rare','epic','legendary']::text[]) as r(rarity)
+cross join lateral (
+  select public.xanth_rarity_weight(r.rarity) as weight
+) w
+order by array_position(array['common','uncommon','rare','epic','legendary']::text[],r.rarity);
 
 -- Verification 2: currently released card counts by rarity.
 select c.rarity,count(*) as released_cards
