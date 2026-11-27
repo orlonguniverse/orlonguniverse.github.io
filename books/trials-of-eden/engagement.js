@@ -421,7 +421,7 @@ function renderQuizMessage(message) {
   target.appendChild(note);
 }
 
-function renderQuizAttemptReview(quiz, attempt, practice = false) {
+function renderQuizAttemptReview(quiz, attempt, practice = false, officialAttempt = null) {
   const target = byId("chapterQuiz");
   target.replaceChildren();
   const result = document.createElement("p");
@@ -447,15 +447,22 @@ function renderQuizAttemptReview(quiz, attempt, practice = false) {
     }
     target.appendChild(item);
   });
+  if (practice && officialAttempt) {
+    const official = document.createElement("button");
+    official.type = "button";
+    official.className = "quiz-retake-button";
+    official.textContent = "REVIEW OFFICIAL RESULT";
+    official.addEventListener("click",() => renderQuizAttemptReview(quiz,officialAttempt));
+    target.appendChild(official);
+  }
   const retake = document.createElement("button");
   retake.type = "button";
   retake.className = "quiz-retake-button";
   retake.textContent = "PRACTISE AGAIN";
-  retake.addEventListener("click",() => renderQuizForm(quiz, true));
+  retake.addEventListener("click",() => renderQuizForm(quiz, true, officialAttempt));
   target.appendChild(retake);
 }
-
-function renderQuizForm(quiz, practice = false) {
+function renderQuizForm(quiz, practice = false, officialAttempt = null) {
   const target = byId("chapterQuiz");
   target.replaceChildren();
 
@@ -524,7 +531,7 @@ function renderQuizForm(quiz, practice = false) {
 
     const score = answers.reduce((total,answer,index) => total + (answer === quiz.questions[index].answer ? 1 : 0),0);
     if (practice) {
-      renderQuizAttemptReview(quiz,{score,total_questions:3,answers},true);
+      renderQuizAttemptReview(quiz,{score,total_questions:3,answers},true,officialAttempt);
       return;
     }
     submit.disabled = true;
@@ -595,7 +602,7 @@ async function loadChapterQuiz() {
     retake.type = "button";
     retake.className = "quiz-retake-button";
     retake.textContent = "PRACTISE AGAIN";
-    retake.addEventListener("click",() => renderQuizForm(quiz,true));
+    retake.addEventListener("click",() => renderQuizForm(quiz,true,latest));
     target.appendChild(retake);
     return;
   }
