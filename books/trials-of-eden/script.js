@@ -81,6 +81,14 @@ function toggleBookOnlyMode(force) {
     button.textContent = active ? "EXIT BOOK-ONLY MODE" : "BOOK-ONLY MODE";
     button.setAttribute("aria-pressed", String(active));
   }
+  if (active) {
+    // Entering this mode should take the reader directly to the manuscript,
+    // not leave them at the Reading Room introduction.
+    if (window.location.hash !== "#chapter") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search + "#chapter");
+    }
+    document.getElementById("chapter")?.scrollIntoView({behavior:"auto",block:"start"});
+  }
 }
 function toggleMobileFocus() {
   const active = !document.body.classList.contains("mobile-focus-mode");
