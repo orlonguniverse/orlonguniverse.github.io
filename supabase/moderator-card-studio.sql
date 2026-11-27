@@ -76,6 +76,7 @@ declare
  v_code text;
  v_card_number text;
  v_is_new boolean;
+v_existing_category text;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if nullif(trim(p_name),'') is null then raise exception 'Card name is required'; end if;
@@ -107,9 +108,10 @@ begin
     nullif(trim(p_description),''),nullif(trim(p_artwork_url),''),coalesce(p_active,true),v_number
    );
  else
-   select category_number,card_number into v_number,v_card_number
+   select category_number,card_number,category_id into v_number,v_card_number,v_existing_category
    from public.card_catalogue where card_id=p_card_id;
    if not found then raise exception 'Card not found'; end if;
+   if v_existing_category is distinct from p_category_id then raise exception 'A card category cannot be changed after its permanent card number has been assigned'; end if;
    update public.card_catalogue set
     name=trim(p_name),category_id=p_category_id,rarity=p_rarity,set_id=p_set_id,
     unlock_chapter_id=nullif(trim(p_unlock_chapter_id),''),
@@ -130,3 +132,26 @@ grant execute on function public.save_moderator_card(text,text,text,text,text,te
 
 -- Verification: these functions return data only to registered moderators.
 select public.is_reader_moderator() as current_user_is_moderator;
+
+-- Public archive feed. Unreleased chapter-linked cards remain hidden until
+-- their unlock chapter is released and the moderator clears that chapter lock.
+create or replace function public.get_public_card_catalogue()
+returns table (
+ card_id text,card_number text,name text,rarity text,category_id text,
+ category_label text,category_code text,set_id text,unlock_chapter_id text,
+ spoiler_safe_description text,artwork_url text
+)
+language sql stable security definer
+set search_path=public,pg_temp
+as $$
+ select c.card_id,c.card_number,c.name,c.rarity,c.category_id,
+        cat.label,cat.category_code,c.set_id,c.unlock_chapter_id,
+        c.spoiler_safe_description,c.artwork_url
+ from public.card_catalogue c
+ join public.card_categories cat on cat.category_id=c.category_id
+ where c.is_active=true
+   and (c.unlock_chapter_id is null or c.unlock_chapter_id='chapter-01')
+ order by cat.sort_order,c.category_number;
+$$;
+revoke all on function public.get_public_card_catalogue() from public;
+grant execute on function public.get_public_card_catalogue() to anon,authenticated;
