@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Moderator Headquarters | Orlong</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../site-nav.css"><link rel="stylesheet" href="moderator.css?v=7"></head>
+<link rel="stylesheet" href="../site-nav.css"><link rel="stylesheet" href="moderator.css?v=stage-7a"></head>
 <body class="dark"><nav class="topbar"><a href="../index.html" class="logo">ORLONG</a><div class="topbar-right"><a href="../index.html">HOME</a><a href="../explore-eden/">EXPLORE EDEN</a><button type="button" id="openAccountButton" class="nav-account-button" data-account-href="../books/trials-of-eden/account.html">SIGN IN</button></div></nav>
 <main class="mod-shell" id="moderatorApp" hidden>
 <header class="mod-hero"><p class="eyebrow">PRIVATE WORKSPACE · MODERATOR ACCESS</p><h1>MODERATOR HEADQUARTERS</h1><p>Your control room for Orlong's readers, discussions and collectible archive.</p></header>
@@ -25,6 +25,25 @@
 </div>
 <div class="catalogue-heading"><div><p class="eyebrow">YOUR EXISTING WORK</p><h2>MANAGE CARD CATALOGUE</h2></div><input id="cardSearch" type="search" placeholder="Search cards…"></div><div id="cardList" class="card-list"><p class="hint">Loading catalogue…</p></div>
 </section>
+<section class="mod-panel" id="shopPanel">
+<div class="panel-heading"><div><p class="eyebrow">XANTHEON EXCHANGE</p><h2>DAILY SHOP MANAGEMENT</h2><p>Review the automatic daily rotation and replace any featured slot with a card of your choice.</p></div></div>
+<div class="shop-admin-controls">
+<label>SHOP DATE<input type="date" id="shopAdminDate"></label>
+<button type="button" class="secondary" id="loadShopAdmin">LOAD SHOP</button>
+</div>
+<div id="shopAdminSlots" class="shop-admin-slots"><p class="hint">Choose a date to load its featured cards.</p></div>
+<form id="shopOverrideForm" class="shop-override-form">
+<p class="eyebrow">MANUAL FEATURED SLOT OVERRIDE</p>
+<div class="field-grid">
+<label>FEATURED SLOT<select id="shopSlotNumber"><option value="1">SLOT 1</option><option value="2">SLOT 2</option><option value="3">SLOT 3</option></select></label>
+<label>REPLACEMENT CARD<select id="shopCardSelect" required><option value="">Load the shop first</option></select></label>
+</div>
+<label>OPTIONAL PRICE IN XANTHS<input id="shopCardPrice" type="number" min="0.01" step="0.01" placeholder="Leave blank to use the current/default price"></label>
+<p class="hint">The replacement stays in this slot for the selected shop date. Leave the price blank to preserve the slot's current price, or use the card's rarity-based default if the slot is new.</p>
+<div class="form-actions"><button class="primary" type="submit" id="saveShopOverride">SAVE SLOT OVERRIDE</button></div>
+<p id="shopAdminMessage" role="status" aria-live="polite"></p>
+</form>
+</section>
 <section class="mod-panel" id="communityPanel"><div class="panel-heading"><div><p class="eyebrow">READER SAFETY</p><h2>COMMUNITY MODERATION</h2><p>Open the existing review tools. Reports, approvals, removals and moderation history remain managed by the current moderation system.</p></div></div><div class="tool-links"><a href="../books/trials-of-eden/index.html#chapterDiscussion">OPEN CHAPTER DISCUSSIONS ↗</a><a href="../books/trials-of-eden/account.html#administrationSection">OPEN MODERATOR DASHBOARD ↗</a></div></section>
 <section class="mod-panel" id="accessPanel"><div class="panel-heading"><div><p class="eyebrow">READER PERMISSIONS</p><h2>ACCESS MANAGEMENT</h2><p>Create and manage access codes through the existing secure account administration tools.</p></div></div><div class="tool-links"><a href="../books/trials-of-eden/account.html#administrationSection">OPEN ACCESS CODE ADMINISTRATION ↗</a><a href="../early-access/">VIEW EARLY ACCESS ↗</a><a href="../founding-readers/">VIEW FOUNDING READERS ↗</a></div></section>
 <section class="mod-panel" id="resetsPanel">
@@ -38,4 +57,4 @@
 <section id="accessDenied" class="denied" hidden><p class="eyebrow">RESTRICTED AREA</p><h1>MODERATOR ACCESS REQUIRED</h1><p>This workspace is only available to authorised Orlong moderators.</p><a href="../books/trials-of-eden/account.html">RETURN TO YOUR ACCOUNT</a></section>
 <dialog id="cropDialog" class="crop-dialog"><div class="crop-head"><div><p class="eyebrow">ARTWORK PREPARATION</p><h2>POSITION YOUR ARTWORK</h2></div><button type="button" id="closeCrop" class="secondary">CLOSE</button></div><p class="hint">Drag the image to reposition it. Use the zoom slider to frame the subject. The final card image is portrait 2:3.</p><div class="crop-stage" id="cropStage"><canvas id="cropCanvas" width="450" height="675"></canvas></div><label class="zoom-label">ZOOM <input id="cropZoom" type="range" min="1" max="3.5" step=".01" value="1"></label><div class="form-actions"><button type="button" class="primary" id="applyCrop">USE THIS ARTWORK</button></div></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../site-nav.js?v=stage-6k"></script><script src="moderator.js?v=7"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../site-nav.js?v=stage-6k"></script><script src="moderator.js?v=stage-7a"></script></body></html>
