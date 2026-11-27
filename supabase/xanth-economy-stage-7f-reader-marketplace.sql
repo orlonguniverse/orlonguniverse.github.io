@@ -130,6 +130,7 @@ begin
  if uid is null then raise exception 'Authentication required'; end if;
  select * into l from public.reader_card_market_listings where listing_id=p_listing_id and status='active' for update;
  if not found then raise exception 'This listing is no longer available'; end if;
+ if exists(select 1 from public.reader_card_market_offers where listing_id=p_listing_id and status='pending') then raise exception 'This listing has an active offer. Respond to it before buying'; end if;
  if l.seller_user_id=uid then raise exception 'You cannot buy your own listing'; end if;
  if not exists(select 1 from public.reader_card_settings s where s.user_id=l.seller_user_id and s.collection_is_public) then raise exception 'Seller collection is no longer public'; end if;
  insert into public.reader_xanth_accounts(user_id) values(uid),(l.seller_user_id) on conflict(user_id) do nothing;
@@ -153,7 +154,7 @@ create or replace function public.create_reader_market_offer(
  p_proposer_pays_cents bigint default 0,p_recipient_pays_cents bigint default 0,p_message text default null
 )
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
-declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; copy_id uuid; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
+declare uid uuid:=auth.uid(); lid public.reader_card_market_listings%rowtype; oid uuid; v_copy_id uuid; pc jsonb:='[]'::jsonb; rc jsonb:='[]'::jsonb;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  if p_recipient_id is null or p_recipient_id=uid then raise exception 'Choose another reader'; end if;
@@ -169,14 +170,16 @@ begin
  if not exists(select 1 from public.reader_card_settings s where s.user_id=p_recipient_id and s.collection_is_public) then raise exception 'That reader does not have a public collection'; end if;
  insert into public.reader_card_market_offers(listing_id,proposer_user_id,recipient_user_id,proposer_pays_cents,recipient_pays_cents)
  values(p_listing_id,uid,p_recipient_id,coalesce(p_proposer_pays_cents,0),coalesce(p_recipient_pays_cents,0)) returning offer_id into oid;
- foreach copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=copy_id and c0.owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
-  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=copy_id;
+ foreach v_copy_id in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
+  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=uid) then raise exception 'One of your offered cards is no longer yours'; end if;
+  if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A card already listed for sale cannot be added to a separate offer'; end if;
+  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'proposer',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
   select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into pc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='proposer';
  end loop;
- foreach copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
-  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=copy_id and c0.owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
-  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=copy_id;
+ foreach v_copy_id in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
+  if not exists(select 1 from public.reader_card_copies c0 where c0.copy_id=v_copy_id and c0.owner_user_id=p_recipient_id) then raise exception 'One of the requested cards is no longer owned by that reader'; end if;
+  if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=v_copy_id and l0.status='active' and (p_listing_id is null or l0.listing_id<>p_listing_id)) then raise exception 'A requested card is already listed for sale'; end if;
+  insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select oid,'recipient',x.copy_id,x.card_id from public.reader_card_copies x where x.copy_id=v_copy_id;
  end loop;
  select coalesce(jsonb_agg(jsonb_build_object('card_id',cat.card_id,'name',cat.name,'card_number',cat.card_number,'rarity',cat.rarity)), '[]'::jsonb) into rc from public.reader_card_market_offer_items i join public.card_catalogue cat on cat.card_id=i.card_id where i.offer_id=oid and i.owner_side='recipient';
  if p_listing_id is not null and not (lid.copy_id=any(coalesce(p_recipient_copy_ids,'{}'::uuid[]))) then raise exception 'Listing card missing from offer'; end if;
@@ -202,10 +205,12 @@ begin
  delete from public.reader_card_market_offer_items where offer_id=p_offer_id;
  foreach c in array coalesce(p_proposer_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies where copy_id=c and owner_user_id=o.proposer_user_id) then raise exception 'A proposed card is no longer owned by its reader'; end if;
+  if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=c and l0.status='active') then raise exception 'A proposed card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'proposer',copy_id,card_id from public.reader_card_copies where copy_id=c;
  end loop;
  foreach c in array coalesce(p_recipient_copy_ids,'{}'::uuid[]) loop
   if not exists(select 1 from public.reader_card_copies where copy_id=c and owner_user_id=o.recipient_user_id) then raise exception 'A requested card is no longer owned by its reader'; end if;
+  if exists(select 1 from public.reader_card_market_listings l0 where l0.copy_id=c and l0.status='active' and l0.listing_id is distinct from o.listing_id) then raise exception 'A requested card is already listed for sale'; end if;
   insert into public.reader_card_market_offer_items(offer_id,owner_side,copy_id,card_id) select p_offer_id,'recipient',copy_id,card_id from public.reader_card_copies where copy_id=c;
  end loop;
  if o.listing_id is not null then
