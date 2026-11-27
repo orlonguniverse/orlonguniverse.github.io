@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-4d">
 <style>
+.mission-reward-placeholder{width:70px;height:98px;display:grid;place-items:center;padding:8px;text-align:center;border:1px solid #d8b97899;background:linear-gradient(145deg,#152d49,#071321);color:var(--gold);font-family:Cinzel,serif;font-size:9px;letter-spacing:1.2px;box-shadow:inset 0 0 22px #398cff22;}
 :root{color-scheme:dark;--bg:#070d18;--surface:#0e1929;--surface2:#14243a;--text:#edf4ff;--muted:#a2b1c5;--border:#8dbfff25;--accent:#398cff;--ice:#a8d4ff;--gold:#d8b978;--green:#77d6ad}
 body.light{color-scheme:light;--bg:#f1f3f7;--surface:#fff;--surface2:#edf2f8;--text:#1b293b;--muted:#627187;--border:#24466a24;--accent:#1557a6;--ice:#174f91;--gold:#9c742f;--green:#247b5a}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#163c6540,transparent 42%),var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh}
@@ -68,7 +69,7 @@ h1,h2,h3{font-family:Cinzel,serif;font-weight:500}.hero{text-align:center;paddin
 <section id="privateArea" hidden>
 <div class="panel welcome-panel"><div class="welcome-copy"><span class="welcome-mark">FOUNDING READER ACCESS CONFIRMED</span><h2>WELCOME TO THE INNER CIRCLE</h2><p class="muted">You're among the first readers helping shape the Orlong Universe. Explore the experience, put its features through their paces and help us make the Reading Room exceptional.</p><p class="muted">Every completed mission earns a one-of-a-kind card for your personal binder. Your collection is exclusive to this Early Access programme.</p></div><div class="welcome-side-mark" aria-hidden="true">EA</div></div>
 <section class="panel" aria-labelledby="missionHeading"><div class="mission-overview"><div><p class="eyebrow">THE FOUNDING READER INITIATIVE</p><h2 id="missionHeading">YOUR MISSIONS</h2><p class="muted">Explore each destination and complete the activity before claiming its reward.</p></div><span class="mission-count" id="missionCount">LOADING PROGRESS</span></div>
-<div class="progress-track" role="progressbar" aria-label="Mission completion" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0" id="missionProgressTrack"><span id="missionProgressFill"></span></div><div class="progress-meta"><p class="muted" id="missionProgressText" aria-live="polite">Loading your missions…</p><p class="reward-count" id="rewardCount">0 / 8 EXCLUSIVE CARDS EARNED</p></div>
+<div class="progress-track" role="progressbar" aria-label="Mission completion" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="missionProgressTrack"><span id="missionProgressFill"></span></div><div class="progress-meta"><p class="muted" id="missionProgressText" aria-live="polite">Loading your missions…</p><p class="reward-count" id="rewardCount">0 / 10 CHARACTER PACKS OPENED</p></div>
 <div id="missionList" class="mission-groups" aria-live="polite"><div class="status">Loading your testing missions…</div></div><p id="missionMessage" class="muted" role="status" aria-live="polite"></p></section>
 <section class="panel feedback-panel" id="testerFeedback"><p class="eyebrow">THE FINAL MISSION</p><h2>HELP SHAPE WHAT COMES NEXT</h2><p class="muted">Tell us what worked, what felt confusing, what broke, or what you would love to see added. Your feedback is private to the Orlong team and will help guide the next improvements.</p>
 <form id="testerFeedbackForm" class="feedback-form"><label for="testerFeedbackText" class="muted">YOUR TESTER FEEDBACK</label><textarea id="testerFeedbackText" maxlength="3000" minlength="20" required placeholder="What did you test? What worked well? What could be improved?"></textarea><p class="feedback-hint">Please include at least 20 characters. Maximum 3,000 characters. Avoid including passwords or other private information.</p><button class="primary" id="submitTesterFeedbackButton" type="submit">SUBMIT FEEDBACK</button></form><p id="testerFeedbackMessage" class="muted" role="status" aria-live="polite"></p></section>
@@ -77,6 +78,6 @@ h1,h2,h3{font-family:Cinzel,serif;font-weight:500}.hero{text-align:center;paddin
 <footer>ORLONG UNIVERSE · PRIVATE EARLY ACCESS</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-5b"></script>
-<script src="early-access.js?v=stage-4-verified-cards"></script>
+<script src="early-access.js?v=stage-5-character-packs"></script>
 </body>
 </html>
