@@ -138,6 +138,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  }
  // Shared optional background soundtrack control on pages using the site navigation.
  if(!document.querySelector("script[data-orlong-music]")){
-  const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6d";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
+  const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6e";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
  }
 });
