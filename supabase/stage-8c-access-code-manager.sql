@@ -122,8 +122,8 @@ begin
   if jsonb_array_length(allowed_domains)>0 then
    select lower(email) into reader_email from auth.users where id=reader_id;
    if reader_email is null or not exists(
-    select 1 from jsonb_array_elements_text(allowed_domains) d
-    where split_part(reader_email,'@',2)=lower(trim(d))
+    select 1 from jsonb_array_elements_text(allowed_domains) as domain(value)
+    where split_part(reader_email,'@',2)=lower(trim(domain.value))
    ) then
     return jsonb_build_object('success',false,'message','This access code is restricted to eligible email addresses.');
    end if;
@@ -185,6 +185,10 @@ begin
  if nullif(trim(p_label),'') is null or char_length(trim(p_label))>100 then raise exception 'Enter a campaign label of 1–100 characters'; end if;
  if p_max_redemptions is not null and p_max_redemptions<1 then raise exception 'Redemption limit must be at least one'; end if;
  if p_eligibility_rules is null or jsonb_typeof(p_eligibility_rules)<>'object' then raise exception 'Eligibility settings must be an object'; end if;
+ if jsonb_typeof(coalesce(p_eligibility_rules->'required_access_keys','[]'::jsonb))<>'array'
+  or jsonb_typeof(coalesce(p_eligibility_rules->'allowed_email_domains','[]'::jsonb))<>'array' then
+  raise exception 'Required permissions and allowed domains must be lists';
+ end if;
  select redemption_count into v_count from public.access_code_campaigns where campaign_id=p_campaign_id for update;
  if not found then raise exception 'Access-code campaign not found'; end if;
  if p_max_redemptions is not null and p_max_redemptions<v_count then raise exception 'The new limit cannot be lower than the number of redemptions already used'; end if;
