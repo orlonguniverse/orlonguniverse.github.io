@@ -416,7 +416,7 @@
 .progress-category-list{display:grid;gap:34px}
 .progress-category{padding:20px;background:rgba(12,22,36,.7);border:1px solid var(--eden-border)}
 .progress-category-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
-.progress-category-heading h3{margin:0;font:500 17px Cinzel,serif;color:var(--eden-white)}
+.progress-category-heading h3{margin:0;font:500 17px Cinzel,serif;color:var(--eden-text)}
 .progress-category-count{color:var(--eden-blue);font-size:9px;font-weight:700;letter-spacing:1px;white-space:nowrap}
 .progress-meter{height:5px;margin:0 0 18px;background:#1c2c40;border:1px solid #304761;overflow:hidden}
 .progress-meter span{display:block;height:100%;background:linear-gradient(90deg,#367cc2,#9bcaff);transition:width .35s ease}
