@@ -4,7 +4,7 @@ create table if not exists public.orlong_site_content (
  content_id uuid primary key default gen_random_uuid(),
  page_path text not null check (page_path ~ '^/[A-Za-z0-9_./-]*$' and length(page_path)<=240),
  selector text not null check (length(trim(selector)) between 1 and 500),
- property text not null check (property in ('text','href','src','alt','title','placeholder')),
+ property text not null check (property in ('text','href','src','alt','title','placeholder','value','hidden','aria-label')),
  content_value text not null check (length(content_value)<=12000),
  is_published boolean not null default true,
  updated_by uuid references auth.users(id) on delete set null,
