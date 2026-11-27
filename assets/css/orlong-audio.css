@@ -15,7 +15,7 @@
  width:100%!important;min-height:44px!important;padding:10px 14px!important;
  color:#c2d5ec!important;background:transparent!important;border:1px solid transparent!important;
  text-align:left!important;text-decoration:none!important;
- font:600 14px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
+ font:600 12px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
 }
 .nav-main-menu-panel .nav-menu-action:hover,
 .nav-main-menu-panel .nav-menu-statistics:hover{
@@ -35,7 +35,7 @@
  display:flex!important;align-items:center!important;justify-content:center!important;
  width:100%!important;min-height:42px!important;padding:9px!important;
  color:#9ca9bd!important;background:transparent!important;border:1px solid transparent!important;
- font:600 14px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
+ font:600 12px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
 }
 .nav-main-menu-panel .orlong-menu-music-toggle:hover{color:#e4f2ff!important;background:#398cff12!important}
 .nav-main-menu-panel .orlong-menu-volume-label{
@@ -47,7 +47,7 @@
 }
 .nav-main-menu-panel .orlong-menu-music-note{
  margin:14px 0 0!important;color:#91a9c4!important;
- font:400 14px/1.55 Inter,sans-serif!important;letter-spacing:0!important;
+ font:400 12px/1.5 Inter,sans-serif!important;letter-spacing:0!important;
 }
 @media(max-width:760px){
  .nav-main-menu-panel{left:auto!important;right:0!important;max-width:calc(100vw - 14px)!important}
