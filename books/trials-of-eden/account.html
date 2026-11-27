@@ -48,6 +48,10 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 @media(max-width:420px){.card-collection-grid{grid-template-columns:1fr 1fr;gap:9px}.owned-card{padding:8px}.owned-card h3{font-size:11px}}
 
 
+.reader-access-grants{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.access-grant-pill{display:inline-flex;padding:8px 11px;border:1px solid #398cff88;background:#142a43;color:var(--blue-light);font-size:9px;letter-spacing:1px}
+#accessCodeInput{text-transform:uppercase;letter-spacing:1.5px}
+#redeemAccessCodeButton:disabled{opacity:.55;cursor:wait}
 .achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .achievement-item{padding:16px;background:var(--surface2);border:1px solid var(--border)}
 .achievement-item.is-unlocked{border-color:#398cff88;background:linear-gradient(135deg,#173253,#111d2d)}
@@ -105,6 +109,15 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <form id="authForm"><div id="nameField" hidden><label for="displayName">Display name (optional)</label><input id="displayName" maxlength="40" autocomplete="nickname" placeholder="How should we address you?"></div><label for="email">Email address</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com"><label for="password">Password</label><input id="password" type="password" minlength="8" autocomplete="current-password" required placeholder="At least 8 characters"><button class="primary" id="authSubmit" type="submit">SIGN IN</button></form><p class="muted">Your statistics are private to your account. Your email address is never shown publicly.</p></section>
 <section id="dashboard" hidden>
 <p id="dashboardMessage" class="muted" role="status" aria-live="polite" hidden></p>
+<section class="panel" aria-labelledby="accessCodeHeading">
+<h2 id="accessCodeHeading">SPECIAL ACCESS</h2>
+<p class="muted">Have an Orlong access code? Enter it here while signed in to unlock exclusive experiences. Access granted to your account remains yours even after the code expires.</p>
+<label for="accessCodeInput">ACCESS CODE</label>
+<input id="accessCodeInput" type="text" maxlength="100" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter your access code">
+<button class="primary" id="redeemAccessCodeButton" type="button">REDEEM ACCESS CODE</button>
+<p id="accessCodeMessage" class="muted" role="status" aria-live="polite">Access permissions you've unlocked will appear below.</p>
+<div id="readerAccessGrantList" class="reader-access-grants"><p class="muted">Loading your access permissions...</p></div>
+</section>
 <section class="panel profile-picture-panel" aria-labelledby="profilePictureHeading">
 <h2 id="profilePictureHeading">YOUR PROFILE</h2><div class="profile-picture-editor">
 <img id="accountAvatarPreview" class="account-avatar" src="" alt="Your profile picture" hidden>
