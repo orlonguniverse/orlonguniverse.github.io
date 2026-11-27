@@ -6,16 +6,16 @@
  box-shadow:0 16px 42px #0009!important;backdrop-filter:blur(16px);
 }
 .nav-main-menu-panel .nav-menu-section-label{
- display:block;margin:0 0 22px 4px;color:#91caff;font-size:15px;
+ display:block;margin:0 0 12px 4px;color:#91caff;font-size:12px;
  font-weight:600;letter-spacing:2.4px;line-height:1.5;
 }
 .nav-main-menu-panel .nav-menu-action,
 .nav-main-menu-panel .nav-menu-statistics{
  display:flex!important;align-items:center!important;justify-content:flex-start!important;
- width:100%!important;min-height:58px!important;padding:14px 18px!important;
+ width:100%!important;min-height:44px!important;padding:10px 14px!important;
  color:#c2d5ec!important;background:transparent!important;border:1px solid transparent!important;
  text-align:left!important;text-decoration:none!important;
- font:600 18px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
+ font:600 14px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
 }
 .nav-main-menu-panel .nav-menu-action:hover,
 .nav-main-menu-panel .nav-menu-statistics:hover{
@@ -23,31 +23,31 @@
 }
 .nav-main-menu-panel .nav-menu-statistics{margin:0 0 12px!important}
 .nav-main-menu-panel .orlong-menu-music{
- display:block!important;margin:0!important;padding:22px 20px 18px!important;
+ display:block!important;margin:0!important;padding:16px 16px 14px!important;
  background:linear-gradient(145deg,#0d2038,#081321)!important;
  border:1px solid #5a9fe955!important;
 }
 .nav-main-menu-panel .orlong-menu-section-label{
- display:block;margin:0 0 22px!important;color:#91caff!important;
- font-size:15px!important;font-weight:600;letter-spacing:2.5px!important;
+ display:block;margin:0 0 14px!important;color:#91caff!important;
+ font-size:12px!important;font-weight:600;letter-spacing:2.5px!important;
 }
 .nav-main-menu-panel .orlong-menu-music-toggle{
  display:flex!important;align-items:center!important;justify-content:center!important;
- width:100%!important;min-height:54px!important;padding:12px!important;
+ width:100%!important;min-height:42px!important;padding:9px!important;
  color:#9ca9bd!important;background:transparent!important;border:1px solid transparent!important;
- font:600 18px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
+ font:600 14px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
 }
 .nav-main-menu-panel .orlong-menu-music-toggle:hover{color:#e4f2ff!important;background:#398cff12!important}
 .nav-main-menu-panel .orlong-menu-volume-label{
- display:grid!important;gap:18px!important;margin:12px 0 0!important;
- color:#a9bfd7!important;font-size:15px!important;letter-spacing:2px!important;
+ display:grid!important;gap:12px!important;margin:10px 0 0!important;
+ color:#a9bfd7!important;font-size:12px!important;letter-spacing:2px!important;
 }
 .nav-main-menu-panel .orlong-menu-volume-label input{
  display:block;width:100%!important;height:16px!important;margin:0!important;accent-color:#72bdff;
 }
 .nav-main-menu-panel .orlong-menu-music-note{
- margin:20px 0 0!important;color:#91a9c4!important;
- font:400 18px/1.65 Inter,sans-serif!important;letter-spacing:0!important;
+ margin:14px 0 0!important;color:#91a9c4!important;
+ font:400 14px/1.55 Inter,sans-serif!important;letter-spacing:0!important;
 }
 @media(max-width:760px){
  .nav-main-menu-panel{left:auto!important;right:0!important;max-width:calc(100vw - 14px)!important}
