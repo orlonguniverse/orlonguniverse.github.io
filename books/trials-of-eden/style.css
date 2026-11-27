@@ -812,3 +812,36 @@ body[data-reader-theme="midnight"] .orlong-scene-break {
 @media(max-width:1050px){.first-reader-guide{margin:20px 20px 0;grid-template-columns:1fr 1fr}.first-reader-guide-actions{grid-column:1/-1;flex-direction:row;justify-content:flex-end}}
 @media(max-width:650px){.first-reader-guide{grid-template-columns:1fr;padding:19px;margin:16px 12px 0;gap:16px}.first-reader-guide-actions{grid-column:auto}.first-reader-guide-actions a,.first-reader-guide-actions button{flex:1}}
 @media(prefers-reduced-motion:reduce){.first-reader-guide *{transition:none!important}}
+
+
+/* STAGE 8B — READER MODES */
+.book-only-toggle{position:fixed;right:22px;top:18px;z-index:10001;padding:11px 15px;border:1px solid var(--blue);background:var(--surface);color:var(--text);font-size:10px;font-weight:600;letter-spacing:1.2px;box-shadow:0 5px 22px #0005}
+body.book-only-mode .topbar,body.book-only-mode .book-header,body.book-only-mode .first-reader-guide,body.book-only-mode .sidebar,body.book-only-mode .companion,body.book-only-mode footer,body.book-only-mode .reading-progress,body.book-only-mode .floating-bookmark,body.book-only-mode .reading-widget,body.book-only-mode .focus-exit{display:none!important}
+body.book-only-mode .reading-layout{display:block;max-width:900px;padding:34px 22px 30px;margin:auto}
+body.book-only-mode .reader{width:100%;max-width:860px;margin:0 auto;padding:48px clamp(22px,6vw,70px);border:0;box-shadow:none}
+body.book-only-mode .reader-top{border:0;padding-bottom:8px}
+body.book-only-mode .reader-top .reader-controls,body.book-only-mode #readingStatus{display:none!important}
+body.book-only-mode .chapter-heading{padding-top:38px}
+body.book-only-mode #reader-community{display:block!important;max-width:860px;margin:0 auto 50px;padding:0 22px}
+body.book-only-mode #reader-community .engagement-eyebrow,body.book-only-mode #reader-community #communityHeading,body.book-only-mode #reader-community .engagement-intro{display:none!important}
+body.book-only-mode #reader-community .engagement-grid{display:block}
+body.book-only-mode #reader-community .engagement-grid>section{display:none!important}
+body.book-only-mode #reader-community #chapterEngagementCard{display:block!important;padding:20px 0;border:0;border-top:1px solid var(--border);background:transparent;text-align:center}
+body.book-only-mode #chapterEngagementCard>h3,body.book-only-mode #chapterEngagementCard>#chapterEngagementTitle,body.book-only-mode #chapterEngagementCard>#completeChapterButton,body.book-only-mode #chapterEngagementCard>#completionMessage{display:none!important}
+body.book-only-mode #chapterEngagementCard .engagement-reactions{justify-content:center}
+body.book-only-mode .book-only-toggle{top:12px;right:12px;opacity:.2}
+body.book-only-mode .book-only-toggle:hover,body.book-only-mode .book-only-toggle:focus{opacity:1}
+.mobile-focus-toggle{display:none}
+@media(max-width:700px){
+ .book-only-toggle{top:auto;right:12px;bottom:12px;opacity:.2}
+ .book-only-toggle:hover,.book-only-toggle:focus{opacity:1}
+ body.mobile-focus-mode .topbar,body.mobile-focus-mode .site-nav,body.mobile-focus-mode #siteNav,body.mobile-focus-mode .main-nav,body.mobile-focus-mode .book-header,body.mobile-focus-mode .first-reader-guide,body.mobile-focus-mode .sidebar,body.mobile-focus-mode .companion,body.mobile-focus-mode footer,body.mobile-focus-mode .reading-progress,body.mobile-focus-mode .floating-bookmark,body.mobile-focus-mode .reading-widget,body.mobile-focus-mode #reader-community{display:none!important}
+ body.mobile-focus-mode .reading-layout{display:block;padding:10px 8px 30px}
+ body.mobile-focus-mode .reader{border:0;box-shadow:none;padding:24px 17px}
+ .mobile-focus-toggle{display:block;position:fixed;z-index:10002;top:10px;left:10px;padding:9px 12px;border:1px solid var(--blue);border-radius:3px;color:var(--text);background:var(--surface);font-size:9px;font-weight:600;letter-spacing:1px;box-shadow:0 4px 16px #0005}
+ body.mobile-focus-mode .mobile-focus-toggle{opacity:.28}
+ body.mobile-focus-mode .mobile-focus-toggle:focus,body.mobile-focus-mode .mobile-focus-toggle:hover{opacity:1}
+ body.book-only-mode .reading-layout{padding:10px 8px 20px}
+ body.book-only-mode .reader{padding:24px 17px}
+ body.book-only-mode .chapter-heading{padding:34px 0 25px}
+}
