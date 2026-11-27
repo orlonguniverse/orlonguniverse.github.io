@@ -395,3 +395,19 @@
 .eden-hero-actions{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;margin:22px auto 0}
 .eden-hero-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 15px;border:1px solid #6baaff88;background:#122b48;color:#e8f3ff;text-decoration:none;font-size:9px;font-weight:700;letter-spacing:1px}
 .eden-hero-actions span{color:var(--eden-muted);font-size:9px;letter-spacing:1px}
+
+/* Stage 8A — just-in-time explanation for the collector features. */
+.eden-help-guide{margin:0 0 22px;background:#0d1928;border:1px solid var(--eden-border);border-radius:5px}
+.eden-help-guide>summary{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 18px;cursor:pointer;list-style:none}
+.eden-help-guide>summary::-webkit-details-marker{display:none}
+.eden-help-guide>summary>span:first-child{display:grid;gap:5px}
+.eden-help-guide>summary strong{color:#d5e8ff;font-size:10px;letter-spacing:1.3px}
+.eden-help-guide>summary small{color:var(--eden-muted);font-size:11px;line-height:1.5}
+.eden-help-guide .help-toggle{color:#a8ceff;font-size:8px;letter-spacing:1px;white-space:nowrap}
+.eden-help-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 18px 15px}
+.eden-help-grid>div{padding:13px;background:#ffffff06;border:1px solid var(--eden-border)}
+.eden-help-grid strong{color:#c9e2ff;font-size:9px;letter-spacing:1px}
+.eden-help-grid p{margin:7px 0 0;color:var(--eden-muted);font-size:10px;line-height:1.7}
+.eden-help-note{margin:0;padding:0 18px 16px;color:var(--eden-muted);font-size:10px;line-height:1.6}
+@media(max-width:850px){.eden-help-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.eden-help-grid{grid-template-columns:1fr}.eden-help-guide>summary{align-items:flex-start;flex-direction:column}}
