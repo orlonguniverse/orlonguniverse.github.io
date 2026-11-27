@@ -167,12 +167,39 @@ begin
   return jsonb_build_object('success',true,'balance_cents',balance_after,
                             'granted_cents',p_amount_cents);
 end;
-$$;
+$;
+
+-- Email-based wrapper lets moderators grant a reader Xanth without exposing
+-- internal account IDs in the dashboard.
+create or replace function public.moderator_grant_xanth_by_email(
+  p_reader_email text,
+  p_amount_cents bigint,
+  p_description text default 'Xanth grant'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,auth,pg_temp
+as $
+declare
+  target_reader uuid;
+begin
+  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
+  select u.id into target_reader
+  from auth.users u
+  where lower(u.email)=lower(trim(coalesce(p_reader_email,'')))
+  limit 1;
+  if target_reader is null then raise exception 'No reader account was found for that email address'; end if;
+  return public.moderator_grant_xanth(target_reader,p_amount_cents,p_description);
+end;
+$;
 
 revoke all on function public.purchase_xanth_shop_card(integer,date) from public,anon;
 revoke all on function public.moderator_grant_xanth(uuid,bigint,text) from public,anon;
+revoke all on function public.moderator_grant_xanth_by_email(text,bigint,text) from public,anon;
 grant execute on function public.purchase_xanth_shop_card(integer,date) to authenticated;
 grant execute on function public.moderator_grant_xanth(uuid,bigint,text) to authenticated;
+grant execute on function public.moderator_grant_xanth_by_email(text,bigint,text) to authenticated;
 
 -- Verification: the shop provenance type is enabled and the two secure
 -- RPCs are present. No reader-facing direct table writes are granted.
