@@ -121,7 +121,8 @@ declare uid uuid:=auth.uid(); n integer;
 begin
  if uid is null then raise exception 'Authentication required'; end if;
  update public.reader_card_market_listings set status='cancelled',updated_at=now()
- where listing_id=p_listing_id and seller_user_id=uid and status='active';
+ where listing_id=p_listing_id and seller_user_id=uid and status='active'
+ and not exists(select 1 from public.reader_card_market_offers o where o.listing_id=p_listing_id and o.status='pending');
  get diagnostics n=row_count; return n=1;
 end $$;
 
