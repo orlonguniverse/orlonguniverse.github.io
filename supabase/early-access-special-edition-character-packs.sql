@@ -11,8 +11,7 @@ on conflict (category_id) do update set label=excluded.label,category_code=exclu
  description=excluded.description,sort_order=excluded.sort_order,is_active=true;
 
 -- Create the Special Edition set and its ten permanent character identities.
--- ERA has its own visible numbering series. Large internal category_number
--- values preserve category uniqueness without consuming ordinary CHR numbers.
+-- ERA has its own visible numbering series and its own category sequence.
 insert into public.card_sets
  (set_id,title,description,universe_id,series_id,book_id,unlock_chapter_id,sort_order,is_active)
 values
@@ -34,7 +33,7 @@ values
  ('special-emily-kim','special-edition',7,'ERA-007','Emily Kim','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,107,true),
  ('special-alek-petrov','special-edition',8,'ERA-008','Alek Petrov','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,108,true),
  ('special-ethan-lawson','special-edition',9,'ERA-009','Ethan Lawson','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,109,true),
- ('special-colin-thornsberg','characters',900010,'ERA-010','Colin Thornsberg','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,110,true)
+ ('special-colin-thornsberg','special-edition',10,'ERA-010','Colin Thornsberg','rare','early-access-special-edition','orlong','eden','trials-of-eden',null,null,110,true)
 on conflict (card_id) do update set
  category_id=excluded.category_id,category_number=excluded.category_number,
  card_number=excluded.card_number,name=excluded.name,rarity=excluded.rarity,
