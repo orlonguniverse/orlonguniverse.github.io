@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-7d3">
-<link rel="stylesheet" href="explore-eden.css?v=stage-7f7">
+<link rel="stylesheet" href="explore-eden.css?v=stage-7f1">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -19,7 +19,8 @@
 </div></nav>
 <header class="eden-hero"><p class="eyebrow">THE ORLONG COLLECTIBLE ARCHIVE</p><h1>EXPLORE EDEN</h1><p>Discover the cards of Orlong. Build your collection, uncover missing entries and connect with fellow readers.</p></header>
 <main class="eden-shell">
-<div class="eden-welcome"><div><span class="eyebrow">YOUR COLLECTOR'S JOURNEY</span><h2>THE ARCHIVE</h2><p id="sessionMessage" role="status">Sign in to view your collection and connect with other readers.</p></div><a class="eden-account-link" href="../books/trials-of-eden/account.html">MY ACCOUNT</a></div>
+<div class="eden-welcome"><div><span class="eyebrow">YOUR COLLECTOR'S JOURNEY</span><h2>THE ARCHIVE</h2><p id="sessionMessage" role="status">Sign in to view your collection and connect with other readers.</p></div><div class="eden-welcome-actions"><button class="notification-bell" id="notificationBell" type="button" aria-expanded="false" aria-controls="notificationPanel"><span aria-hidden="true">♧</span> NOTIFICATIONS <span class="notification-count" id="notificationCount">0</span></button><a class="eden-account-link" href="../books/trials-of-eden/account.html">MY ACCOUNT</a></div></div>
+<section class="notification-panel" id="notificationPanel" aria-label="Your notifications" hidden><div class="notification-panel-heading"><div><p class="eyebrow">YOUR READER INBOX</p><h3>NOTIFICATIONS</h3></div><div><button id="markAllNotificationsRead" type="button" class="notification-text-button">MARK ALL READ</button><button id="refreshNotifications" type="button" class="notification-text-button">REFRESH</button></div></div><div id="notificationList" class="notification-list"><div class="eden-empty">Sign in to view your notifications.</div></div></section>
 <nav class="eden-tabs" aria-label="Explore Eden sections" role="tablist">
 <button class="eden-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="collectionPanel" id="collectionTab" data-panel="collectionPanel">MY COLLECTION</button>
 <button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="cataloguePanel" id="catalogueTab" data-panel="cataloguePanel">CARD COLLECTION</button>
@@ -69,6 +70,14 @@
  <p class="marketplace-trading-copy">Review incoming offers, accept or decline them, counter with revised Xanth terms, or cancel your own pending offers. Previous versions remain in the offer history.</p>
  <div id="myReaderMarketOffers" class="marketplace-offer-stack"><div class="eden-empty">Your offers will appear here.</div></div>
 </section>
+<section class="marketplace-trading-panel wanted-board-panel"><div class="marketplace-trading-heading"><div><p class="eyebrow">REVERSE CARD EXCHANGE</p><h3>WANTED BOARD</h3></div><button id="refreshWantedBoard" type="button" class="reader-open">REFRESH</button></div>
+<p class="marketplace-trading-copy">Looking for a card you haven't found? Post the card you want and the cards and/or Xanth you're willing to exchange. Your offered cards and Xanth are reserved until the request is fulfilled or cancelled.</p>
+<div class="wanted-post-form"><label>Card you're looking for<select id="wantedCardSelect"><option value="">Loading released cards…</option></select></label>
+<div class="wanted-offer-field"><strong>CARDS YOU'RE OFFERING</strong><div id="wantedOfferCards" class="market-card-check-grid"><div class="eden-empty">Loading your available cards…</div></div></div>
+<label>Xanth you're offering<input id="wantedOfferXanth" type="number" min="0" step="0.01" value="0" placeholder="0.00"></label>
+<label>Message (optional)<input id="wantedMessage" type="text" maxlength="500" placeholder="Add a note for other readers"></label>
+<button id="createWantedPost" type="button" class="eden-primary-link">POST TO WANTED BOARD</button><p id="wantedBoardStatus" class="marketplace-status" role="status" aria-live="polite"></p></div>
+<div class="wanted-board-columns"><div><div class="marketplace-subheading"><h4>YOUR REQUESTS</h4><span>MANAGE YOUR POSTS</span></div><div id="myWantedPosts" class="marketplace-offer-stack"><div class="eden-empty">Your requests will appear here.</div></div></div><div><div class="marketplace-subheading"><h4>READERS LOOKING FOR CARDS</h4><span>FULFIL A REQUEST</span></div><div id="readerWantedBoard" class="marketplace-offer-stack"><div class="eden-empty">Loading Wanted Board…</div></div></div></div></section>
 <section class="marketplace-trading-panel"><div class="marketplace-trading-heading"><div><p class="eyebrow">COMMUNITY BINDERS</p><h3>MAKE A MULTI-CARD OFFER</h3></div></div>
  <p class="marketplace-trading-copy">Browse public collections and select several of your cards, several of theirs, and an optional Xanth payment to create a negotiated offer.</p>
  <div id="readerDirectory" class="reader-directory"><div class="eden-empty">Sign in to browse public collections.</div></div>
@@ -113,6 +122,7 @@
 </main>
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../events-config.js?v=stage-7f1"></script>
 <script src="../site-nav.js?v=stage-7d3"></script>
-<script src="explore-eden.js?v=stage-7f7"></script>
+<script src="explore-eden.js?v=stage-7f1"></script>
 </body></html>
