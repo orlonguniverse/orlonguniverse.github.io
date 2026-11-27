@@ -116,8 +116,9 @@ as $
  select public.is_reader_moderator()
    or exists(
     select 1 from public.eden_book_chapters c
+    join public.eden_book_parts p on p.part_id=c.part_id
     where c.chapter_id || '.html'=p_object_name
-      and c.is_published=true
+      and c.is_published=true and p.is_published=true
       and c.released_at is not null
       and c.released_at<=now()
    );
