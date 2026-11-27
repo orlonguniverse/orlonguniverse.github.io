@@ -862,6 +862,19 @@ body.focus-mode .reader {
 
 </header>
 
+<section class="first-reader-guide" id="firstReaderGuide" aria-labelledby="firstReaderGuideTitle">
+ <div class="first-reader-guide-copy">
+  <p class="guide-eyebrow">NEW TO THE READING ROOM?</p>
+  <h2 id="firstReaderGuideTitle">Everything you need to start reading.</h2>
+  <p>The chapter is the main event. These quick tips explain the rest — and you can close this guide whenever you're ready.</p>
+ </div>
+ <div class="first-reader-guide-steps">
+  <div><strong>01 · CHOOSE A CHAPTER</strong><span>Use the chapter list on the left. Only released chapters can be opened.</span></div>
+  <div><strong>02 · MAKE IT COMFORTABLE</strong><span>Use A− / A+ for text size. Open Reading Options for fonts, page colours and Focus Mode.</span></div>
+  <div><strong>03 · YOUR PROGRESS</strong><span>Progress saves as you read. Sign in when prompted to save milestones, react or join discussions.</span></div>
+ </div>
+ <div class="first-reader-guide-actions"><a href="contents.html">VIEW CHAPTER GUIDE</a><button type="button" id="dismissFirstReaderGuide">GOT IT</button></div>
+</section>
 
 <!-- READING LAYOUT -->
 
@@ -1179,5 +1192,8 @@ body.focus-mode .reader {
 <script src="script.js"></script>
 <script src="engagement.js?v=stage-2-5c"></script><script src="../../early-access/early-access-tracker.js?v=stage-4"></script>
 
+<script>
+(()=>{const guide=document.getElementById("firstReaderGuide");const button=document.getElementById("dismissFirstReaderGuide");if(!guide||!button)return;try{if(localStorage.getItem("orlongReaderGuideDismissed")==="yes")guide.classList.add("is-dismissed");}catch(e){}button.addEventListener("click",()=>{guide.classList.add("is-dismissed");try{localStorage.setItem("orlongReaderGuideDismissed","yes");}catch(e){}});})();
+</script>
 </body>
 </html>
