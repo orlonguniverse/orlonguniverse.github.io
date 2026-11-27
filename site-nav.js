@@ -29,6 +29,9 @@ window.toggleSiteTheme=function(){
  if(button)button.textContent=light?"DARK MODE":"LIGHT MODE";
 };
 document.addEventListener("DOMContentLoaded",()=>{
+ const bookOnlyEnabled=localStorage.getItem("orlongBookOnlyMode")==="true"||localStorage.getItem("edenBookOnlyMode")==="true";
+ const isReadingRoom=location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html");
+ if(bookOnlyEnabled&&!isReadingRoom){window.location.replace("/books/trials-of-eden/");return;}
  const saved=localStorage.getItem("orlongSiteTheme");
  if(saved==="light"||saved==="dark"){
   document.body.classList.toggle("light",saved==="light");
@@ -73,10 +76,11 @@ document.addEventListener("DOMContentLoaded",()=>{
   const panel=document.createElement("div");panel.className="nav-dropdown-menu nav-main-menu-panel";
   const settingsLabel=document.createElement("span");settingsLabel.className="nav-menu-section-label";settingsLabel.textContent="SETTINGS";
   const theme=document.createElement("button");theme.type="button";theme.id="mainMenuThemeButton";theme.className="nav-menu-action";theme.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";theme.addEventListener("click",window.toggleSiteTheme);
+  const bookOnly=document.createElement("button");bookOnly.type="button";bookOnly.id="mainMenuBookOnlyButton";bookOnly.className="nav-menu-action";bookOnly.textContent="TURN ON BOOK-ONLY MODE";bookOnly.addEventListener("click",()=>{localStorage.setItem("orlongBookOnlyMode","true");localStorage.removeItem("edenBookOnlyMode");window.location.href="/books/trials-of-eden/";});
   const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";
   const guideLink=makeLink("READER GUIDE","/getting-started.html",location.pathname.endsWith("/getting-started.html"));
   guideLink.classList.add("nav-guide-link");
-  panel.append(guideLink,settingsLabel,theme,statsLink,musicSlot);
+  panel.append(guideLink,settingsLabel,theme,bookOnly,statsLink,musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
