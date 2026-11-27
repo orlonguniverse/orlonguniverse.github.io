@@ -783,7 +783,7 @@ body.focus-mode .reader {
 .reader .chapter-text { line-height: 1.8 !important; }
 
 </style>
-<link rel="stylesheet" href="../../site-nav.css?v=stage-4b">
+<link rel="stylesheet" href="../../site-nav.css?v=stage-4c">
 </head>
 
 <body class="dark">
@@ -799,7 +799,7 @@ body.focus-mode .reader {
     <a href="../../events.html">EVENTS</a>
     <button type="button" id="openAccountButton" class="nav-account-button">SIGN IN</button>
     <a href="account.html">MY STATISTICS</a>
-    <button type="button" id="themeButton" onclick="toggleSiteTheme()">LIGHT MODE</button>
+    
   </div>
 </nav>
 
@@ -969,6 +969,9 @@ body.focus-mode .reader {
 
       <h3>READING OPTIONS</h3>
       <p class="reader-setting-note">These settings change the manuscript immediately and are saved on this device.</p>
+
+      <label class="reader-setting-label" for="themeButton">SITE APPEARANCE</label>
+      <button type="button" id="themeButton" onclick="toggleSiteTheme()" aria-label="Change site appearance">LIGHT MODE</button>
 
       <label class="reader-setting-label" for="readerThemeSelect">PAGE APPEARANCE</label>
       <select id="readerThemeSelect" class="reader-setting-select">
@@ -1170,7 +1173,7 @@ body.focus-mode .reader {
 
 <!-- Scripts must load AFTER the floating panel so PIN and collapse controls are available. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../../site-nav.js?v=stage-4b"></script>
+<script src="../../site-nav.js?v=stage-4c"></script>
 <script src="chapters.js"></script>
 <script src="scene-breaks.js?v=2"></script>
 <script src="script.js"></script>
