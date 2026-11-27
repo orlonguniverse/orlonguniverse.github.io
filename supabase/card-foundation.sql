@@ -82,7 +82,8 @@ values
   ('organisations', 'Organisations', 'ORG', 'Groups, institutions and factions.', 5),
   ('technology', 'Technology', 'TEC', 'Devices, inventions and scientific systems.', 6),
   ('events', 'Events & History', 'EVT', 'Historical events, competitions and turning points.', 7),
-  ('concepts', 'Concepts & Abilities', 'CON', 'Abilities, forces and important universe concepts.', 8)
+  ('concepts', 'Concepts & Abilities', 'CON', 'Abilities, forces and important universe concepts.', 8),
+  ('special-edition', 'Special Edition', 'ERA', 'Limited and promotional card editions.', 9),
 on conflict (category_id) do update set
   label = excluded.label,
   category_code = excluded.category_code,
