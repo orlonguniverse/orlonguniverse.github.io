@@ -165,7 +165,8 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <section class="panel" id="accessCodeAdminPanel" aria-labelledby="accessCodeAdminHeading" hidden>
 <h2 id="accessCodeAdminHeading">ACCESS CODE ADMINISTRATION</h2>
 <p class="muted">Create reusable promotional codes. Access permissions are permanent for each reader who successfully redeems a code, even after that code expires.</p>
-<details class="admin-form-disclosure"><summary>CREATE A NEW ACCESS CODE</summary><div class="admin-form-fields">\n<label for="accessCampaignLabel">CAMPAIGN NAME</label>
+<details class="admin-form-disclosure"><summary>CREATE A NEW ACCESS CODE</summary><div class="admin-form-fields">
+<label for="accessCampaignLabel">CAMPAIGN NAME</label>
 <input id="accessCampaignLabel" type="text" maxlength="100" placeholder="e.g. Founding Readers — 2026">
 <label for="accessCampaignCustomCode">CUSTOM ACCESS CODE (OPTIONAL)</label>
 <input id="accessCampaignCustomCode" type="text" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. EDEN2026">
@@ -173,12 +174,14 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <label for="accessCampaignKeys">ACCESS PERMISSIONS (COMMA-SEPARATED)</label>
 <input id="accessCampaignKeys" type="text" placeholder="e.g. early_access, event:launch">
 <label for="accessCampaignExpiry">CODE EXPIRY (OPTIONAL · YOUR LOCAL TIME)</label>
-<input id="accessCampaignExpiry" type="datetime-local" >
+<input id="accessCampaignExpiry" type="datetime-local">
+<p class="muted">Leave blank for a code that does not expire.</p>
 <label for="accessCampaignLimit">MAXIMUM REDEMPTIONS (OPTIONAL)</label>
 <input id="accessCampaignLimit" type="number" min="1" step="1" placeholder="Leave blank for unlimited">
 <button class="primary" id="createAccessCodeButton" type="button">CREATE ACCESS CODE</button>
 <p id="createAccessCodeMessage" class="muted" role="status" aria-live="polite">Only moderator accounts can create access codes.</p>
-</div></details>\n<div class="created-access-code-row"><code id="createdAccessCode" hidden></code><button id="copyCreatedAccessCode" class="secondary" type="button">COPY CODE</button></div>
+</div></details>
+<div class="created-access-code-row"><code id="createdAccessCode" hidden></code><button id="copyCreatedAccessCode" class="secondary" type="button">COPY CODE</button></div>
 </section>
 <section class="panel" aria-labelledby="accessCodeHeading">
 <h2 id="accessCodeHeading">SPECIAL ACCESS</h2>
