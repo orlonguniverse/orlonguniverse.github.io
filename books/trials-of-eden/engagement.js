@@ -362,8 +362,6 @@ async function reportComment(commentId) {
 }
 
 async function moderateComment(id,status){
- const note=window.prompt(status==="removed"?"Why are you removing this comment?":"Optional moderation note:")||"";
- if(status==="removed"&&!note.trim())return;
  if(!window.confirm(status==="removed"?"Remove this comment from public discussion?":"Change this comment's moderation status?"))return;
  const {error}=await engagementClient.from("chapter_comments").update({moderation_status:status}).eq("id",id);
  if(error){window.alert("The moderation action could not be completed.");return;}
