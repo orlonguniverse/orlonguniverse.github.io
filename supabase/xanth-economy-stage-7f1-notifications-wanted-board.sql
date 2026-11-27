@@ -161,7 +161,7 @@ for each row execute function public.notify_reader_card_copy_change();
 -- persistent notification per reader/event, including upcoming events.
 create or replace function public.sync_my_event_notifications(p_events jsonb)
 returns integer language plpgsql security definer set search_path=public,pg_temp as $$
-declare e jsonb; before_count integer; after_count integer; event_id text; event_title text;
+declare e jsonb; before_count integer; after_count integer; event_id text; event_title text; brisbane_today date:=(now() at time zone 'Australia/Brisbane')::date;
 begin
  if auth.uid() is null then raise exception 'Authentication required'; end if;
  if jsonb_typeof(coalesce(p_events,'[]'::jsonb))<>'array' then raise exception 'Events must be supplied as a list'; end if;
@@ -171,7 +171,7 @@ begin
   event_id:=nullif(trim(e->>'id'),'');
   event_title:=nullif(trim(e->>'title'),'');
   if event_id is null or event_title is null or coalesce((e->>'published')::boolean,false)=false then continue; end if;
-  if nullif(e->>'endDate','') is not null and (e->>'endDate')::date<current_date then continue; end if;
+  if nullif(e->>'endDate','') is not null and (e->>'endDate')::date<brisbane_today then continue; end if;
   perform public.push_reader_notification(auth.uid(),'event:'||event_id,'event',
    'New event: '||event_title,
    left(coalesce(nullif(e->>'summary',''),nullif(e->>'eyebrow',''),'A new Orlong community event is available.'),500),
@@ -197,7 +197,7 @@ create table if not exists public.reader_card_wanted_posts (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now(),
  fulfilled_by uuid references auth.users(id),
- fulfilled_copy_id uuid references public.reader_card_copies(copy_id),
+ fulfilled_copy_id uuid references public.reader_card_copies(copy_id) on delete set null,
  fulfilled_at timestamptz
 );
 create index if not exists reader_card_wanted_open_idx
