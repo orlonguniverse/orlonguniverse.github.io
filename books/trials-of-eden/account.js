@@ -253,6 +253,48 @@ async function loadCardCollection(user){
  renderFilters();
  renderCards();
 }
+
+async function loadReaderAchievements(){
+ const grid=accountById("achievementGrid");
+ const summary=accountById("achievementSummary");
+ if(!grid||!summary)return;
+ grid.replaceChildren();
+ summary.textContent="CHECKING YOUR MILESTONES...";
+ const {data,error}=await accountClient.rpc("get_my_achievements");
+ if(error){
+  const note=document.createElement("div");note.className="empty";
+  note.textContent="Your achievements are temporarily unavailable. The Stage 5 database update may still need to be run.";
+  grid.appendChild(note);summary.textContent="ACHIEVEMENTS UNAVAILABLE";
+  console.error("Could not load reader achievements:",error);return;
+ }
+ const achievements=data||[];
+ const unlocked=achievements.filter(item=>item.is_unlocked).length;
+ summary.textContent=unlocked+" OF "+achievements.length+" ACHIEVEMENTS UNLOCKED";
+ const wrap=document.createElement("div");wrap.className="achievement-grid";
+ achievements.forEach(item=>{
+  const card=document.createElement("article");
+  card.className="achievement-item"+(item.is_unlocked?" is-unlocked":"");
+  const top=document.createElement("div");top.className="achievement-topline";
+  const title=document.createElement("strong");title.className="achievement-title";title.textContent=item.title;
+  const status=document.createElement("span");status.className="achievement-status";status.textContent=item.is_unlocked?"UNLOCKED":"IN PROGRESS";
+  top.append(title,status);
+  const description=document.createElement("p");description.className="achievement-description";description.textContent=item.description;
+  const track=document.createElement("div");track.className="achievement-progress";
+  track.setAttribute("role","progressbar");track.setAttribute("aria-label",item.title+" progress");
+  track.setAttribute("aria-valuemin","0");track.setAttribute("aria-valuemax",String(item.target_progress));
+  track.setAttribute("aria-valuenow",String(item.progress));
+  const fill=document.createElement("div");fill.className="achievement-progress-fill";
+  fill.style.width=Math.min(100,Math.round(Number(item.progress)/Math.max(1,Number(item.target_progress))*100))+"%";
+  track.appendChild(fill);
+  const label=document.createElement("small");label.className="achievement-progress-label";
+  label.textContent=item.is_unlocked
+   ?"MILESTONE ACHIEVED"+(item.unlocked_at?" · "+safeDate(item.unlocked_at):"")
+   :Math.min(Number(item.progress),Number(item.target_progress))+" / "+item.target_progress+" COMPLETE";
+  card.append(top,description,track,label);wrap.appendChild(card);
+ });
+ grid.appendChild(wrap);
+}
+
 async function uploadProfilePicture(){
  const input=accountById("accountAvatarInput"),button=accountById("uploadAvatarButton"),message=accountById("avatarUploadMessage");
  const file=input?.files?.[0];
@@ -294,7 +336,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
-  await loadCardCollection(session.user);
+  await Promise.all([loadCardCollection(session.user),loadReaderAchievements()]);
  }
 }
 async function submitAccount(event){
