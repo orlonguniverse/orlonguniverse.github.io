@@ -68,9 +68,25 @@ async function loadPersonalDashboard(user,cachedData=null,silent=false){
 
  const approved=comments.filter(x=>x.moderation_status==="approved").length,pending=comments.filter(x=>x.moderation_status==="pending").length,hidden=comments.filter(x=>x.moderation_status==="hidden").length;
  const reactionCounts=reactions.reduce((counts,item)=>{counts[item.reaction]=(counts[item.reaction]||0)+1;return counts;},{});
- const stats=[[completions.length,"CHAPTERS COMPLETED"],[quizAttempts.length,"QUIZ ATTEMPTS"],[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"],[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]];
- accountById("personalStats").replaceChildren();
- stats.forEach(([value,label])=>{const card=document.createElement("div");card.className="stat";const number=document.createElement("strong");number.textContent=value.toLocaleString();const caption=document.createElement("span");caption.textContent=label;card.append(number,caption);accountById("personalStats").appendChild(card);});
+ const statGroups=[
+  {title:"READING",description:"Your progress through the released manuscript.",items:[[completions.length,"CHAPTERS COMPLETED"],[quizAttempts.length,"CHALLENGE ATTEMPTS"]]},
+  {title:"COMMUNITY",description:"How you've joined the conversation.",items:[[reactions.length,"CHAPTER REACTIONS"],[comments.length,"COMMENTS SUBMITTED"],[approved,"COMMENTS APPROVED"],[pending,"COMMENTS PENDING"],[hidden,"COMMENTS HIDDEN"]]},
+  {title:"PREFERENCES",description:"The interests and reactions you've shared.",items:[[preferences.length,"CONTENT PREFERENCES"],[Object.keys(reactionCounts).length,"REACTION TYPES USED"]]}
+ ];
+ const statsRoot=accountById("personalStats");statsRoot.replaceChildren();
+ statGroups.forEach(group=>{
+  const section=document.createElement("section");section.className="stats-category";
+  const heading=document.createElement("h3");heading.textContent=group.title;
+  const description=document.createElement("p");description.className="stats-category-description";description.textContent=group.description;
+  const grid=document.createElement("div");grid.className="stats-grid";
+  group.items.forEach(([value,label])=>{
+   const card=document.createElement("div");card.className="stat";
+   const number=document.createElement("strong");number.textContent=value.toLocaleString();
+   const caption=document.createElement("span");caption.textContent=label;
+   card.append(number,caption);grid.appendChild(card);
+  });
+  section.append(heading,description,grid);statsRoot.appendChild(section);
+ });
  const released=(window.EDEN_CHAPTERS||[]).filter(chapter=>chapter.available);
  const completedIds=new Set(completions.map(item=>item.chapter_id));
  const completedReleased=released.filter(chapter=>completedIds.has(chapter.id)).length;
