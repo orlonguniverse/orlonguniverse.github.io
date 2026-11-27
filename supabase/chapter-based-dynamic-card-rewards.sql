@@ -71,7 +71,7 @@ begin
     end loop;
   end loop;
 end;
-$$;
+$$$;
 
 -- Keep pool tables as an accurate, inspectable mirror of the Chapter
 -- prompt whenever a moderator creates/edits a card or changes its status.
@@ -85,7 +85,7 @@ begin
   perform public.sync_chapter_card_reward_pools();
   return null;
 end;
-$;
+$$;
 
 drop trigger if exists card_catalogue_sync_chapter_reward_pools
   on public.card_catalogue;
@@ -192,7 +192,7 @@ begin
 
   return new_claim_id;
 end;
-$$;
+$$$;
 
 revoke all on function public.award_reader_card(uuid,text,text)
   from public,anon,authenticated;
@@ -291,7 +291,7 @@ begin
   on conflict(copy_id) do nothing;
   return new;
 end;
-$$;
+$$$;
 
 drop function if exists public.claim_my_card_reveals(integer);
 create function public.claim_my_card_reveals(p_limit integer default 10)
@@ -349,6 +349,6 @@ begin
   join public.card_categories category on category.category_id=cat.category_id
   order by cp.acquired_at,cl.queue_id;
 end;
-$$;
+$$$;
 revoke all on function public.claim_my_card_reveals(integer) from public,anon;
 grant execute on function public.claim_my_card_reveals(integer) to authenticated;
