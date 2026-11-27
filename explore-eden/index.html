@@ -55,7 +55,17 @@
 <div class="xanth-history"><div class="shop-heading"><div><p class="eyebrow">YOUR ACCOUNT ACTIVITY</p><h3>XANTH TRANSACTION HISTORY</h3></div><p class="section-stat">LATEST 30</p></div><div id="xanthTransactions" class="xanth-transactions"><div class="eden-empty">Your transactions will appear here.</div></div></div>
 <section class="mystery-vault" aria-labelledby="mysteryVaultTitle">
  <div class="vault-heading"><div><p class="eyebrow">SEALED DISCOVERIES · THE XANTHEON VAULT</p><h3 id="mysteryVaultTitle">MYSTERY PACKS</h3><p>Choose a sealed collection. Tear it open. Discover the cards waiting inside.</p></div><span class="vault-sigil" aria-hidden="true">✦</span></div>
- <div class="mystery-pack-grid" id="mysteryPackGrid"><div class="eden-empty">Preparing the Mystery Vault…</div></div>
+ <div class="mystery-vault-tools" aria-label="Filter Mystery Vault packs">
+ <label class="vault-search-label" for="mysteryPackSearch">FIND A PACK</label>
+ <input id="mysteryPackSearch" class="vault-search" type="search" placeholder="Search chapters, characters, rarity, categories…" autocomplete="off">
+ <label for="mysteryPackType">PACK TYPE</label>
+ <select id="mysteryPackType" class="vault-select"><option value="all">ALL PACK TYPES</option><option value="vault">MIXED VAULT</option><option value="chapter">CHAPTER</option><option value="category">CATEGORY</option><option value="rarity">RARITY</option><option value="targeted">TARGETED COMBINATIONS</option></select>
+ <label for="mysteryPackSort">SORT BY</label>
+ <select id="mysteryPackSort" class="vault-select"><option value="recommended">RECOMMENDED</option><option value="price-low">PRICE: LOW TO HIGH</option><option value="price-high">PRICE: HIGH TO LOW</option><option value="cards-high">MOST CARDS</option><option value="options-high">MOST POSSIBLE CARDS</option><option value="name">NAME A–Z</option></select>
+ <button id="mysteryPackClear" class="vault-clear" type="button">CLEAR FILTERS</button>
+</div>
+<p id="mysteryPackCount" class="vault-results-count" aria-live="polite"></p>
+<div class="mystery-pack-grid" id="mysteryPackGrid"><div class="eden-empty">Preparing the Mystery Vault…</div></div>
  <p id="mysteryPackStatus" class="shop-purchase-status" role="status" aria-live="polite"></p>
 </section>
 </section>
@@ -63,5 +73,5 @@
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-6k"></script>
-<script src="explore-eden.js?v=stage-7c1"></script>
+<script src="explore-eden.js?v=stage-7d1"></script>
 </body></html>
