@@ -28,11 +28,11 @@ document.addEventListener("DOMContentLoaded",()=>{
  if(navLinks&&!navLinks.dataset.orlongGrouped){
   const accountButton=navLinks.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button");
   const statsLink=[...navLinks.querySelectorAll("a")].find(a=>/account\.html#dashboard|account\.html\?/.test(a.getAttribute("href")||"")||/MY STATISTICS/i.test(a.textContent));
-  const themeButton=navLinks.querySelector("#themeButton, #contentsThemeButton");
   navLinks.replaceChildren();
   const makeDropdown=(label,items)=>{
    const details=document.createElement("details");details.className="nav-dropdown";
-   const summary=document.createElement("summary");summary.textContent=label;details.append(summary);
+   const summary=document.createElement("summary");summary.textContent=label;summary.setAttribute("aria-haspopup","true");details.append(summary);
+   summary.addEventListener("click",()=>{navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");});});
    const menu=document.createElement("div");menu.className="nav-dropdown-menu";
    items.forEach(item=>{const link=document.createElement("a");link.href=item.href;link.textContent=item.label;if(item.current)link.setAttribute("aria-current","page");menu.append(link);});
    details.append(menu);return details;
@@ -50,11 +50,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   );
   if(accountButton)navLinks.append(accountButton);
   if(statsLink)navLinks.append(statsLink);
-  if(themeButton)navLinks.append(themeButton);
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Visit Orlong on Instagram");instagram.title="Orlong on Instagram";
   instagram.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="18" cy="6" r="0.8" fill="currentColor" stroke="none"></circle></svg>';
   navLinks.append(instagram);
   navLinks.dataset.orlongGrouped="true";
+  // Only one navigation dropdown may remain open at a time.
+  document.addEventListener("click",event=>{
+   if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(menu=>menu.removeAttribute("open"));
+  });
+  document.addEventListener("keydown",event=>{
+   if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(menu=>menu.removeAttribute("open"));
+  });
  }
  // Keep the account button's navigation behaviour independent of authentication.
  const accountButton=document.getElementById("openAccountButton");
