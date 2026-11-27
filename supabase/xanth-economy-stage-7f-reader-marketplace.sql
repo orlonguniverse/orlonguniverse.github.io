@@ -86,7 +86,7 @@ $$;
 
 create or replace function public.get_public_market_tradeable_copies(p_reader_id uuid)
 returns table(copy_id uuid,card_id text,card_number text,card_name text,rarity text,artwork_url text)
-language sql stable security definer set search_path=public,pg_temp as $
+language sql stable security definer set search_path=public,pg_temp as $$
  select c.copy_id,c.card_id,cat.card_number,cat.name,cat.rarity,cat.artwork_url
  from public.reader_card_copies c join public.card_catalogue cat on cat.card_id=c.card_id and cat.is_active
  join public.reader_card_settings s on s.user_id=c.owner_user_id and s.collection_is_public
@@ -142,7 +142,7 @@ $$;
 
 create or replace function public.get_my_market_listings()
 returns table(listing_id uuid,copy_id uuid,card_id text,card_number text,card_name text,rarity text,artwork_url text,price_cents bigint,status text,created_at timestamptz)
-language sql stable security definer set search_path=public,pg_temp as $
+language sql stable security definer set search_path=public,pg_temp as $$
  select l.listing_id,l.copy_id,l.card_id,c.card_number,c.name,c.rarity,c.artwork_url,l.price_cents,l.status,l.created_at
  from public.reader_card_market_listings l join public.card_catalogue c on c.card_id=l.card_id
  where l.seller_user_id=auth.uid() and l.status='active' order by l.created_at desc;
@@ -409,7 +409,7 @@ begin
 end $$;
 
 create or replace function public.apply_my_duplicate_sale_limit(p_user_id uuid)
-returns integer language plpgsql security definer set search_path=public,pg_temp as $
+returns integer language plpgsql security definer set search_path=public,pg_temp as $$
 declare s public.reader_card_sale_settings%rowtype; x record; n integer; excess integer; sold integer; unit bigint; total bigint; bal bigint; total_sold integer:=0;
 begin
  if p_user_id is distinct from auth.uid() then raise exception 'You can only manage your own duplicate collection'; end if;
