@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moderator Headquarters | Orlong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../site-nav.css"><link rel="stylesheet" href="moderator.css?v=1"></head>
+<body class="dark"><nav class="topbar"><a href="../index.html" class="logo">ORLONG</a><div class="topbar-right"><a href="../index.html">HOME</a><a href="../explore-eden/">EXPLORE EDEN</a><button type="button" id="openAccountButton" class="nav-account-button" data-account-href="../books/trials-of-eden/account.html">SIGN IN</button></div></nav>
+<main class="mod-shell" id="moderatorApp" hidden>
+<header class="mod-hero"><p class="eyebrow">PRIVATE WORKSPACE · MODERATOR ACCESS</p><h1>MODERATOR HEADQUARTERS</h1><p>Your control room for Orlong's readers, discussions and collectible archive.</p></header>
+<nav class="mod-tabs" aria-label="Moderator tools"><button class="active" data-tab="studio">CARD STUDIO</button><button data-tab="community">COMMUNITY MODERATION</button><button data-tab="access">ACCESS MANAGEMENT</button></nav>
+<section class="mod-panel active" id="studioPanel">
+<div class="panel-heading"><div><p class="eyebrow">COLLECTIBLE ARCHIVE</p><h2>ORLONG CARD STUDIO</h2><p>One consistent card system. Supply the details and artwork; the template handles the presentation.</p></div><button class="primary" id="newCardButton">＋ CREATE NEW CARD</button></div>
+<div class="studio-layout">
+<form id="cardForm" class="card-form">
+<input type="hidden" id="cardId">
+<label>CARD NAME<input id="cardName" maxlength="100" required placeholder="e.g. Maya Garcia"></label>
+<div class="field-grid"><label>CATEGORY<select id="cardCategory" required></select></label><label>RARITY<select id="cardRarity"><option value="common">Common</option><option value="uncommon">Uncommon</option><option value="rare" selected>Rare</option><option value="epic">Epic</option><option value="legendary">Legendary</option></select></label></div>
+<label>CARD SET<select id="cardSet"><option value="">No set</option></select></label>
+<label>UNLOCK CHAPTER ID<input id="cardChapter" maxlength="80" placeholder="e.g. chapter-01"></label>
+<label>CARD DESCRIPTION<textarea id="cardDescription" maxlength="1200" rows="4" placeholder="The text that appears on the card. Keep it spoiler-safe for its unlock chapter."></textarea></label>
+<div class="upload-field"><label for="cardArtwork">CARD ARTWORK</label><input id="cardArtwork" type="file" accept="image/png,image/jpeg,image/webp"><p class="hint">Portrait artwork works best. You'll be able to reposition and zoom it before saving. Maximum 12 MB.</p><button type="button" class="secondary" id="cropArtworkButton" disabled>ADJUST / CROP ARTWORK</button><span id="uploadStatus" role="status"></span></div>
+<div class="form-actions"><button class="primary" id="saveCardButton" type="submit">SAVE CARD</button><button class="secondary" type="button" id="resetCardButton">CLEAR FORM</button></div><p id="formMessage" role="status" aria-live="polite"></p>
+</form>
+<aside class="preview-column"><p class="eyebrow">LIVE CARD PREVIEW</p><article class="card-preview rarity-rare" id="cardPreview"><div class="preview-art" id="previewArt"><span>ARTWORK<br>PREVIEW</span></div><div class="preview-frame"><div class="preview-top"><span id="previewNumber">CHR-NEW</span><span id="previewRarity">RARE</span></div><h3 id="previewName">New Collectible</h3><p id="previewDescription">Your card description will appear here once entered.</p><div class="preview-bottom"><span id="previewCategory">CHARACTERS</span><span>ORLONG UNIVERSE</span></div></div></article><p class="hint">This is a live preview of the shared card template. Final art and text are cropped and fitted consistently.</p></aside>
+</div>
+<div class="catalogue-heading"><div><p class="eyebrow">YOUR EXISTING WORK</p><h2>MANAGE CARD CATALOGUE</h2></div><input id="cardSearch" type="search" placeholder="Search cards…"></div><div id="cardList" class="card-list"><p class="hint">Loading catalogue…</p></div>
+</section>
+<section class="mod-panel" id="communityPanel"><div class="panel-heading"><div><p class="eyebrow">READER SAFETY</p><h2>COMMUNITY MODERATION</h2><p>Open the existing review tools. Reports, approvals, removals and moderation history remain managed by the current moderation system.</p></div></div><div class="tool-links"><a href="../books/trials-of-eden/index.html#discussion">OPEN CHAPTER DISCUSSIONS ↗</a><a href="../books/trials-of-eden/account.html#administrationSection">OPEN MODERATOR DASHBOARD ↗</a></div></section>
+<section class="mod-panel" id="accessPanel"><div class="panel-heading"><div><p class="eyebrow">READER PERMISSIONS</p><h2>ACCESS MANAGEMENT</h2><p>Create and manage access codes through the existing secure account administration tools.</p></div></div><div class="tool-links"><a href="../books/trials-of-eden/account.html#administrationSection">OPEN ACCESS CODE ADMINISTRATION ↗</a><a href="../early-access/">VIEW EARLY ACCESS ↗</a><a href="../founding-readers/">VIEW FOUNDING READERS ↗</a></div></section>
+</main>
+<section id="accessDenied" class="denied" hidden><p class="eyebrow">RESTRICTED AREA</p><h1>MODERATOR ACCESS REQUIRED</h1><p>This workspace is only available to authorised Orlong moderators.</p><a href="../books/trials-of-eden/account.html">RETURN TO YOUR ACCOUNT</a></section>
+<dialog id="cropDialog" class="crop-dialog"><div class="crop-head"><div><p class="eyebrow">ARTWORK PREPARATION</p><h2>POSITION YOUR ARTWORK</h2></div><button type="button" id="closeCrop" class="secondary">CLOSE</button></div><p class="hint">Drag the image to reposition it. Use the zoom slider to frame the subject. The final card image is portrait 2:3.</p><div class="crop-stage" id="cropStage"><canvas id="cropCanvas" width="450" height="675"></canvas></div><label class="zoom-label">ZOOM <input id="cropZoom" type="range" min="1" max="3.5" step=".01" value="1"></label><div class="form-actions"><button type="button" class="primary" id="applyCrop">USE THIS ARTWORK</button></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../site-nav.js?v=stage-5b"></script><script src="moderator.js?v=1"></script></body></html>
