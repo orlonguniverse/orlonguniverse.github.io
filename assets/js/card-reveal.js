@@ -51,10 +51,14 @@
   }
   front.append(art,frame);cardFace.append(back,front);wrap.append(cardFace);
   const caption=document.createElement("p");caption.className="orlong-reveal-caption";caption.textContent="THE ORLONG FIELD STIRS";
+  const source=document.createElement("div");source.className="orlong-reveal-source";
+  const sourceTitle=document.createElement("span");sourceTitle.className="orlong-reveal-source-title";sourceTitle.textContent=card.sourceLabel||"NEW COLLECTIBLE REWARD";
+  const sourceDetail=document.createElement("span");sourceDetail.className="orlong-reveal-source-detail";sourceDetail.textContent=card.sourceDetail||"A new card has been added to your collection.";
+  source.append(sourceTitle,sourceDetail);
   const controls=document.createElement("div");controls.className="orlong-reveal-controls";
   const skip=document.createElement("button");skip.type="button";skip.className="orlong-reveal-skip";skip.textContent="SKIP REVEAL";
   const closeButton=document.createElement("button");closeButton.type="button";closeButton.className="orlong-reveal-close";closeButton.textContent="CONTINUE";closeButton.hidden=true;
-  controls.append(skip,closeButton);scene.append(energy,beams,shock,eel,crystal,wrap,caption,controls);overlay.append(scene);
+  controls.append(skip,closeButton);scene.append(energy,beams,shock,eel,crystal,wrap,caption,source,controls);overlay.append(scene);
   skip.addEventListener("click",()=>{stopScore();finish(overlay,caption,skip,closeButton);});
   closeButton.addEventListener("click",()=>close(overlay));
   overlay.addEventListener("keydown",event=>{if(event.key==="Escape")close(overlay);});
