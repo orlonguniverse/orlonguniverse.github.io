@@ -514,6 +514,16 @@ async function loadMyAccessGrants(){
   item.textContent=String(grant.access_key||"").replace(/[_:-]+/g," ").toUpperCase();
   list.appendChild(item);
  });
+ if(grants.some(grant=>grant.access_key==="early_access")){
+  const link=document.createElement("a");
+  link.href="../../early-access/";
+  link.className="access-grant-pill early-access-link";
+  link.textContent="OPEN PRIVATE EARLY ACCESS PAGE →";
+  link.style.display="inline-block";
+  link.style.marginTop="12px";
+  link.style.textDecoration="none";
+  list.appendChild(link);
+ }
  if(status && !status.textContent)status.textContent="Your access permissions are saved to your account.";
 }
 async function redeemReaderAccessCode(){
