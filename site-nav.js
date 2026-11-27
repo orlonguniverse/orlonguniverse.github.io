@@ -47,9 +47,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     {label:"EARLY ACCESS",href:"/early-access/",current:location.pathname.startsWith("/early-access")},
     {label:"FOUNDING READERS",href:"/founding-readers/",current:location.pathname.startsWith("/founding-readers")}
    ]),
-   makeDropdown("EXPLORE EDEN",[
-    {label:"CARD COLLECTION",href:"/explore-eden/",current:location.pathname.startsWith("/explore-eden")}
-   ])
+   (()=>{const link=document.createElement("a");link.href="/explore-eden/";link.textContent="EXPLORE EDEN";link.className="nav-direct-link";if(location.pathname.startsWith("/explore-eden"))link.setAttribute("aria-current","page");return link;})()
   );
   if(accountButton)navLinks.append(accountButton);
   if(statsLink)navLinks.append(statsLink);
