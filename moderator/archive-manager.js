@@ -45,7 +45,7 @@ function renderList(){
 }
 function el(tag,className,value){const node=document.createElement(tag);if(className)node.className=className;if(value!==undefined)node.textContent=value;return node;}
 function resetForm(){
- $("archiveEntryForm").reset();$("archiveEditingId").value="";$("archiveEntryId").disabled=false;
+ $("archiveEntryForm").reset();$("archiveEditingId").value="";$("archiveEntryId").disabled=false;$("archiveEntryId").dataset.manual="";
  $("archiveEntryDeleteButton").hidden=true;$("archiveEntrySaveButton").textContent="SAVE ARCHIVE ENTRY";
  [...$("archiveRequiredCards").options].forEach(o=>o.selected=false);
  $("archiveUnlockChapter").value="";message("Ready to create a new archive entry.");
