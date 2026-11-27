@@ -567,7 +567,8 @@ async function createReaderAccessCode(){
    granted_access_keys:keys,
    code_expires_at:expiry?expiry.toISOString():null,
    redemption_limit:limit,
-   custom_code:customCode||null
+   custom_code:customCode||null,
+   eligibility_rules:{}
   });
   if(error)throw error;
   output.textContent=data;
