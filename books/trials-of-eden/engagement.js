@@ -725,9 +725,12 @@ function initialiseEngagement() {
       window.clearTimeout(chapterEngagementTimer);
       chapterEngagementTimer = window.setTimeout(() => {
         const chapterId = engagementChapterId();
-        if (!engagementUser || !chapterId || chapterId === lastEngagementChapterLoaded) return;
+        if (!chapterId || chapterId === lastEngagementChapterLoaded) return;
         lastEngagementChapterLoaded = chapterId;
-        Promise.all([loadChapterActivity(),loadChapterComments(),loadChapterQuiz()]);
+        discussionChapterOverride = null;
+        discussionChapterOptions();
+        loadChapterComments(true);
+        if (engagementUser) Promise.all([loadChapterActivity(),loadChapterQuiz()]);
       },100);
     }).observe(chapterTarget,{childList:true,subtree:true});
   }
