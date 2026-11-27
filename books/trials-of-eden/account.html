@@ -217,8 +217,8 @@ footer{padding:35px 20px;border-top:1px solid var(--border);text-align:center;co
 <label for="accessCodeInput">ACCESS CODE</label>
 <input id="accessCodeInput" type="text" maxlength="100" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter your access code">
 <button class="primary" id="redeemAccessCodeButton" type="button">REDEEM ACCESS CODE</button>
-<p id="accessCodeMessage" class="muted" role="status" aria-live="polite">Access permissions you've unlocked will appear below.</p>
-<div id="readerAccessGrantList" class="reader-access-grants"><p class="muted">Loading your access permissions...</p></div>
+<p id="accessCodeMessage" class="muted" role="status" aria-live="polite"></p>
+<div id="readerAccessGrantList" class="reader-access-grants" aria-live="polite"></div>
 </section>
 <section class="panel profile-picture-panel" id="profilePicturePanel" aria-labelledby="profilePictureHeading">
 <h2 id="profilePictureHeading">YOUR PROFILE</h2><div class="profile-picture-editor">
