@@ -106,21 +106,28 @@ create policy "Moderators remove Eden chapter files"
 on storage.objects for delete to authenticated
 using(bucket_id='eden-chapters' and public.is_reader_moderator());
 
+create or replace function public.can_read_eden_chapter_storage_object(p_object_name text)
+returns boolean
+language sql
+stable
+security definer
+set search_path=public,pg_temp
+as $
+ select public.is_reader_moderator()
+   or exists(
+    select 1 from public.eden_book_chapters c
+    where c.chapter_id || '.html'=p_object_name
+      and c.is_published=true
+      and c.released_at is not null
+      and c.released_at<=now()
+   );
+$;
+revoke all on function public.can_read_eden_chapter_storage_object(text) from public,anon;
+grant execute on function public.can_read_eden_chapter_storage_object(text) to authenticated;
+
 create policy "Readers download released Eden chapters"
 on storage.objects for select to authenticated
-using(
- bucket_id='eden-chapters'
- and (
-  public.is_reader_moderator()
-  or exists(
-   select 1 from public.eden_book_chapters c
-   where c.chapter_id || '.html' = storage.objects.name
-     and c.is_published=true
-     and c.released_at is not null
-     and c.released_at <= now()
-  )
- )
-);
+using(bucket_id='eden-chapters' and public.can_read_eden_chapter_storage_object(storage.objects.name));
 
 -- Public directory metadata only. Manuscript text and unreleased Companion
 -- references are never returned by this function.
