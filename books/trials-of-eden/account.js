@@ -296,6 +296,15 @@ async function loadReaderAchievements(){
 }
 
 
+function getDismissedTradeIds(userId){
+ try{return new Set(JSON.parse(localStorage.getItem("edenDismissedTrades:"+userId)||"[]"));}
+ catch(_){return new Set();}
+}
+function saveDismissedTradeIds(userId,ids){
+ try{localStorage.setItem("edenDismissedTrades:"+userId,JSON.stringify([...ids]));}
+ catch(error){console.warn("Could not save dismissed trade offers:",error);}
+}
+
 async function loadTradingPost(){
  const status=accountById("tradeStatus"),directory=accountById("publicCollectionDirectory"),offers=accountById("myTradeOffers"),toggle=accountById("publicCollectionToggle");
  if(!status||!directory||!offers||!toggle)return;
@@ -312,6 +321,16 @@ async function loadTradingPost(){
  const myCopies=copiesResult.data||[];
  const readers=directoryResult.data||[];
  const myTrades=tradesResult.data||[];
+ const {data:userResult}=await accountClient.auth.getUser();
+ const currentUserId=userResult?.user?.id;
+ const dismissedTradeIds=currentUserId?getDismissedTradeIds(currentUserId):new Set();
+ const now=Date.now();
+ const visibleTrades=myTrades.filter(trade=>{
+  if(trade.status==="pending")return true;
+  if(dismissedTradeIds.has(trade.offer_id))return false;
+  const resolvedAt=trade.responded_at?new Date(trade.responded_at).getTime():new Date(trade.created_at).getTime();
+  return !Number.isFinite(resolvedAt)||now-resolvedAt<24*60*60*1000;
+ });
  status.textContent="Your binder is "+(toggle.checked?"PUBLIC":"PRIVATE")+" · "+myCopies.length+" card copies currently available to offer.";
  if(!toggle.dataset.bound){
   toggle.dataset.bound="true";
@@ -372,8 +391,11 @@ async function loadTradingPost(){
   article.append(view,cardHolder);directory.appendChild(article);
  }
  offers.replaceChildren();
- if(!myTrades.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="You don't have any trade offers yet. Offers you send or receive will appear here.";offers.appendChild(empty);}
- myTrades.forEach(trade=>{
+ const historyNote=document.createElement("p");historyNote.className="trade-history-note";
+ historyNote.textContent="Completed offers disappear automatically after 24 hours. You can also dismiss them sooner.";
+ offers.appendChild(historyNote);
+ if(!visibleTrades.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=myTrades.length?"No active or recent trade offers. Completed offers are hidden after 24 hours or when dismissed.":"You don't have any trade offers yet. Offers you send or receive will appear here.";offers.appendChild(empty);}
+ visibleTrades.forEach(trade=>{
   const article=document.createElement("article");article.className="trade-offer";
   const role=trade.trade_role==="incoming"?"OFFER RECEIVED FROM ":"OFFER SENT TO ";
   const heading=document.createElement("strong");heading.textContent=role+(trade.other_display_name||"Reader");
@@ -386,6 +408,16 @@ async function loadTradingPost(){
    if(trade.trade_role==="incoming"){action("ACCEPT TRADE",true,false);action("DECLINE",false,true);}
    else action("CANCEL OFFER",false,true,"cancel");
    article.appendChild(actions);
+  }else{
+   const dismiss=document.createElement("button");dismiss.type="button";dismiss.className="trade-action secondary trade-dismiss";
+   dismiss.textContent="DISMISS OFFER";
+   dismiss.addEventListener("click",()=>{
+    dismissedTradeIds.add(trade.offer_id);
+    if(currentUserId)saveDismissedTradeIds(currentUserId,dismissedTradeIds);
+    article.remove();
+    if(!offers.querySelector(".trade-offer")){const empty=document.createElement("div");empty.className="empty";empty.textContent="No active or recent trade offers. Completed offers are hidden after 24 hours or when dismissed.";offers.appendChild(empty);}
+   });
+   article.appendChild(dismiss);
   }
   offers.appendChild(article);
  });
