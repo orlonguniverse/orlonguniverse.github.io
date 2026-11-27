@@ -17,7 +17,7 @@ alter table public.access_code_campaigns
 -- Replace the original five-argument creator with a six-argument version.
 -- The final argument has a default, so existing account-page calls continue
 -- to work without modification.
-drop function if exists public.create_access_code(text,text[],timestamptz,integer,text);
+drop function if exists public.create_access_code(text,text[],timestamptz,integer,text);\ndrop function if exists public.create_access_code(text,text[],timestamptz,integer);
 
 create or replace function public.create_access_code(
  campaign_label text,
