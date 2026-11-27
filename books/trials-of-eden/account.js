@@ -382,9 +382,9 @@ async function loadTradingPost(){
   article.append(heading,detail,state);
   if(trade.status==="pending"){
    const actions=document.createElement("div");actions.className="trade-offer-actions";
-   const action=(label,accept,secondary)=>{const button=document.createElement("button");button.type="button";button.className="trade-action"+(secondary?" secondary":"");button.textContent=label;button.addEventListener("click",async()=>{button.disabled=true;const {error}=await accountClient.rpc("respond_to_card_trade",{target_offer_id:trade.offer_id,accept_offer:accept});if(error){console.error(error);status.textContent=error.message||"We couldn't update this trade.";button.disabled=false;return;}status.textContent=accept?"Trade accepted! Both card copies have been transferred.":"Trade updated.";await loadTradingPost();});actions.appendChild(button);};
+   const action=(label,accept,secondary,kind)=>{const button=document.createElement("button");button.type="button";button.className="trade-action"+(secondary?" secondary":"");button.textContent=label;button.addEventListener("click",async()=>{button.disabled=true;const result=kind==="cancel"?await accountClient.rpc("cancel_card_trade_offer",{target_offer_id:trade.offer_id}):await accountClient.rpc("respond_to_card_trade",{target_offer_id:trade.offer_id,accept_offer:accept});if(result.error||result.data===false){console.error(result.error);status.textContent=result.error?.message||"We couldn't update this trade.";button.disabled=false;return;}status.textContent=accept?"Trade accepted! Both card copies have been transferred.":"Trade updated.";await loadTradingPost();});actions.appendChild(button);};
    if(trade.trade_role==="incoming"){action("ACCEPT TRADE",true,false);action("DECLINE",false,true);}
-   else action("CANCEL OFFER",false,true);
+   else action("CANCEL OFFER",false,true,"cancel");
    article.appendChild(actions);
   }
   offers.appendChild(article);
