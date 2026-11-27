@@ -67,8 +67,8 @@ begin
       and q.revealed_at is null
       and (q.claimed_at is null or q.claimed_at < now()-interval '5 minutes')
     order by q.queued_at,q.queue_id
-    for update skip locked
     limit greatest(1,least(coalesce(p_limit,10),25))
+    for update skip locked
   ),
   claimed as (
     update public.reader_card_reveal_queue q
