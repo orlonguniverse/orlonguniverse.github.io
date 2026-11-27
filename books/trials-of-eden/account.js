@@ -447,6 +447,55 @@ async function uploadProfilePicture(){
  finally{button.disabled=false;}
 }
 
+async function loadMyAccessGrants(){
+ const list=accountById("readerAccessGrantList");
+ const status=accountById("accessCodeMessage");
+ if(!list)return;
+ list.replaceChildren();
+ const {data,error}=await accountClient.rpc("get_my_access_grants");
+ if(error){
+  const note=document.createElement("p");note.className="muted";note.textContent="Your access permissions are temporarily unavailable. Please check that the Stage 1 database update has been installed.";
+  list.appendChild(note);return;
+ }
+ const grants=data||[];
+ if(!grants.length){
+  const note=document.createElement("p");note.className="muted";note.textContent="You haven't unlocked any special access yet. Enter an access code above when you receive one.";
+  list.appendChild(note);return;
+ }
+ grants.forEach(grant=>{
+  const item=document.createElement("span");item.className="access-grant-pill";
+  item.textContent=String(grant.access_key||"").replace(/[_:-]+/g," ").toUpperCase();
+  list.appendChild(item);
+ });
+ if(status && !status.textContent)status.textContent="Your access permissions are saved to your account.";
+}
+async function redeemReaderAccessCode(){
+ const input=accountById("accessCodeInput");
+ const button=accountById("redeemAccessCodeButton");
+ const message=accountById("accessCodeMessage");
+ const code=input?.value.trim();
+ if(!code){if(message)message.textContent="Enter an access code first.";return;}
+ if(button){button.disabled=true;button.textContent="CHECKING CODE…";}
+ if(message)message.textContent="Checking your access code…";
+ try{
+  const {data,error}=await accountClient.rpc("redeem_access_code",{input_code:code});
+  if(error)throw error;
+  if(!data?.success){
+   if(message)message.textContent=data?.message||"That code could not be redeemed.";
+   return;
+  }
+  input.value="";
+  if(message)message.textContent=data.message||"Your access has been updated.";
+  await loadMyAccessGrants();
+ }catch(error){
+  console.error("Access-code redemption failed:",error);
+  if(message)message.textContent=error.message?.includes("redeem_access_code")
+   ?"The Stage 1 access-code database update has not been installed yet. Please run its SQL file in Supabase."
+   :"We couldn't redeem that code. Please try again.";
+ }finally{
+  if(button){button.disabled=false;button.textContent="REDEEM ACCESS CODE";}
+ }
+}
 async function showSession(session){
  window.updateOrlongAccountLabel?.(session?.user||null);
  const signedIn=Boolean(session?.user);accountById("authPanel").hidden=signedIn;accountById("dashboard").hidden=!signedIn;
@@ -465,7 +514,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
-  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost()]);
+  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost(),loadMyAccessGrants()]);
  }
 }
 async function submitAccount(event){
@@ -478,7 +527,7 @@ async function submitAccount(event){
 async function signOutAccount(){const {error}=await accountClient.auth.signOut();if(error){setAuthMessage("We couldn't sign you out. Please try again.");return;}window.updateOrlongAccountLabel?.(null);lastDashboardUserId=null;accountById("authPanel").hidden=false;accountById("dashboard").hidden=true;setMode("signin");setAuthMessage("You have signed out.");}
 document.addEventListener("DOMContentLoaded",async()=>{
  document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
- accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);setMode("signin");
+ accountById("authForm").addEventListener("submit",submitAccount);accountById("signOutButton").addEventListener("click",signOutAccount);accountById("uploadAvatarButton")?.addEventListener("click",uploadProfilePicture);accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
  const {data}=await accountClient.auth.getSession();await showSession(data.session);
  accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
 });
