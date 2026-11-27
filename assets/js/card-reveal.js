@@ -68,13 +68,20 @@
  function play(card){
   return new Promise(resolve=>{
    if(!card||!card.name){resolve();return;}
-   queuedCards.push({card,resolve});startNext();
+   queuedCards.push({type:"single",card,resolve});startNext();
+  });
+ }
+ function playBatch(cards){
+  return new Promise(resolve=>{
+   const valid=(cards||[]).filter(card=>card&&card.name);
+   if(!valid.length){resolve();return;}
+   queuedCards.push({type:"batch",cards:valid,resolve});startNext();
   });
  }
  function startNext(){
   if(active||!queuedCards.length)return;
   const next=queuedCards.shift();active=true;activeResolver=next.resolve;
-  startCard(next.card);
+  if(next.type==="batch")startBatch(next.cards);else startCard(next.card);
  }
  async function startCard(card){const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
   const art=overlay.querySelector(".orlong-reveal-art");
@@ -103,5 +110,35 @@
   finishNow();
  }
  function rarityLabel(card){return (rarities[String(card.rarity||"common").toLowerCase()]||rarities.common).label;}
- window.OrlongCardReveal={play,closeActive:()=>{const overlay=document.querySelector(".orlong-reveal-overlay");if(overlay)close(overlay);}};
+ async function startBatch(cards){
+  const overlay=document.createElement("div");overlay.className="orlong-batch-reveal-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label",cards.length+" mystery pack cards revealed");
+  const panel=document.createElement("section");panel.className="orlong-batch-reveal-panel";
+  const eyebrow=document.createElement("p");eyebrow.className="orlong-batch-eyebrow";eyebrow.textContent="THE XANTHEON MYSTERY VAULT";
+  const title=document.createElement("h2");title.className="orlong-batch-title";title.textContent="YOUR DISCOVERIES";
+  const subtitle=document.createElement("p");subtitle.className="orlong-batch-subtitle";subtitle.textContent=cards.length+" cards revealed together";
+  const grid=document.createElement("div");grid.className="orlong-batch-card-grid";
+  cards.forEach((card,index)=>{
+   const tile=document.createElement("article");tile.className="orlong-batch-card";tile.style.setProperty("--batch-index",index);
+   const art=document.createElement("div");art.className="orlong-batch-art";
+   if(card.artwork){const img=document.createElement("img");img.src=card.artwork;img.alt=card.name+" artwork";img.loading="eager";img.onerror=()=>{img.hidden=true;};art.append(img);}
+   const rarity=document.createElement("span");rarity.className="orlong-batch-rarity";rarity.textContent=rarityLabel(card);
+   const name=document.createElement("h3");name.textContent=card.name;
+   const meta=document.createElement("p");meta.textContent=[card.number,card.category,card.chapterNumber?"CH. "+card.chapterNumber:null].filter(Boolean).join(" · ");
+   tile.append(art,rarity,name,meta);grid.append(tile);
+  });
+  const source=document.createElement("p");source.className="orlong-batch-source";source.textContent="Every card from this pack has been added to your collection.";
+  const controls=document.createElement("div");controls.className="orlong-batch-controls";
+  const skip=document.createElement("button");skip.type="button";skip.textContent="SKIP ANIMATION";
+  const closeButton=document.createElement("button");closeButton.type="button";closeButton.textContent="CONTINUE";closeButton.hidden=true;
+  controls.append(skip,closeButton);panel.append(eyebrow,title,subtitle,grid,source,controls);overlay.append(panel);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");
+  let finished=false;
+  const finishBatch=()=>{if(finished)return;finished=true;overlay.classList.add("is-revealed");skip.hidden=true;closeButton.hidden=false;subtitle.textContent=cards.length+" discoveries are now yours";};
+  const closeBatch=()=>{if(!overlay.isConnected)return;stopScore();overlay.classList.remove("is-active");window.setTimeout(()=>{overlay.remove();document.body.classList.remove("orlong-reveal-lock");active=false;const resolve=activeResolver;activeResolver=null;if(resolve)resolve();startNext();},250);};
+  skip.addEventListener("click",finishBatch);closeButton.addEventListener("click",closeBatch);
+  overlay.addEventListener("keydown",event=>{if(event.key==="Escape"&&finished)closeBatch();});
+  requestAnimationFrame(()=>overlay.classList.add("is-active"));
+  if(!reduced()){try{score=new Audio("/assets/audio/reveal-soundtrack.mp3");score.volume=.9;score.preload="auto";const p=score.play();if(p?.catch)p.catch(()=>{});}catch(_){}}
+  await wait(reduced()?80:1250);finishBatch();
+ }
+ window.OrlongCardReveal={play,playBatch,closeActive:()=>{const overlay=document.querySelector(".orlong-reveal-overlay");if(overlay)close(overlay);}};
 })();
