@@ -6,10 +6,12 @@ const $=id=>document.getElementById(id);
 let client=null,catalogue=[],owned=[],activeCollectionCategory="all",activeCatalogueCategory="all";
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
-function cardElement(card,isOwned){
+function cardElement(card,isOwned,showUnownedArtwork=true){
  const article=document.createElement("article");article.className="eden-card"+(isOwned?" owned":"");
  const artwork=imageFor(card);
- if(isOwned||artwork){
+ // In My Collection, unowned cards must remain silhouettes even when the
+ // public catalogue already contains their artwork. Other tabs may preview art.
+ if(isOwned||(showUnownedArtwork&&artwork)){
   const img=document.createElement("img");img.className="eden-card-art";img.src=new URL(artwork,location.origin).href;img.alt=(card.name||card.card_name)+" collectible card";img.loading="lazy";img.onerror=()=>{img.hidden=true;};article.append(img);
  }else{
   const shadow=document.createElement("div");shadow.className="eden-card-shadow";shadow.append(text("span","shadow-symbol","?"),text("small","","UNDISCOVERED"));article.append(shadow);
@@ -35,7 +37,7 @@ function renderCollection(){
  const ownedMap=new Map(owned.map(c=>[c.card_id,c]));
  visible.forEach(card=>{
   const copy=ownedMap.get(card.id);
-  grid.append(cardElement(copy?{...card,copy_count:copy.copy_count}:card,Boolean(copy)));
+  grid.append(cardElement(copy?{...card,copy_count:copy.copy_count}:card,Boolean(copy),false));
  });
  const copies=owned.reduce((sum,c)=>sum+Number(c.copy_count||0),0);
  $("collectionSummary").textContent=copies+" COPIES · "+owned.length+" / "+catalogue.length+" DISCOVERED";
