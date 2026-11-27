@@ -514,6 +514,27 @@ async function uploadProfilePicture(blob){
  }catch(error){console.error("Profile picture upload failed:",error);message.textContent=error.message||"We could not upload that picture. Please try again.";throw error;}
  finally{button.disabled=false;}
 }
+
+async function loadFoundingReaderSettings(){
+ const eligibility=accountById("foundingReaderEligibility"),controls=accountById("foundingReaderPrivacyControls"),status=accountById("foundingReaderListingStatus"),show=accountById("foundingReaderOptIn"),hide=accountById("foundingReaderOptOut");
+ if(!eligibility||!controls)return;
+ try{
+  const {data,error}=await accountClient.rpc("get_my_founding_reader_status");if(error)throw error;
+  const row=Array.isArray(data)?data[0]:data;
+  if(!row?.is_eligible){eligibility.textContent="Your account does not currently have Founding Reader status. Readers who receive Early Access before 1 January 2027 qualify automatically.";controls.hidden=true;return;}
+  eligibility.textContent="Your Founding Reader status is permanent.";controls.hidden=false;
+  const listed=!!row.is_public;
+  status.textContent=listed?"Your name is currently visible on the public acknowledgements page. You can hide it whenever you wish.":"Your name is private and does not appear on the public acknowledgements page. You can choose to be listed at any time.";
+  show.disabled=listed;hide.disabled=!listed;show.setAttribute("aria-pressed",String(listed));hide.setAttribute("aria-pressed",String(!listed));
+ }catch(error){console.error("Could not load Founding Reader settings:",error);eligibility.textContent="Your Founding Reader settings are temporarily unavailable. Please try again shortly.";controls.hidden=true;}
+}
+async function setFoundingReaderListing(isPublic){
+ const show=accountById("foundingReaderOptIn"),hide=accountById("foundingReaderOptOut"),status=accountById("foundingReaderListingStatus");
+ show.disabled=true;hide.disabled=true;status.textContent="Updating your acknowledgement preference…";
+ try{const {error}=await accountClient.rpc("set_my_founding_reader_public_listing",{show_publicly:isPublic});if(error)throw error;await loadFoundingReaderSettings();}
+ catch(error){console.error("Could not update Founding Reader preference:",error);status.textContent=error.message||"We couldn't update your preference. Please try again.";show.disabled=false;hide.disabled=false;}
+}
+
 async function loadAccessCodeAdmin(){
  const panel=accountById("accessCodeAdminPanel");
  if(!panel)return;
@@ -623,7 +644,7 @@ async function showSession(session){
  const userId=signedIn?session.user.id:null;
  if(userId===lastDashboardUserId){
   if(signedIn){
-   await Promise.all([loadMyAccessGrants(),loadAccessCodeAdmin()]);
+   await Promise.all([loadMyAccessGrants(),loadAccessCodeAdmin(),loadFoundingReaderSettings()]);
   }
   return;
  }
@@ -640,7 +661,7 @@ async function showSession(session){
   }else{
    await loadPersonalDashboard(session.user);
   }
-  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost(),loadMyAccessGrants(),loadAccessCodeAdmin()]);
+  await Promise.all([loadCardCollection(session.user),loadReaderAchievements(),loadTradingPost(),loadMyAccessGrants(),loadAccessCodeAdmin(),loadFoundingReaderSettings()]);
  }
 }
 async function submitAccount(event){
@@ -661,7 +682,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
  const cropCanvas=accountById("avatarCropCanvas");
  cropCanvas?.addEventListener("pointerdown",event=>{if(!avatarCropImage)return;avatarCropPointer={x:event.clientX,y:event.clientY};cropCanvas.setPointerCapture(event.pointerId);});
  cropCanvas?.addEventListener("pointermove",event=>{if(!avatarCropPointer||!avatarCropImage)return;const rect=cropCanvas.getBoundingClientRect(),cropSize=Math.min(avatarCropImage.naturalWidth,avatarCropImage.naturalHeight)/avatarCropZoom;avatarCropCenterX-=(event.clientX-avatarCropPointer.x)*cropSize/rect.width;avatarCropCenterY-=(event.clientY-avatarCropPointer.y)*cropSize/rect.height;avatarCropPointer={x:event.clientX,y:event.clientY};renderAvatarCrop();});
- ["pointerup","pointercancel","lostpointercapture"].forEach(name=>cropCanvas?.addEventListener(name,()=>{avatarCropPointer=null;}));accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("createAccessCodeButton")?.addEventListener("click",createReaderAccessCode);accountById("copyCreatedAccessCode")?.addEventListener("click",async()=>{const code=accountById("createdAccessCode")?.textContent||"";try{await navigator.clipboard.writeText(code);accountById("createAccessCodeMessage").textContent="Access code copied. Keep it somewhere safe."; }catch(error){accountById("createAccessCodeMessage").textContent="Select and copy the code shown above.";}});accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
+ ["pointerup","pointercancel","lostpointercapture"].forEach(name=>cropCanvas?.addEventListener(name,()=>{avatarCropPointer=null;}));accountById("foundingReaderOptIn")?.addEventListener("click",()=>setFoundingReaderListing(true));accountById("foundingReaderOptOut")?.addEventListener("click",()=>setFoundingReaderListing(false));accountById("redeemAccessCodeButton")?.addEventListener("click",redeemReaderAccessCode);accountById("createAccessCodeButton")?.addEventListener("click",createReaderAccessCode);accountById("copyCreatedAccessCode")?.addEventListener("click",async()=>{const code=accountById("createdAccessCode")?.textContent||"";try{await navigator.clipboard.writeText(code);accountById("createAccessCodeMessage").textContent="Access code copied. Keep it somewhere safe."; }catch(error){accountById("createAccessCodeMessage").textContent="Select and copy the code shown above.";}});accountById("accessCodeInput")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();redeemReaderAccessCode();}});setMode("signin");
  const {data}=await accountClient.auth.getSession();await showSession(data.session);
  accountClient.auth.onAuthStateChange((_event,session)=>window.setTimeout(()=>showSession(session),0));
 });
