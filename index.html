@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="site-nav.css?v=stage-8a">
+<link rel="stylesheet" href="site-nav.css?v=stage-8b">
 <style>
 :root{color-scheme:dark;--bg:#080e18;--surface:#101a29;--surface2:#15243a;--text:#f1f5fb;--muted:#a8b5c8;--blue:#398cff;--ice:#a8ceff;--line:#ffffff20;--gold:#d9bd82}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}
@@ -45,7 +45,7 @@ footer{padding:28px 20px;text-align:center;border-top:1px solid var(--line);colo
 <h1>THE TRIALS<br>OF EDEN</h1>
 <p class="hero-subtitle">EDEN TRILOGY · BOOK ONE</p>
 <p class="hero-copy">Twenty contestants enter a competition built to test the limits of human potential. But in a world where every move is watched, the greatest danger may be what lies beyond the Trials.</p>
-<div class="actions"><a class="button primary" href="/books/trials-of-eden/">ENTER THE READING ROOM</a><a class="button" href="#your-first-visit">HOW IT WORKS</a></div>
+<div class="actions"><a class="button primary" href="/books/trials-of-eden/">ENTER THE READING ROOM</a><button class="button" type="button" id="homeBookOnlyButton">READ WITHOUT DISTRACTIONS</button><a class="button" href="#your-first-visit">HOW IT WORKS</a></div>
 <p class="hero-note">Your story starts here. You can explore the wider world whenever you're ready.</p>
 </div>
 </header>
@@ -75,7 +75,7 @@ footer{padding:28px 20px;text-align:center;border-top:1px solid var(--line);colo
 <section class="creator"><div class="creator-inner"><p class="eyebrow">BEHIND THE CREATION</p><h2>THE ORLONG UNIVERSE</h2><p>Created by Callum Macann, Orlong is an interconnected science-fiction and fantasy universe exploring society, identity, power and the future of humanity.</p><p><a href="https://www.instagram.com/orlong_official/" target="_blank" rel="noopener noreferrer">Follow Orlong on Instagram</a> · <a href="mailto:orlonguniverse@gmail.com">Contact the creator</a></p></div></section>
 </main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br>© <span id="year">2026</span> Callum Macann. All rights reserved.</footer>
-<script>document.getElementById("year").textContent=new Date().getFullYear();</script>
+<script>document.getElementById("year").textContent=new Date().getFullYear();document.getElementById("homeBookOnlyButton")?.addEventListener("click",()=>{localStorage.setItem("orlongBookOnlyMode","true");window.location.href="/books/trials-of-eden/";});</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="site-nav.js?v=stage-8a"></script>
 </body></html>
