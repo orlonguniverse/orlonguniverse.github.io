@@ -11,7 +11,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="style.css?v=stage-8a">
+<link rel="stylesheet" href="style.css?v=stage-8b">
    
 <style>
 
@@ -842,9 +842,9 @@ body.focus-mode .reader {
   <button type="button" id="accountActionsSignOut" class="account-submit-button">SIGN OUT</button>
 </dialog>
 
-<button class="focus-exit" onclick="toggleFocus()">
-  EXIT FOCUS MODE
-</button>
+<button class="focus-exit" type="button" onclick="toggleFocus()">EXIT FOCUS MODE</button>
+<button class="book-only-toggle" id="bookOnlyToggle" type="button" onclick="toggleBookOnlyMode()" aria-pressed="false">BOOK-ONLY MODE</button>
+<button class="mobile-focus-toggle" id="mobileFocusToggle" type="button" onclick="toggleMobileFocus()" aria-pressed="false">HIDE MENU</button>
 
 <div class="reading-progress">
   <div id="progressBar"></div>
@@ -1047,7 +1047,7 @@ body.focus-mode .reader {
       <section class="engagement-card chapter-quiz-card" id="chapterQuizCard">
         <p class="engagement-eyebrow">CHAPTER CHALLENGE</p>
         <h3>TEST YOUR MEMORY</h3>
-        <p class="engagement-muted">Three questions. One chapter. How closely were you paying attention? Your submitted attempts are saved to your profile and cannot be edited.</p>
+        <p class="engagement-muted">Three questions. One chapter. Your first submitted attempt is your official result and is recorded permanently. You can practise afterwards, but practice scores never replace your official result.</p>
         <div id="chapterQuiz" aria-live="polite"><p class="engagement-muted">Loading this chapter's challenge...</p></div>
       </section>
 
