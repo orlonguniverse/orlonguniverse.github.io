@@ -299,7 +299,7 @@ function renderChapterDirectory() {
     ? window.getVisibleEdenChapters()
     : window.EDEN_CHAPTERS;
   visibleChapters.forEach(chapter => {
-    const item = document.createElement(chapter.available ? "a" : "div");
+    const item = document.createElement(chapter.available || chapter.accessLocked ? "a" : "div");
     item.className = "chapter-item" + (chapter.id === currentChapter ? " active" : "");
     if (chapter.available) {
       item.href = "?chapter=" + encodeURIComponent(chapter.id);
