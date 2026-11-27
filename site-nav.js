@@ -46,6 +46,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     {label:"EVENTS",href:"/events.html",current:location.pathname.endsWith("/events.html")},
     {label:"EARLY ACCESS",href:"/early-access/",current:location.pathname.startsWith("/early-access")},
     {label:"FOUNDING READERS",href:"/founding-readers/",current:location.pathname.startsWith("/founding-readers")}
+   ]),
+   makeDropdown("EXPLORE EDEN",[
+    {label:"CARD COLLECTION",href:"/explore-eden/",current:location.pathname.startsWith("/explore-eden")}
    ])
   );
   if(accountButton)navLinks.append(accountButton);
