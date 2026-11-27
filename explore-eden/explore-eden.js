@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 let client=null,catalogue=[],owned=[],activeCollectionCategory="all",activeCatalogueCategory="all",mysteryPacks=[];
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
-function cardElement(card,isOwned,showUnownedArtwork=true){
+function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false){
  const article=document.createElement("article");article.className="eden-card"+(isOwned?" owned":"");
  const front=document.createElement("div");front.className="eden-card-front rarity-"+String(card.rarity||"common").toLowerCase();
  const artwork=imageFor(card);
@@ -28,6 +28,17 @@ function cardElement(card,isOwned,showUnownedArtwork=true){
  if(card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition","SPECIAL EDITION"));
  front.append(frame);article.append(front);
  if(isOwned)article.append(text("span","eden-card-count",Number(card.copy_count||1)+" "+(Number(card.copy_count||1)===1?"COPY":"COPIES")));
+ if(isOwned&&showSaleControls&&Number(card.copy_count||1)>1){
+  const count=Number(card.copy_count||1),unitValue=duplicateSaleValue(card.rarity);
+  const controls=document.createElement("div");controls.className="duplicate-card-controls";
+  controls.append(text("small","duplicate-card-value","SELL VALUE · "+formatXanth(unitValue)+" EACH"));
+  const actions=document.createElement("div");actions.className="duplicate-card-actions";
+  const select=document.createElement("select");select.className="duplicate-sale-quantity";select.setAttribute("aria-label","Number of duplicate copies to sell");
+  for(let n=1;n<count;n++){const option=document.createElement("option");option.value=String(n);option.textContent="Sell "+n+" cop"+(n===1?"y":"ies");select.append(option);}
+  const button=text("button","duplicate-sell-button","SELL");button.type="button";
+  button.addEventListener("click",()=>sellDuplicateCopies(card.id||card.card_id,Number(select.value),button));
+  actions.append(select,button);controls.append(actions);article.append(controls);
+ }
  return article;
 }
 function makeFilters(container,categories,selected,onSelect){
@@ -35,6 +46,46 @@ function makeFilters(container,categories,selected,onSelect){
  [{id:"all",label:"ALL"},...categories.map(c=>({id:c.id,label:c.label.toUpperCase()}))].forEach(opt=>{
   const b=text("button","eden-filter"+(selected===opt.id?" is-active":""),opt.label);b.type="button";b.setAttribute("aria-pressed",String(selected===opt.id));b.addEventListener("click",()=>onSelect(opt.id));container.append(b);
  });
+}
+function duplicateSaleValue(rarity){
+ const values={common:500,uncommon:1750,rare:6250,epic:22500,legendary:90000};
+ return values[String(rarity||"common").toLowerCase()]||500;
+}
+async function loadDuplicateSaleSettings(){
+ const {data,error}=await client.rpc("get_my_duplicate_sale_settings");
+ if(error){$("duplicateSettingsStatus").textContent="Duplicate selling is waiting for the Stage 7E Supabase migration.";console.warn(error);return;}
+ $("autoSellDuplicates").checked=Boolean(data?.auto_sell_duplicates);
+ const keep=String(data?.keep_copies||1);
+ $("duplicateKeepCopies").value=[...$("duplicateKeepCopies").options].some(o=>o.value===keep)?keep:"1";
+ $("duplicateSettingsStatus").textContent=$("autoSellDuplicates").checked
+  ?"Automatic selling is ON. Extra copies above your keep limit will be sold when acquired."
+  :"Automatic selling is OFF. You can sell duplicates manually at any time.";
+}
+async function saveDuplicateSaleSettings(){
+ const button=$("saveDuplicateSettings");button.disabled=true;button.textContent="SAVING…";
+ try{
+  const {data,error}=await client.rpc("set_my_duplicate_sale_settings",{
+   p_auto_sell:$("autoSellDuplicates").checked,
+   p_keep_copies:Number($("duplicateKeepCopies").value)
+  });
+  if(error)throw error;
+  $("duplicateSettingsStatus").textContent=data.auto_sell_duplicates
+   ?"Saved. New copies above your limit of "+data.keep_copies+" will be sold automatically for 50% of their rarity value."
+   :"Saved. Automatic selling is OFF; you can still sell duplicates manually.";
+ }catch(error){console.error(error);$("duplicateSettingsStatus").textContent=error.message||"Could not save duplicate preferences.";}
+ finally{button.disabled=false;button.textContent="SAVE PREFERENCES";}
+}
+async function sellDuplicateCopies(cardId,quantity,button){
+ button.disabled=true;button.textContent="SELLING…";
+ try{
+  const {data,error}=await client.rpc("sell_my_duplicate_cards",{p_card_id:cardId,p_quantity:quantity});
+  if(error)throw error;
+  const result=await client.rpc("get_my_card_collection");
+  if(result.error)throw result.error;
+  owned=result.data||[];renderCollection();
+  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+  $("duplicateSettingsStatus").textContent="Sold "+data.copies_sold+" duplicate "+(data.card_name||"card")+(data.copies_sold===1?"":"s")+" for "+formatXanth(data.total_value_cents)+".";
+ }catch(error){console.error(error);button.disabled=false;button.textContent="TRY AGAIN";$("duplicateSettingsStatus").textContent=error.message||"The duplicate sale could not be completed.";}
 }
 function renderCollection(){
  const grid=$("collectionGrid"),filters=$("collectionFilters");grid.replaceChildren();
@@ -45,7 +96,7 @@ function renderCollection(){
  const visible=activeCollectionCategory==="all"?discovered:discovered.filter(c=>c.categoryId===activeCollectionCategory);
  visible.forEach(card=>{
   const copy=ownedMap.get(card.id);
-  grid.append(cardElement({...card,copy_count:copy.copy_count},true));
+  grid.append(cardElement({...card,copy_count:copy.copy_count},true,true,true));
  });
  const copies=owned.reduce((sum,c)=>sum+Number(c.copy_count||0),0);
  $("collectionSummary").textContent=copies+" COPIES · "+discovered.length+" UNIQUE CARDS";
@@ -274,6 +325,7 @@ async function initialise(){
  if(!session){$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
+  await loadDuplicateSaleSettings();
   const [collectionResult,readerResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections")]);
   if(collectionResult.error){$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection is temporarily unavailable. Please check that the Stage 3 binder migration has been installed."));$("collectionSummary").textContent="COLLECTION UNAVAILABLE";}
   else{owned=collectionResult.data||[];renderCollection();}
@@ -283,6 +335,7 @@ async function initialise(){
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
+ $("saveDuplicateSettings")?.addEventListener("click",()=>saveDuplicateSaleSettings());
  if(!window.supabase?.createClient){$("sessionMessage").textContent="The sign-in service is unavailable. Please refresh and try again.";return;}
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  try{
