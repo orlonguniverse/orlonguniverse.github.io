@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],activeCollectionCategory="all",activeCatalogueCategory="all";
+let client=null,catalogue=[],owned=[],activeCollectionCategory="all",activeCatalogueCategory="all",mysteryPacks=[];
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 function cardElement(card,isOwned,showUnownedArtwork=true){
@@ -118,35 +118,54 @@ function showMysteryPackTear(pack){
  requestAnimationFrame(()=>{overlay.classList.add("is-active");window.setTimeout(()=>overlay.classList.add("is-tearing"),120);});
  return overlay;
 }
-async function loadMysteryPacks(){
+function renderMysteryPacks(){
  const grid=$("mysteryPackGrid");if(!grid)return;
- grid.replaceChildren(text("div","eden-empty","Opening the Mystery Vault…"));
- const {data,error}=await client.rpc("get_xanth_mystery_packs");
- if(error){
-  console.error("Mystery Vault unavailable:",error);
-  grid.replaceChildren(text("div","eden-empty","The Mystery Vault is waiting for the Stage 7C Supabase migration."));
-  return;
- }
+ const search=String($("mysteryPackSearch")?.value||"").trim().toLowerCase();
+ const type=$("mysteryPackType")?.value||"all",sort=$("mysteryPackSort")?.value||"recommended";
+ let visible=mysteryPacks.filter(pack=>{
+  const haystack=[pack.title,pack.description,pack.theme_label,pack.theme_type].join(" ").toLowerCase();
+  return (!search||haystack.includes(search))&&(type==="all"||pack.theme_type===type);
+ });
+ if(sort==="price-low")visible.sort((x,y)=>Number(x.price_cents)-Number(y.price_cents));
+ else if(sort==="price-high")visible.sort((x,y)=>Number(y.price_cents)-Number(x.price_cents));
+ else if(sort==="cards-high")visible.sort((x,y)=>Number(y.card_count)-Number(x.card_count)||Number(x.price_cents)-Number(y.price_cents));
+ else if(sort==="options-high")visible.sort((x,y)=>Number(y.eligible_count)-Number(x.eligible_count));
+ else if(sort==="name")visible.sort((x,y)=>x.title.localeCompare(y.title));
+ const count=$("mysteryPackCount");if(count)count.textContent="SHOWING "+visible.length+" OF "+mysteryPacks.length+" AVAILABLE PACKS";
  grid.replaceChildren();
- (data||[]).forEach(pack=>{
+ visible.forEach(pack=>{
   const article=document.createElement("article");article.className="mystery-pack-card theme-"+pack.theme_type;
   if(pack.accent)article.style.setProperty("--pack-accent",pack.accent);
   article.append(text("span","mystery-pack-kicker",pack.theme_label||"SEALED DISCOVERY"));
   const art=document.createElement("div");art.className="mystery-pack-art";
   const envelope=document.createElement("div");envelope.className="mystery-pack-envelope";
-  envelope.append(text("span","mystery-pack-glyph",pack.theme_type==="chapter"?"⌁":pack.theme_type==="category"?"✧":pack.theme_type==="rarity"?"◇":"✦"),
-    text("span","mystery-pack-ribbon",""));
-  art.append(envelope);
+  const glyph=pack.theme_type==="chapter"?"⌁":pack.theme_type==="category"?"✧":pack.theme_type==="rarity"?"◇":pack.theme_type==="targeted"?"✣":"✦";
+  envelope.append(text("span","mystery-pack-glyph",glyph),text("span","mystery-pack-ribbon",""));art.append(envelope);
   article.append(art,text("h4","mystery-pack-title",pack.title),text("p","mystery-pack-description",pack.description));
   const meta=document.createElement("div");meta.className="mystery-pack-meta";
-  meta.append(text("span","",pack.card_count+" CARDS INSIDE"),text("span","",""+pack.eligible_count+" POSSIBLE"));
+  meta.append(text("span","",pack.card_count+" CARDS INSIDE"),text("span","",pack.eligible_count+" POSSIBLE"));
   article.append(meta,text("p","mystery-pack-price",formatXanth(pack.price_cents)));
-  const button=text("button","mystery-pack-buy","OPEN PACK");button.type="button";
-  button.addEventListener("click",()=>purchaseMysteryPack(pack,button));
+  const button=text("button","mystery-pack-buy","OPEN PACK");button.type="button";button.addEventListener("click",()=>purchaseMysteryPack(pack,button));
   article.append(button);grid.append(article);
  });
- if(!(data||[]).length)grid.append(text("div","eden-empty","The vault is quiet. More released cards are needed to form eligible packs."));
+ if(!visible.length)grid.append(text("div","eden-empty",mysteryPacks.length?"No packs match those filters. Try another search or clear the filters.":"The vault is quiet. More released cards are needed to form eligible packs."));
 }
+async function loadMysteryPacks(){
+ const grid=$("mysteryPackGrid");if(!grid)return;
+ grid.replaceChildren(text("div","eden-empty","Opening the Mystery Vault…"));
+ const {data,error}=await client.rpc("get_xanth_mystery_packs");
+ if(error){console.error("Mystery Vault unavailable:",error);grid.replaceChildren(text("div","eden-empty","The Mystery Vault is waiting for the Stage 7C/7D Supabase migration."));return;}
+ mysteryPacks=data||[];renderMysteryPacks();
+}
+["mysteryPackSearch","mysteryPackType","mysteryPackSort"].forEach(id=>{
+ const control=$(id);if(control){control.addEventListener(id==="mysteryPackSearch"?"input":"change",renderMysteryPacks);}
+});
+$("mysteryPackClear")?.addEventListener("click",()=>{
+ if($("mysteryPackSearch"))$("mysteryPackSearch").value="";
+ if($("mysteryPackType"))$("mysteryPackType").value="all";
+ if($("mysteryPackSort"))$("mysteryPackSort").value="recommended";
+ renderMysteryPacks();
+});
 async function purchaseMysteryPack(pack,button){
  button.disabled=true;button.textContent="SEAL BREAKING…";
  $("mysteryPackStatus").textContent="";
@@ -165,8 +184,7 @@ async function purchaseMysteryPack(pack,button){
  const collectionResult=await client.rpc("get_my_card_collection");
  if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
- // The universal reveal queue plays the existing reveal soundtrack and
- // presents each card sequentially, using the same cinematic card treatment.
+ // The reveal watcher groups all cards from this pack into one simultaneous reveal.
  window.OrlongCardRevealWatcher?.poll?.();
 }
 
