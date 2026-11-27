@@ -7,6 +7,20 @@ window.updateOrlongAccountLabel=function(user){
  button.textContent=user?String(metadataName||emailName||"READER").toUpperCase():"SIGN IN";
  button.setAttribute("aria-label",user?"Signed in as "+String(metadataName||emailName||"Reader"):"Sign in");
 };
+window.updateOrlongModeratorLink=async function(user,client){
+ const nav=document.querySelector(".topbar-right, .top-actions");
+ if(!nav)return;
+ const existing=nav.querySelector(".nav-moderator-link");
+ if(!user){existing?.remove();return;}
+ try{
+  const {data,error}=await client.rpc("is_reader_moderator");
+  if(error||data!==true){existing?.remove();return;}
+  if(!nav.querySelector(".nav-moderator-link")){
+   const link=document.createElement("a");link.href="/moderator/";link.textContent="MODERATOR HQ";link.className="nav-direct-link nav-moderator-link";
+   nav.insertBefore(link,nav.querySelector("#openAccountButton, #mainAccountButton, .nav-account-button")||null);
+  }
+ }catch(error){existing?.remove();console.warn("Moderator navigation is unavailable:",error);}
+};
 window.toggleSiteTheme=function(){
  const light=document.body.classList.toggle("light");
  document.body.classList.toggle("dark",!light);
@@ -91,10 +105,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   const client=window.orlongNavigationClient;
   const setAccountLabel=user=>window.updateOrlongAccountLabel(user);
   client.auth.getSession().then(({data,error})=>{
-   if(!error)setAccountLabel(data.session?.user||null);
+   if(!error){const user=data.session?.user||null;setAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);}
   }).catch(()=>{});
   client.auth.onAuthStateChange((_event,session)=>{
-   window.setTimeout(()=>setAccountLabel(session?.user||null),0);
+   window.setTimeout(()=>{const user=session?.user||null;setAccountLabel(user);window.updateOrlongModeratorLink?.(user,client);},0);
   });
  };
  if(window.supabase?.createClient){
