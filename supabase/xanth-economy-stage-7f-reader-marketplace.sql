@@ -81,6 +81,19 @@ language sql stable security definer set search_path=public,pg_temp as $$
  order by cat.card_number,c.acquired_at;
 $$;
 
+create or replace function public.get_public_market_tradeable_copies(p_reader_id uuid)
+returns table(copy_id uuid,card_id text,card_number text,card_name text,rarity text,artwork_url text)
+language sql stable security definer set search_path=public,pg_temp as $
+ select c.copy_id,c.card_id,cat.card_number,cat.name,cat.rarity,cat.artwork_url
+ from public.reader_card_copies c join public.card_catalogue cat on cat.card_id=c.card_id and cat.is_active
+ join public.reader_card_settings s on s.user_id=c.owner_user_id and s.collection_is_public
+ where c.owner_user_id=p_reader_id and p_reader_id<>auth.uid()
+ and not exists(select 1 from public.card_trade_offers t where t.offered_copy_id=c.copy_id and t.status='pending')
+ and not exists(select 1 from public.reader_card_market_listings l where l.copy_id=c.copy_id and l.status='active')
+ and not exists(select 1 from public.reader_card_market_offer_items i join public.reader_card_market_offers o on o.offer_id=i.offer_id where i.copy_id=c.copy_id and o.status='pending')
+ order by cat.card_number,c.acquired_at;
+$;
+
 create or replace function public.create_market_card_listing(p_copy_id uuid,p_price_cents bigint)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare uid uuid:=auth.uid(); cid text; lid uuid;
@@ -286,7 +299,7 @@ language sql stable security definer set search_path=public,pg_temp as $$
  select o.offer_id,o.listing_id,case when o.proposer_user_id=auth.uid() then 'proposer' else 'recipient' end,
         case when o.proposer_user_id=auth.uid() then o.recipient_user_id else o.proposer_user_id end,
         p.display_name,o.status,o.current_revision,o.proposer_pays_cents,o.recipient_pays_cents,
-        coalesce((select jsonb_agg(jsonb_build_object('owner_side',i.owner_side,'card_id',i.card_id,'card_number',c.card_number,'card_name',c.name,'rarity',c.rarity,'artwork_url',c.artwork_url)) from public.reader_card_market_offer_items i join public.card_catalogue c on c.card_id=i.card_id where i.offer_id=o.offer_id),'[]'::jsonb),
+        coalesce((select jsonb_agg(jsonb_build_object('owner_side',i.owner_side,'copy_id',i.copy_id,'card_id',i.card_id,'card_number',c.card_number,'card_name',c.name,'rarity',c.rarity,'artwork_url',c.artwork_url)) from public.reader_card_market_offer_items i join public.card_catalogue c on c.card_id=i.card_id where i.offer_id=o.offer_id),'[]'::jsonb),
         coalesce((select jsonb_agg(jsonb_build_object('revision',h.revision,'sender_user_id',h.sender_user_id,'proposer_pays_cents',h.proposer_pays_cents,'recipient_pays_cents',h.recipient_pays_cents,'proposer_cards',h.proposer_cards,'recipient_cards',h.recipient_cards,'message',h.message,'created_at',h.created_at) order by h.revision) from public.reader_card_market_offer_history h where h.offer_id=o.offer_id),'[]'::jsonb),
         o.created_at
  from public.reader_card_market_offers o
@@ -382,6 +395,7 @@ end $$;
 
 -- Keep security-definer entry points private; all actions require sign-in.
 revoke all on function public.get_my_market_tradeable_copies() from public,anon;
+revoke all on function public.get_public_market_tradeable_copies(uuid) from public,anon;
 revoke all on function public.create_market_card_listing(uuid,bigint) from public,anon;
 revoke all on function public.cancel_market_card_listing(uuid) from public,anon;
 revoke all on function public.get_reader_card_market() from public,anon;
@@ -394,7 +408,7 @@ revoke all on function public.get_my_reader_market_offers() from public,anon;
 revoke all on function public.sell_my_duplicate_cards(text,integer) from public,anon;
 revoke all on function public.auto_sell_excess_card_copies() from public,anon,authenticated;
 revoke all on function public.apply_my_duplicate_sale_limit(uuid) from public,anon,authenticated;
-grant execute on function public.get_my_market_tradeable_copies(),public.get_reader_card_market(),public.get_my_reader_market_offers() to authenticated;
+grant execute on function public.get_my_market_tradeable_copies(),public.get_public_market_tradeable_copies(uuid),public.get_reader_card_market(),public.get_my_reader_market_offers() to authenticated;
 grant execute on function public.create_market_card_listing(uuid,bigint),public.cancel_market_card_listing(uuid),public.buy_market_card_listing(uuid) to authenticated;
 grant execute on function public.create_reader_market_offer(uuid,uuid,uuid[],uuid[],bigint,bigint,text) to authenticated;
 grant execute on function public.counter_reader_market_offer(uuid,uuid[],uuid[],bigint,bigint,text),public.respond_to_reader_market_offer(uuid,boolean),public.cancel_reader_market_offer(uuid) to authenticated;
