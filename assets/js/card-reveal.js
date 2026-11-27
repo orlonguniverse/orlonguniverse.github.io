@@ -13,7 +13,7 @@
    overlay.remove();document.body.classList.remove("orlong-reveal-lock");active=false;
    const resolve=activeResolver;activeResolver=null;if(resolve)resolve();
    startNext();
-  },650);
+  },260);
  }
  function makeOverlay(card){
   const overlay=document.createElement("div");overlay.className="orlong-reveal-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","New collectible card reveal");
@@ -30,7 +30,7 @@
   const cardFace=document.createElement("div");cardFace.className="orlong-reveal-card";
   const back=document.createElement("div");back.className="orlong-reveal-card-back";
   const front=document.createElement("div");front.className="orlong-reveal-card-front";
-  const img=document.createElement("img");img.className="orlong-reveal-art";img.alt=(card.name||"Collectible")+" artwork";if(card.artwork)img.src=card.artwork;else img.hidden=true;
+  const img=document.createElement("img");img.className="orlong-reveal-art";img.alt=(card.name||"Collectible")+" artwork";if(card.artwork){img.src=card.artwork;img.loading="eager";img.decoding="async";}else{img.hidden=true;front.classList.add("orlong-reveal-no-art");}
   const meta=document.createElement("div");meta.className="orlong-reveal-meta";
   const badge=document.createElement("span");badge.className="orlong-reveal-rarity";badge.textContent=rarity.label;
   const number=document.createElement("span");number.className="orlong-reveal-number";number.textContent=card.number||"ORLONG ARCHIVE";
@@ -61,6 +61,11 @@
   startCard(next.card);
  }
  async function startCard(card){const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
+  const art=overlay.querySelector(".orlong-reveal-art");
+  if(art&&!art.hidden&&art.src&&!art.complete){
+   await Promise.race([new Promise(resolve=>{art.addEventListener("load",resolve,{once:true});art.addEventListener("error",resolve,{once:true});}),wait(1800)]);
+  }
+  if(art&&!art.hidden&&art.complete&&art.naturalWidth===0)overlay.querySelector(".orlong-reveal-card-front")?.classList.add("orlong-reveal-art-unavailable");
   const caption=overlay.querySelector(".orlong-reveal-caption"),skip=overlay.querySelector(".orlong-reveal-skip"),closeButton=overlay.querySelector(".orlong-reveal-close");
   if(card.series==="eden"||card.book==="trials-of-eden"||card.id?.startsWith("special-")||!card.series)overlay.classList.add("series-eden");
   const finishNow=()=>finish(overlay,caption,skip,closeButton);
@@ -68,13 +73,13 @@
   // One full-length score plays continuously from beginning to end.
   try{score=new Audio("/assets/audio/reveal-soundtrack.mp3");score.volume=.9;score.preload="auto";const p=score.play();if(p?.catch)p.catch(()=>{});}catch(_){}
   const sequence=[
-   ["awakening","THE ORLONG FIELD STIRS",1600],
-   ["surge","ENERGY FLOWS THROUGH THE CRYSTALS",1900],
-   ["eel","THE TRIALS OF EDEN AWAKEN",2100],
-   ["materialising","A NEW FORM TAKES SHAPE",1500],
-   ["flipping","REVEALING YOUR DISCOVERY",1350],
-   ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",1800],
-   ["revealed",String(card.name).toUpperCase(),1700]
+   ["awakening","THE ORLONG FIELD STIRS",350],
+   ["surge","ENERGY FLOWS THROUGH THE CRYSTALS",550],
+   ["eel","THE TRIALS OF EDEN AWAKEN",550],
+   ["materialising","A NEW FORM TAKES SHAPE",450],
+   ["flipping","REVEALING YOUR DISCOVERY",650],
+   ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",650],
+   ["revealed",String(card.name).toUpperCase(),900]
   ];
   for(const [stage,label,duration] of sequence){if(!overlay.isConnected||overlay.dataset.closing==="true")return;overlay.dataset.stage=stage;caption.textContent=label;await wait(duration);}
   finishNow();
