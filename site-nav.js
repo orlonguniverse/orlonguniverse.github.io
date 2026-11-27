@@ -23,7 +23,13 @@ window.updateOrlongModeratorLink=async function(user,client){
 };
 window.enterBookOnlyMode=function(){
  try{localStorage.setItem("orlongBookOnlyMode","true");localStorage.setItem("edenBookOnlyMode","true");}catch(error){}
- window.location.href="/books/trials-of-eden/#chapter";
+ const readerPath="/books/trials-of-eden/";
+ if(window.location.pathname===readerPath||window.location.pathname===readerPath+"index.html"){
+  if(window.location.hash!=="#chapter")window.history.replaceState(null,"",window.location.pathname+window.location.search+"#chapter");
+  window.location.reload();
+  return;
+ }
+ window.location.href=readerPath+"#chapter";
 };
 window.toggleSiteTheme=function(){
  const light=document.body.classList.toggle("light");
@@ -87,6 +93,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   panel.append(guideLink,settingsLabel,theme,bookOnly,statsLink,musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
+  const bookOnlyEntry=document.createElement("button");
+  bookOnlyEntry.type="button";
+  bookOnlyEntry.id="navBookOnlyModeButton";
+  bookOnlyEntry.className="nav-book-only-entry";
+  bookOnlyEntry.textContent="BOOK-ONLY MODE";
+  bookOnlyEntry.setAttribute("aria-label","Enter Book-Only Mode");
+  bookOnlyEntry.addEventListener("click",window.enterBookOnlyMode);
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
   if(bookOnlyEnabled&&isReadingRoom){
    const exitBookOnly=document.createElement("button");
@@ -106,7 +119,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   }else{
    navLinks.replaceChildren(startReading,read,community);
    if(accountButton)navLinks.append(accountButton);
-   navLinks.append(main,instagram);
+   navLinks.append(main,bookOnlyEntry,instagram);
   }
   navLinks.dataset.orlongGrouped="true";
   document.addEventListener("click",event=>{if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
