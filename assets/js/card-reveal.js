@@ -1,96 +1,67 @@
-/* ORLONG CARD REVEAL — visual-only presentation of a server-awarded card. */
+/* ORLONG CARD REVEAL — one continuous score; no stitched sound-effect sequence. */
 (() => {
-  if (window.OrlongCardReveal) return;
-  const audioRoot = "/assets/audio/";
-  const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms));
-  const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const rarityMap = {
-    common:{label:"COMMON",colour:"#c8d0da"},
-    uncommon:{label:"UNCOMMON",colour:"#54d69a"},
-    rare:{label:"RARE",colour:"#42a5ff"},
-    epic:{label:"EPIC",colour:"#bd72ff"},
-    legendary:{label:"LEGENDARY",colour:"#f2c75c"}
-  };
-  let active = false, audio = null, timers = [];
-  function sound(file, volume=0.72) {
-    try {
-      if (audio) { audio.pause(); audio.currentTime = 0; }
-      audio = new Audio(audioRoot + file);
-      audio.volume = volume;
-      const promise = audio.play();
-      if (promise?.catch) promise.catch(()=>{});
-    } catch (_) {}
-  }
-  function clearTimers(){timers.forEach(clearTimeout);timers=[];}
-  function close(overlay) {
-    clearTimers();
-    if(audio){audio.pause();audio.currentTime=0;audio=null;}
-    overlay?.classList.remove("orlong-reveal-active");
-    window.setTimeout(()=>overlay?.remove(),650);
-    document.body.classList.remove("orlong-reveal-lock");
-    active=false;
-  }
-  function stage(overlay,name){overlay.dataset.stage=name;}
-  function makeOverlay(card) {
-    const overlay=document.createElement("div");
-    overlay.className="orlong-reveal-overlay";
-    overlay.setAttribute("role","dialog");
-    overlay.setAttribute("aria-modal","true");
-    overlay.setAttribute("aria-label","New collectible card reveal");
-    const rarity=rarityMap[String(card.rarity||"common").toLowerCase()]||rarityMap.common;
-    overlay.style.setProperty("--reveal-rarity",rarity.colour);
-    const panel=document.createElement("div");panel.className="orlong-reveal-scene";
-    const energy=document.createElement("div");energy.className="orlong-reveal-energy";
-    for(let i=0;i<34;i++){const p=document.createElement("i");p.style.setProperty("--particle-index",i);energy.append(p);}
-    const crystal=document.createElement("div");crystal.className="orlong-reveal-crystal";crystal.setAttribute("aria-hidden","true");
-    const cardWrap=document.createElement("div");cardWrap.className="orlong-reveal-card-wrap";
-    const cardFace=document.createElement("div");cardFace.className="orlong-reveal-card";
-    const back=document.createElement("div");back.className="orlong-reveal-card-back";
-    const front=document.createElement("div");front.className="orlong-reveal-card-front";
-    const img=document.createElement("img");img.className="orlong-reveal-art";img.alt=card.name+" collectible card";img.src=card.artwork||"";
-    if(!card.artwork)img.hidden=true;
-    const meta=document.createElement("div");meta.className="orlong-reveal-meta";
-    const badge=document.createElement("span");badge.className="orlong-reveal-rarity";badge.textContent=rarity.label;
-    const number=document.createElement("span");number.className="orlong-reveal-number";number.textContent=card.number||"ORLONG ARCHIVE";
-    const name=document.createElement("h2");name.className="orlong-reveal-name";name.textContent=card.name||"UNKNOWN DISCOVERY";
-    const description=document.createElement("p");description.className="orlong-reveal-description";description.textContent=card.description||"A new discovery has entered your collection.";
-    const collection=document.createElement("span");collection.className="orlong-reveal-collection";collection.textContent="ADDED TO YOUR COLLECTION";
-    meta.append(badge,number,name,description,collection);front.append(img,meta);cardFace.append(back,front);cardWrap.append(cardFace);
-    const caption=document.createElement("p");caption.className="orlong-reveal-caption";caption.textContent="SOMETHING ANCIENT IS AWAKENING";
-    const controls=document.createElement("div");controls.className="orlong-reveal-controls";
-    const skip=document.createElement("button");skip.type="button";skip.className="orlong-reveal-skip";skip.textContent="SKIP REVEAL";
-    const closeButton=document.createElement("button");closeButton.type="button";closeButton.className="orlong-reveal-close";closeButton.textContent="CONTINUE";
-    closeButton.hidden=true;
-    controls.append(skip,closeButton);
-    panel.append(energy,crystal,cardWrap,caption,controls);overlay.append(panel);
-    skip.addEventListener("click",()=>{if(audio){audio.pause();audio=null;}stage(overlay,"complete");overlay.classList.add("orlong-reveal-complete");closeButton.hidden=false;skip.hidden=true;});
-    closeButton.addEventListener("click",()=>close(overlay));
-    overlay.addEventListener("keydown",e=>{if(e.key==="Escape")close(overlay);});
-    return overlay;
-  }
-  async function play(card) {
-    if(active || !card || !card.name) return;
-    active=true;
-    const overlay=makeOverlay(card);
-    document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");
-    requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
-    const caption=overlay.querySelector(".orlong-reveal-caption");
-    const skip=overlay.querySelector(".orlong-reveal-skip");
-    const closeButton=overlay.querySelector(".orlong-reveal-close");
-    const finish=()=>{stage(overlay,"complete");overlay.classList.add("orlong-reveal-complete");caption.textContent="A NEW DISCOVERY ENTERS YOUR COLLECTION";skip.hidden=true;closeButton.hidden=false;};
-    if(reducedMotion()){finish();return;}
-    try {
-      stage(overlay,"awakening");sound("awakening.mp3",0.78);caption.textContent="THE ORLONG FIELD STIRS";await wait(2300);
-      if(!overlay.isConnected)return;
-      stage(overlay,"energy");sound("energy.mp3",0.64);caption.textContent="ENERGY GATHERS";await wait(1900);
-      stage(overlay,"materialising");sound("materialisation.mp3",0.78);caption.textContent="A FORM TAKES SHAPE";await wait(1700);
-      stage(overlay,"flipping");sound("card-flip.mp3",0.8);caption.textContent="A DISCOVERY AWAITS";await wait(1150);
-      if(!overlay.isConnected)return;
-      stage(overlay,"rarity");sound("rarity-reveal.mp3",0.86);caption.textContent=String(card.rarity||"COMMON").toUpperCase()+" — ITS POWER IS REVEALED";await wait(1600);
-      if(!overlay.isConnected)return;
-      stage(overlay,"revealed");sound("final-impact.mp3",0.92);caption.textContent=card.name.toUpperCase();await wait(1150);
-      finish();
-    } catch(error){console.warn("Card reveal ended early:",error);finish();}
-  }
-  window.OrlongCardReveal={play,closeActive:()=>{const overlay=document.querySelector(".orlong-reveal-overlay");if(overlay)close(overlay);}};
+ if(window.OrlongCardReveal)return;
+ const wait=ms=>new Promise(resolve=>window.setTimeout(resolve,ms));
+ const reduced=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ const rarities={common:{label:"COMMON",colour:"#c8d0da"},uncommon:{label:"UNCOMMON",colour:"#54d69a"},rare:{label:"RARE",colour:"#42a5ff"},epic:{label:"EPIC",colour:"#bd72ff"},legendary:{label:"LEGENDARY",colour:"#f2c75c"}};
+ let active=false,score=null;
+ function stopScore(){if(score){score.pause();score.currentTime=0;score=null;}}
+ function close(overlay){stopScore();overlay?.classList.remove("orlong-reveal-active");window.setTimeout(()=>overlay?.remove(),650);document.body.classList.remove("orlong-reveal-lock");active=false;}
+ function makeOverlay(card){
+  const overlay=document.createElement("div");overlay.className="orlong-reveal-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","New collectible card reveal");
+  const rarity=rarities[String(card.rarity||"common").toLowerCase()]||rarities.common;overlay.style.setProperty("--reveal-rarity",rarity.colour);
+  const scene=document.createElement("div");scene.className="orlong-reveal-scene";
+  const energy=document.createElement("div");energy.className="orlong-reveal-energy";
+  for(let i=0;i<95;i++){const particle=document.createElement("i");particle.style.setProperty("--particle-index",i);energy.append(particle);}
+  const beams=document.createElement("div");beams.className="orlong-reveal-beams";
+  const shock=document.createElement("div");shock.className="orlong-reveal-shockwave";
+  const eel=document.createElement("div");eel.className="orlong-reveal-eel";eel.setAttribute("aria-hidden","true");
+  eel.innerHTML='<svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="orlongEelGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d5f7ff"/><stop offset=".45" stop-color="#39aaff"/><stop offset="1" stop-color="#1762ff"/></linearGradient></defs><path class="eel-halo" d="M55 500 C115 90 310 70 390 290 S565 660 665 405 S805 100 930 180"/><path class="eel-body" d="M55 500 C115 90 310 70 390 290 S565 660 665 405 S805 100 930 180"/><path class="eel-spine" d="M55 500 C115 90 310 70 390 290 S565 660 665 405 S805 100 930 180"/><path class="eel-fin" d="M180 180 l-38 -75 65 53 M325 205 l12 -83 33 90 M480 490 l55 72 8 -103 M760 260 l60 -68 8 93"/><path class="eel-tail" d="M55 500 l-46 -40 7 69z"/><path class="eel-head" d="M900 150 Q945 135 970 180 Q950 220 915 211z"/><circle class="eel-eye" cx="945" cy="172" r="6"/><path class="eel-mouth" d="M929 204 q20 10 35 -1"/></svg>';
+  const crystal=document.createElement("div");crystal.className="orlong-reveal-crystal";
+  const wrap=document.createElement("div");wrap.className="orlong-reveal-card-wrap";
+  const cardFace=document.createElement("div");cardFace.className="orlong-reveal-card";
+  const back=document.createElement("div");back.className="orlong-reveal-card-back";
+  const front=document.createElement("div");front.className="orlong-reveal-card-front";
+  const img=document.createElement("img");img.className="orlong-reveal-art";img.alt=(card.name||"Collectible")+" artwork";if(card.artwork)img.src=card.artwork;else img.hidden=true;
+  const meta=document.createElement("div");meta.className="orlong-reveal-meta";
+  const badge=document.createElement("span");badge.className="orlong-reveal-rarity";badge.textContent=rarity.label;
+  const number=document.createElement("span");number.className="orlong-reveal-number";number.textContent=card.number||"ORLONG ARCHIVE";
+  const name=document.createElement("h2");name.className="orlong-reveal-name";name.textContent=card.name||"UNKNOWN DISCOVERY";
+  const description=document.createElement("p");description.className="orlong-reveal-description";description.textContent=card.description||"A new discovery has entered your collection.";
+  const collection=document.createElement("span");collection.className="orlong-reveal-collection";collection.textContent="ADDED TO YOUR COLLECTION";
+  meta.append(badge,number,name,description,collection);front.append(img,meta);cardFace.append(back,front);wrap.append(cardFace);
+  const caption=document.createElement("p");caption.className="orlong-reveal-caption";caption.textContent="THE ORLONG FIELD STIRS";
+  const controls=document.createElement("div");controls.className="orlong-reveal-controls";
+  const skip=document.createElement("button");skip.type="button";skip.className="orlong-reveal-skip";skip.textContent="SKIP REVEAL";
+  const closeButton=document.createElement("button");closeButton.type="button";closeButton.className="orlong-reveal-close";closeButton.textContent="CONTINUE";closeButton.hidden=true;
+  controls.append(skip,closeButton);scene.append(energy,beams,shock,eel,crystal,wrap,caption,controls);overlay.append(scene);
+  skip.addEventListener("click",()=>{stopScore();finish(overlay,caption,skip,closeButton);});
+  closeButton.addEventListener("click",()=>close(overlay));
+  overlay.addEventListener("keydown",event=>{if(event.key==="Escape")close(overlay);});
+  return overlay;
+ }
+ function finish(overlay,caption,skip,closeButton){overlay.dataset.stage="complete";overlay.classList.add("orlong-reveal-complete");caption.textContent="A NEW DISCOVERY ENTERS YOUR COLLECTION";skip.hidden=true;closeButton.hidden=false;}
+ async function play(card){
+  if(active||!card||!card.name)return;
+  active=true;const overlay=makeOverlay(card);document.body.append(overlay);document.body.classList.add("orlong-reveal-lock");requestAnimationFrame(()=>overlay.classList.add("orlong-reveal-active"));
+  const caption=overlay.querySelector(".orlong-reveal-caption"),skip=overlay.querySelector(".orlong-reveal-skip"),closeButton=overlay.querySelector(".orlong-reveal-close");
+  if(card.series==="eden"||card.book==="trials-of-eden"||card.id?.startsWith("special-")||!card.series)overlay.classList.add("series-eden");
+  const finishNow=()=>finish(overlay,caption,skip,closeButton);
+  if(reduced()){finishNow();return;}
+  // One full-length score plays continuously from beginning to end.
+  try{score=new Audio("/assets/audio/reveal-soundtrack.mp3");score.volume=.9;score.preload="auto";const p=score.play();if(p?.catch)p.catch(()=>{});}catch(_){}
+  const sequence=[
+   ["awakening","THE ORLONG FIELD STIRS",1600],
+   ["surge","ENERGY FLOWS THROUGH THE CRYSTALS",1900],
+   ["eel","THE TRIALS OF EDEN AWAKEN",2100],
+   ["materialising","A NEW FORM TAKES SHAPE",1500],
+   ["flipping","REVEALING YOUR DISCOVERY",1350],
+   ["rarity",rarityLabel(card)+" — ITS POWER IS REVEALED",1800],
+   ["revealed",String(card.name).toUpperCase(),1700]
+  ];
+  for(const [stage,label,duration] of sequence){if(!overlay.isConnected)return;overlay.dataset.stage=stage;caption.textContent=label;await wait(duration);}
+  finishNow();
+ }
+ function rarityLabel(card){return (rarities[String(card.rarity||"common").toLowerCase()]||rarities.common).label;}
+ window.OrlongCardReveal={play,closeActive:()=>{const overlay=document.querySelector(".orlong-reveal-overlay");if(overlay)close(overlay);}};
 })();
