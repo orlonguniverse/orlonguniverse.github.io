@@ -74,7 +74,7 @@ async function saveDuplicateSaleSettings(){
    $("duplicateSettingsStatus").textContent="Saved. Your collection has been brought down to your limit of "+data.keep_copies+" wherever copies were available to sell. "+(sold? sold+" existing duplicate cop"+(sold===1?"y was":"ies were")+" sold for 50% of rarity value.":"No existing excess copies needed selling.")+" Future acquisitions will also be checked automatically.";
    const result=await client.rpc("get_my_card_collection");
    if(!result.error){owned=result.data||[];renderCollection();}
-   await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+   await Promise.all([loadMarketplace(),loadXanthTransactions(),loadTradingMarket()]);
   }else{
    $("duplicateSettingsStatus").textContent="Saved. Automatic selling is OFF; you can still sell duplicates manually.";
   }
@@ -315,7 +315,7 @@ async function renderReaders(readers){
     const result=await client.rpc("create_reader_market_offer",{p_recipient_id:reader.reader_id,p_listing_id:null,p_proposer_copy_ids:offered,p_recipient_copy_ids:requested,p_proposer_pays_cents:amount,p_recipient_pays_cents:0,p_message:message.value.trim()||null});
     if(result.error){status.textContent=result.error.message||"We couldn't send that offer.";send.disabled=false;send.textContent="TRY AGAIN";return;}
     status.textContent="Offer sent! The selected cards are now reserved while the offer is open.";send.textContent="OFFER SENT";
-    await loadTradingMarket();
+    await Promise.all([loadTradingMarket(),loadMarketplace()]);
    });
    form.append(send,status);holder.append(form);holder.hidden=false;view.textContent="HIDE OFFER BUILDER";
   });
@@ -407,8 +407,8 @@ async function loadTradingMarket(){
    const myTurn=(offer.current_revision%2===1&&offer.trade_role==="recipient")||(offer.current_revision%2===0&&offer.trade_role==="proposer");
    const actions=document.createElement("div");actions.className="market-offer-actions";
    if(myTurn){
-    actions.append(marketButton("ACCEPT",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:true});$("marketListingStatus").textContent=result.error?.message||"Offer accepted. Cards and Xanth have been transferred.";await loadTradingMarket();},false));
-    actions.append(marketButton("DECLINE",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:false});$("marketListingStatus").textContent=result.error?.message||"Offer declined.";await loadTradingMarket();},true));
+    actions.append(marketButton("ACCEPT",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:true});$("marketListingStatus").textContent=result.error?.message||"Offer accepted. Cards and Xanth have been transferred.";if(!result.error){const fresh=await client.rpc("get_my_card_collection");if(!fresh.error){owned=fresh.data||[];renderCollection();}}await Promise.all([loadTradingMarket(),loadMarketplace()]);},false));
+    actions.append(marketButton("DECLINE",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:false});$("marketListingStatus").textContent=result.error?.message||"Offer declined.";await Promise.all([loadTradingMarket(),loadMarketplace()]);},true));
     const counter=document.createElement("div");counter.className="market-counter-form";
     const ownSide=offer.trade_role==="proposer"?"proposer":"recipient";
     const existingOwn=(offer.items||[]).filter(x=>x.owner_side===ownSide);
@@ -422,8 +422,8 @@ async function loadTradingMarket(){
     const proposerCash=document.createElement("input");proposerCash.type="number";proposerCash.min="0";proposerCash.step="0.01";proposerCash.value=(Number(offer.proposer_pays_cents)/100).toFixed(2);
     const recipientCash=document.createElement("input");recipientCash.type="number";recipientCash.min="0";recipientCash.step="0.01";recipientCash.value=(Number(offer.recipient_pays_cents)/100).toFixed(2);
     counter.append(text("label","","Proposer pays Xanth"),proposerCash,text("label","","Recipient pays Xanth"),recipientCash);
-    const counterButton=marketButton("COUNTER-OFFER",async()=>{counterButton.disabled=true;const ownIds=[...cardChecks.querySelectorAll("input:checked")].map(x=>x.value),otherSide=ownSide==="proposer"?"recipient":"proposer",otherIds=(offer.items||[]).filter(x=>x.owner_side===otherSide).map(x=>x.copy_id),proposerIds=ownSide==="proposer"?ownIds:otherIds,recipientIds=ownSide==="recipient"?ownIds:otherIds;const result=await client.rpc("counter_reader_market_offer",{p_offer_id:offer.offer_id,p_proposer_copy_ids:proposerIds,p_recipient_copy_ids:recipientIds,p_proposer_pays_cents:Math.round(Number(proposerCash.value||0)*100),p_recipient_pays_cents:Math.round(Number(recipientCash.value||0)*100),p_message:null});$("marketListingStatus").textContent=result.error?.message||"Counter-offer sent.";await loadTradingMarket();});counter.append(counterButton);actions.append(counter);
-   }else if(offer.trade_role==="proposer")actions.append(marketButton("CANCEL OFFER",async()=>{const result=await client.rpc("cancel_reader_market_offer",{p_offer_id:offer.offer_id});$("marketListingStatus").textContent=result.error?.message||"Offer cancelled.";await loadTradingMarket();},true));
+    const counterButton=marketButton("COUNTER-OFFER",async()=>{counterButton.disabled=true;const ownIds=[...cardChecks.querySelectorAll("input:checked")].map(x=>x.value),otherSide=ownSide==="proposer"?"recipient":"proposer",otherIds=(offer.items||[]).filter(x=>x.owner_side===otherSide).map(x=>x.copy_id),proposerIds=ownSide==="proposer"?ownIds:otherIds,recipientIds=ownSide==="recipient"?ownIds:otherIds;const result=await client.rpc("counter_reader_market_offer",{p_offer_id:offer.offer_id,p_proposer_copy_ids:proposerIds,p_recipient_copy_ids:recipientIds,p_proposer_pays_cents:Math.round(Number(proposerCash.value||0)*100),p_recipient_pays_cents:Math.round(Number(recipientCash.value||0)*100),p_message:null});$("marketListingStatus").textContent=result.error?.message||"Counter-offer sent.";await Promise.all([loadTradingMarket(),loadMarketplace()]);});counter.append(counterButton);actions.append(counter);
+   }else if(offer.trade_role==="proposer")actions.append(marketButton("CANCEL OFFER",async()=>{const result=await client.rpc("cancel_reader_market_offer",{p_offer_id:offer.offer_id});$("marketListingStatus").textContent=result.error?.message||"Offer cancelled.";await Promise.all([loadTradingMarket(),loadMarketplace()]);},true));
    card.append(actions);
   }
   offersRoot.append(card);
