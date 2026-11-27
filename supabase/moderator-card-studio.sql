@@ -104,7 +104,8 @@ begin
    end if;
    select category_code into v_code from public.card_categories where category_id=p_category_id;
    select coalesce(max(category_number),0)+1 into v_number
-   from public.card_catalogue where category_id=p_category_id;
+   from public.card_catalogue
+   where category_id=p_category_id and card_number not like 'ERA-%';
    v_card_number := v_code||'-'||lpad(v_number::text,3,'0');
    insert into public.card_catalogue(
     card_id,category_id,category_number,card_number,name,rarity,set_id,
@@ -137,6 +138,40 @@ revoke all on function public.get_moderator_card_studio() from public,anon;
 revoke all on function public.save_moderator_card(text,text,text,text,text,text,integer,text,text,boolean) from public,anon;
 grant execute on function public.get_moderator_card_studio() to authenticated;
 grant execute on function public.save_moderator_card(text,text,text,text,text,text,integer,text,text,boolean) to authenticated;
+
+
+-- Permanently remove a card and all dependent collection/reward/trade records.
+-- This is moderator-only and runs atomically in the database.
+create or replace function public.delete_moderator_card(p_card_id text)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $
+declare
+ v_artwork_url text;
+ v_card_number text;
+begin
+ if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
+ select artwork_url,card_number into v_artwork_url,v_card_number
+ from public.card_catalogue where card_id=p_card_id for update;
+ if not found then raise exception 'Card not found'; end if;
+
+ delete from public.card_trade_offers
+ where requested_card_id=p_card_id
+    or offered_copy_id in (select copy_id from public.reader_card_copies where card_id=p_card_id);
+
+ delete from public.card_reward_pool_cards where card_id=p_card_id;
+ delete from public.card_reward_claims where card_id=p_card_id;
+ delete from public.reader_card_copies where card_id=p_card_id;
+ delete from public.card_catalogue where card_id=p_card_id;
+
+ return jsonb_build_object('card_id',p_card_id,'card_number',v_card_number,'artwork_url',v_artwork_url);
+end;
+$;
+
+revoke all on function public.delete_moderator_card(text) from public,anon;
+grant execute on function public.delete_moderator_card(text) to authenticated;
 
 -- Verification: these functions return data only to registered moderators.
 select public.is_reader_moderator() as current_user_is_moderator;
