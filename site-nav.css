@@ -87,3 +87,12 @@
 .topbar .nav-dropdown>summary{border-radius:3px}
 .topbar .nav-dropdown-menu{border-radius:4px}
 @media(max-width:760px){.topbar .nav-start-reading{min-height:38px}}
+
+/* Stage 8A — shared orientation callouts and accessible page rhythm. */
+.reader-first-callout{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 28px;padding:18px 20px;background:linear-gradient(110deg,#11233a,#0c1726);border:1px solid #398cff55;border-radius:5px}
+.reader-first-callout strong{color:#b8d8ff;font-size:10px;letter-spacing:1.5px}
+.reader-first-callout p{margin:6px 0 0;color:#aebdd0;font-size:12px;line-height:1.7}
+.reader-first-callout a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 14px;background:#2878d7;border:1px solid #75b4ff;color:#fff;font-size:9px;font-weight:700;letter-spacing:1px;white-space:nowrap}
+.contents-account-note{padding:13px 15px;background:#398cff10;border-left:2px solid #398cff;color:#b8cbe2!important;font-size:12px!important;line-height:1.7}
+.events-reader-link{margin:22px auto 0}.events-reader-link a{display:inline-flex;padding:11px 15px;border:1px solid #6baaff88;background:#122b48;color:#e8f3ff;font-size:9px;font-weight:700;letter-spacing:1px}
+@media(max-width:620px){.reader-first-callout{align-items:stretch;flex-direction:column}.reader-first-callout a{width:100%}}
