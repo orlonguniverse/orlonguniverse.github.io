@@ -411,3 +411,21 @@
 .eden-help-note{margin:0;padding:0 18px 16px;color:var(--eden-muted);font-size:10px;line-height:1.6}
 @media(max-width:850px){.eden-help-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.eden-help-grid{grid-template-columns:1fr}.eden-help-guide>summary{align-items:flex-start;flex-direction:column}}
+
+/* Stage 8D.1 — opaque, numbered card-progress slots */
+.progress-category-list{display:grid;gap:34px}
+.progress-category{padding:20px;background:rgba(12,22,36,.7);border:1px solid var(--eden-border)}
+.progress-category-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.progress-category-heading h3{margin:0;font:500 17px Cinzel,serif;color:var(--eden-white)}
+.progress-category-count{color:var(--eden-blue);font-size:9px;font-weight:700;letter-spacing:1px;white-space:nowrap}
+.progress-meter{height:5px;margin:0 0 18px;background:#1c2c40;border:1px solid #304761;overflow:hidden}
+.progress-meter span{display:block;height:100%;background:linear-gradient(90deg,#367cc2,#9bcaff);transition:width .35s ease}
+.progress-slot-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:13px}
+.progress-undiscovered .eden-card-front{border-color:#52657b;box-shadow:0 8px 20px #0006}
+.progress-undiscovered .eden-card-shadow{background:radial-gradient(ellipse,#1b2c40,#070d17 72%)}
+.progress-undiscovered .eden-card-frame{background:linear-gradient(180deg,#06101b55 0%,transparent 30%,#06101bdc 100%)}
+.progress-undiscovered .eden-card-number{color:#9eb0c4}
+.progress-undiscovered .eden-card-rarity{background:#27384b;color:#aebfd1;border-color:#65788c}
+.progress-undiscovered .eden-card-name{color:#c3cfdd}
+@media(max-width:850px){.progress-slot-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.progress-category{padding:13px}.progress-category-heading{align-items:flex-start;flex-direction:column}.progress-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
