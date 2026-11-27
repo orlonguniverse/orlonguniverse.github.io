@@ -78,3 +78,11 @@
 @keyframes orlongBeamTurn{to{transform:rotate(360deg)}}
 @keyframes orlongEelDraw{0%{stroke-dashoffset:1800}100%{stroke-dashoffset:0}}
 @media(prefers-reduced-motion:reduce){.orlong-reveal-beams,.orlong-reveal-eel,.orlong-reveal-energy i,.orlong-reveal-shockwave{animation:none!important}.orlong-reveal-eel{opacity:.45}}
+
+/* Stage 6h — keep the actual card artwork prominent and legible. */
+.orlong-reveal-card-front{gap:0!important;}
+.orlong-reveal-art{display:block!important;flex:0 0 72%!important;width:100%!important;height:72%!important;min-height:0!important;object-fit:cover!important;object-position:center!important;opacity:1!important;visibility:visible!important;}
+.orlong-reveal-card-front.orlong-reveal-no-art .orlong-reveal-meta{min-height:100%;background:radial-gradient(ellipse at 50% 25%,#2a70a8 0%,#0b1728 68%);}
+.orlong-reveal-card-front.orlong-reveal-art-unavailable:before{content:"ARTWORK UNAVAILABLE";display:grid;place-items:center;flex:1;color:#b9d9f5;font:600 11px Inter,sans-serif;letter-spacing:2px;}
+.orlong-reveal-card-wrap{transition:opacity .35s ease,transform .45s ease!important;}
+.orlong-reveal-card{transition:transform .65s cubic-bezier(.2,.75,.2,1)!important;}
