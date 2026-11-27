@@ -389,7 +389,8 @@ revoke all on function public.get_public_card_collection(uuid) from public, anon
 revoke all on function public.create_card_trade_offer(uuid, uuid, text) from public, anon;
 revoke all on function public.respond_to_card_trade(uuid, boolean) from public, anon;
 revoke all on function public.cancel_card_trade_offer(uuid) from public, anon;
-revoke all on function public.get_my_card_trades() from public, anon;\nrevoke all on function public.get_my_tradeable_card_copies() from public, anon;
+revoke all on function public.get_my_card_trades() from public, anon;
+revoke all on function public.get_my_tradeable_card_copies() from public, anon;
 
 grant execute on function public.set_my_card_collection_visibility(boolean) to authenticated;
 grant execute on function public.get_my_card_collection_visibility() to authenticated;
@@ -398,7 +399,8 @@ grant execute on function public.get_public_card_collection(uuid) to authenticat
 grant execute on function public.create_card_trade_offer(uuid, uuid, text) to authenticated;
 grant execute on function public.respond_to_card_trade(uuid, boolean) to authenticated;
 grant execute on function public.cancel_card_trade_offer(uuid) to authenticated;
-grant execute on function public.get_my_card_trades() to authenticated;\ngrant execute on function public.get_my_tradeable_card_copies() to authenticated;
+grant execute on function public.get_my_card_trades() to authenticated;
+grant execute on function public.get_my_tradeable_card_copies() to authenticated;
 
 -- Verification: tables and RPC signatures are installed.
 select table_name
@@ -418,6 +420,7 @@ where routine_schema = 'public'
     'create_card_trade_offer',
     'respond_to_card_trade',
     'cancel_card_trade_offer',
-    'get_my_card_trades',\n    'get_my_tradeable_card_copies'
+    'get_my_card_trades',
+    'get_my_tradeable_card_copies'
   )
 order by routine_name;
