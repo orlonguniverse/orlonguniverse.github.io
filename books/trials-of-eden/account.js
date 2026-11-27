@@ -19,6 +19,10 @@ const setAuthMessage=message=>{
 function setMode(mode){
  accountMode=mode==="signup"?"signup":"signin";accountById("nameField").hidden=accountMode!=="signup";
  accountById("password").autocomplete=accountMode==="signup"?"new-password":"current-password";
+ document.querySelectorAll(".account-menu-card").forEach(link=>link.addEventListener("click",()=>{
+  const target=document.querySelector(link.getAttribute("href"));
+  if(target?.matches("details"))target.open=true;
+ }));
  document.querySelectorAll("[data-mode]").forEach(button=>{button.classList.toggle("active",button.dataset.mode===accountMode);button.setAttribute("aria-pressed",String(button.dataset.mode===accountMode));});
  accountById("authSubmit").textContent=accountMode==="signup"?"CREATE FREE ACCOUNT":"SIGN IN";
  accountById("authHeading").textContent=accountMode==="signup"?"CREATE YOUR READER ACCOUNT":"YOUR READER ACCOUNT";
