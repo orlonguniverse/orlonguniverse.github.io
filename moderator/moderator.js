@@ -17,6 +17,63 @@ async function applyCrop(){const canvas=$("cropCanvas");const blob=await new Pro
 async function saveCard(event){event.preventDefault();const name=$("cardName").value.trim();if(!name){$("formMessage").textContent="Enter a card name.";return}const button=$("saveCardButton");button.disabled=true;button.textContent="SAVING CARD…";$("formMessage").textContent="";try{let artwork=currentArtworkUrl;if(croppedBlob){const path=slug(name)+"-"+Date.now()+".webp";const {error:uploadError}=await client.storage.from("orlong-card-artwork").upload(path,croppedBlob,{contentType:"image/webp",upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;artwork=client.storage.from("orlong-card-artwork").getPublicUrl(path).data.publicUrl}
 const {data,error}=await client.rpc("save_moderator_card",{p_card_id:$("cardId").value||null,p_name:name,p_category_id:$("cardCategory").value,p_rarity:$("cardRarity").value,p_set_id:$("cardSet").value||null,p_unlock_chapter_id:$("cardChapter").value.trim()||null,p_chapter_number:$("cardChapterNumber").value?Number($("cardChapterNumber").value):null,p_description:$("cardDescription").value.trim()||null,p_artwork_url:artwork||null,p_active:true});if(error)throw error;$("formMessage").textContent=(data.created?"Created ":"Updated ")+data.card_number+" successfully.";currentArtworkUrl=artwork;croppedBlob=null;await loadStudio();$("cardId").value=data.card_id;$("saveCardButton").textContent="SAVE CHANGES";$("deleteCardButton").hidden=false;setPreview();say(data.card_number+" saved to the catalogue.");}catch(error){console.error(error);$("formMessage").textContent=error.message||"Could not save this card. Check the database migration."; }finally{button.disabled=false;if(button.textContent==="SAVING CARD…")button.textContent=$("cardId").value?"SAVE CHANGES":"SAVE CARD"}}
 async function deleteCard(){const id=$("cardId").value;if(!id)return;const card=cards.find(c=>c.id===id);const label=card?.number||id;if(!window.confirm("Permanently delete "+label+"? This removes the card from the catalogue, every reader's binder, reward records and related trade offers. This cannot be undone."))return;const button=$("deleteCardButton");button.disabled=true;button.textContent="DELETING…";try{const {data,error}=await client.rpc("delete_moderator_card",{p_card_id:id});if(error)throw error;let artworkCleanupFailed=false;const url=data?.artwork_url;if(url){try{const marker="/storage/v1/object/public/orlong-card-artwork/";const path=decodeURIComponent(new URL(url).pathname.split(marker)[1]||"");if(path){const {error:storageError}=await client.storage.from("orlong-card-artwork").remove([path]);if(storageError)artworkCleanupFailed=true;}}catch(_){artworkCleanupFailed=true;}}resetForm();await loadStudio();$("formMessage").textContent=label+" permanently deleted.";say(artworkCleanupFailed?label+" deleted; its unused artwork file may need manual cleanup.":label+" deleted from the catalogue.");}catch(error){console.error(error);$("formMessage").textContent=error.message||"Could not delete this card.";say("Card deletion failed.");}finally{button.disabled=false;button.textContent="DELETE CARD"}}
-function bind(){document.querySelectorAll(".mod-tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));$("newCardButton").addEventListener("click",()=>{resetForm();window.scrollTo({top:0,behavior:"smooth"})});$("resetCardButton").addEventListener("click",resetForm);$("cardSearch").addEventListener("input",renderList);["cardName","cardDescription","cardCategory","cardRarity","cardChapterNumber"].forEach(id=>$(id).addEventListener("input",setPreview));$("cardCategory").addEventListener("change",setPreview);$("cardRarity").addEventListener("change",setPreview);$("cardArtwork").addEventListener("change",()=>{$("cropArtworkButton").disabled=!$("cardArtwork").files.length;$("uploadStatus").textContent=$("cardArtwork").files.length?"Image selected. Adjust the crop before saving.":"";if($("cardArtwork").files.length)openCrop()});$("cropArtworkButton").addEventListener("click",openCrop);$("closeCrop").addEventListener("click",()=>$("cropDialog").close());$("applyCrop").addEventListener("click",applyCrop);$("cropZoom").addEventListener("input",e=>{cropZoom=Number(e.target.value);renderCrop()});const canvas=$("cropCanvas");canvas.addEventListener("pointerdown",e=>{if(!cropImage)return;pointer={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});canvas.addEventListener("pointermove",e=>{if(!pointer||!cropImage)return;const rect=canvas.getBoundingClientRect(),aspect=canvas.width/canvas.height,sourceRatio=cropImage.naturalWidth/cropImage.naturalHeight;let bw,bh;if(sourceRatio>aspect){bh=cropImage.naturalHeight;bw=bh*aspect}else{bw=cropImage.naturalWidth;bh=bw/aspect}const w=bw/cropZoom,h=bh/cropZoom;cropX-=(e.clientX-pointer.x)*w/rect.width;cropY-=(e.clientY-pointer.y)*h/rect.height;pointer={x:e.clientX,y:e.clientY};renderCrop()});["pointerup","pointercancel","lostpointercapture"].forEach(n=>canvas.addEventListener(n,()=>pointer=null));$("cardForm").addEventListener("submit",saveCard);$("deleteCardButton").addEventListener("click",deleteCard);setPreview()}
+
+async function searchResetReaders(){
+ const query=$("readerResetSearch").value.trim(),root=$("readerResetResults");
+ if(query.length<2){root.textContent="Enter at least two characters to search.";return}
+ root.textContent="Searching…";
+ const {data,error}=await client.rpc("moderator_search_reader_accounts",{search_text:query});
+ if(error){root.textContent=error.message;return}
+ root.replaceChildren();
+ if(!data?.length){root.textContent="No matching reader accounts found.";return}
+ data.forEach(reader=>{
+  const card=document.createElement("article");card.className="reader-reset-card";
+  if(reader.avatar_url){const img=document.createElement("img");img.src=reader.avatar_url;img.alt="";img.className="reader-reset-avatar";img.onerror=()=>img.remove();card.append(img)}
+  const info=document.createElement("div");info.className="reader-reset-info";
+  const name=document.createElement("strong");name.textContent=reader.display_name||"Reader";
+  const email=document.createElement("span");email.textContent=reader.email||"No email available";
+  const meta=document.createElement("small");meta.textContent="Joined "+new Date(reader.created_at).toLocaleDateString()+" · "+(reader.is_moderator?"MODERATOR":"READER");
+  info.append(name,email,meta);
+  const actions=document.createElement("div");actions.className="reader-reset-actions";
+  const collection=document.createElement("button");collection.type="button";collection.className="secondary";collection.textContent="RESET COLLECTION";collection.addEventListener("click",()=>performReaderReset(reader,"collection"));
+  const factory=document.createElement("button");factory.type="button";factory.className="danger";factory.textContent="FACTORY RESET";factory.addEventListener("click",()=>performReaderReset(reader,"factory"));
+  actions.append(collection,factory);card.append(info,actions);root.append(card);
+ });
+}
+async function performReaderReset(reader,mode){
+ if(reader.user_id===user.id){say("You cannot reset your own moderator account.");return}
+ const label=reader.email||reader.display_name||reader.user_id;
+ if(mode==="collection"){
+  if(!window.confirm("RESET COLLECTION for "+label+"?\n\nAll cards, reward claims and outstanding trade offers will be removed. Reading progress and account access will remain."))return;
+ }else{
+  const typed=window.prompt("FACTORY RESET "+label+"?\n\nThis permanently removes the reader's activity, comments, quiz attempts, achievements, cards, Early Access progress, Founding Reader status and access grants. Moderator privileges are revoked. Login and profile picture are preserved.\n\nType FACTORY RESET to continue.");
+  if(typed!=="FACTORY RESET")return;
+ }
+ const buttons=$("readerResetResults").querySelectorAll("button");buttons.forEach(b=>b.disabled=true);
+ try{
+  const {data,error}=await client.rpc("moderator_reset_reader_account",{target_user_id:reader.user_id,reset_mode:mode});
+  if(error)throw error;
+  say((mode==="factory"?"Factory reset":"Collection reset")+" completed for "+label+".");
+  $("readerResetResults").replaceChildren();
+  const message=document.createElement("p");message.className="hint";message.textContent="Reset completed successfully. Search again to verify the account's new state."; $("readerResetResults").append(message);
+  await loadReaderResetLog();
+ }catch(error){console.error(error);say("Reset failed: "+(error.message||"Please check the reset migration."));buttons.forEach(b=>b.disabled=false)}
+}
+async function loadReaderResetLog(){
+ const root=$("readerResetLog");root.textContent="Loading reset history…";
+ const {data,error}=await client.rpc("moderator_get_reader_reset_log");
+ if(error){root.textContent=error.message;return}
+ root.replaceChildren();
+ if(!data?.length){root.textContent="No reader resets have been performed yet.";return}
+ data.forEach(entry=>{
+  const row=document.createElement("article");row.className="reset-log-row";
+  const title=document.createElement("strong");title.textContent=(entry.reset_mode==="factory"?"FACTORY RESET":"COLLECTION RESET")+" · "+(entry.target_email||entry.target_display_name||"Reader");
+  const meta=document.createElement("small");meta.textContent=new Date(entry.performed_at).toLocaleString()+" · Moderator: "+(entry.moderator_email||"Unavailable");
+  const counts=document.createElement("p");counts.textContent=Object.entries(entry.deleted_records||{}).map(([k,v])=>k.replaceAll("_"," ")+": "+v).join(" · ");
+  row.append(title,meta,counts);root.append(row);
+ });
+}
+
+function bind(){document.querySelectorAll(".mod-tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));$("newCardButton").addEventListener("click",()=>{resetForm();window.scrollTo({top:0,behavior:"smooth"})});$("resetCardButton").addEventListener("click",resetForm);$("cardSearch").addEventListener("input",renderList);["cardName","cardDescription","cardCategory","cardRarity","cardChapterNumber"].forEach(id=>$(id).addEventListener("input",setPreview));$("cardCategory").addEventListener("change",setPreview);$("cardRarity").addEventListener("change",setPreview);$("cardArtwork").addEventListener("change",()=>{$("cropArtworkButton").disabled=!$("cardArtwork").files.length;$("uploadStatus").textContent=$("cardArtwork").files.length?"Image selected. Adjust the crop before saving.":"";if($("cardArtwork").files.length)openCrop()});$("cropArtworkButton").addEventListener("click",openCrop);$("closeCrop").addEventListener("click",()=>$("cropDialog").close());$("applyCrop").addEventListener("click",applyCrop);$("cropZoom").addEventListener("input",e=>{cropZoom=Number(e.target.value);renderCrop()});const canvas=$("cropCanvas");canvas.addEventListener("pointerdown",e=>{if(!cropImage)return;pointer={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});canvas.addEventListener("pointermove",e=>{if(!pointer||!cropImage)return;const rect=canvas.getBoundingClientRect(),aspect=canvas.width/canvas.height,sourceRatio=cropImage.naturalWidth/cropImage.naturalHeight;let bw,bh;if(sourceRatio>aspect){bh=cropImage.naturalHeight;bw=bh*aspect}else{bw=cropImage.naturalWidth;bh=bw/aspect}const w=bw/cropZoom,h=bh/cropZoom;cropX-=(e.clientX-pointer.x)*w/rect.width;cropY-=(e.clientY-pointer.y)*h/rect.height;pointer={x:e.clientX,y:e.clientY};renderCrop()});["pointerup","pointercancel","lostpointercapture"].forEach(n=>canvas.addEventListener(n,()=>pointer=null));$("cardForm").addEventListener("submit",saveCard);$("deleteCardButton").addEventListener("click",deleteCard);$("readerResetSearchButton").addEventListener("click",()=>searchResetReaders().catch(e=>say(e.message)));$("readerResetSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchResetReaders().catch(err=>say(err.message))}});$("refreshResetLog").addEventListener("click",()=>loadReaderResetLog().catch(e=>say(e.message)));loadReaderResetLog().catch(e=>console.warn(e));setPreview()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(error=>{console.error(error);$("accessDenied").hidden=false}));
 })();
