@@ -29,6 +29,12 @@ create policy "Public can view Orlong card artwork"
 on storage.objects for select to anon,authenticated
 using(bucket_id='orlong-card-artwork');
 
+alter table public.card_catalogue add column if not exists chapter_number integer;
+alter table public.card_catalogue drop constraint if exists card_catalogue_chapter_number_positive;
+alter table public.card_catalogue add constraint card_catalogue_chapter_number_positive check (chapter_number is null or chapter_number between 1 and 999);
+
+drop function if exists public.save_moderator_card(text,text,text,text,text,text,text,text,boolean);
+
 create or replace function public.get_moderator_card_studio()
 returns jsonb
 language plpgsql stable security definer
@@ -45,7 +51,7 @@ begin
   ) order by sort_order,title),'[]'::jsonb) from public.card_sets where is_active),
   'cards',(select coalesce(jsonb_agg(jsonb_build_object(
     'id',c.card_id,'number',c.card_number,'category_id',c.category_id,
-    'category_number',c.category_number,'name',c.name,'rarity',c.rarity,
+    'category_number',c.category_number,'name',c.name,'rarity',c.rarity,'chapter_number',c.chapter_number,
     'set_id',c.set_id,'unlock_chapter_id',c.unlock_chapter_id,
     'description',c.spoiler_safe_description,'artwork_url',c.artwork_url,
     'active',c.is_active
@@ -62,6 +68,7 @@ create or replace function public.save_moderator_card(
  p_rarity text,
  p_set_id text,
  p_unlock_chapter_id text,
+ p_chapter_number integer,
  p_description text,
  p_artwork_url text,
  p_active boolean default true
@@ -84,6 +91,7 @@ begin
  if not exists(select 1 from public.card_categories where category_id=p_category_id and is_active) then raise exception 'Choose a valid category'; end if;
  if p_set_id is not null and not exists(select 1 from public.card_sets where set_id=p_set_id and is_active) then raise exception 'Choose a valid card set'; end if;
  if p_unlock_chapter_id is not null and p_unlock_chapter_id !~ '^[a-z0-9-]{1,80}$' then raise exception 'Chapter ID must use lowercase letters, numbers and hyphens'; end if;
+ if p_chapter_number is not null and p_chapter_number not between 1 and 999 then raise exception 'Chapter number must be between 1 and 999'; end if;
  if p_description is not null and char_length(p_description)>1200 then raise exception 'Description must be 1,200 characters or fewer'; end if;
  if p_artwork_url is not null and char_length(p_artwork_url)>2000 then raise exception 'Artwork URL is too long'; end if;
 
@@ -100,11 +108,11 @@ begin
    v_card_number := v_code||'-'||lpad(v_number::text,3,'0');
    insert into public.card_catalogue(
     card_id,category_id,category_number,card_number,name,rarity,set_id,
-    universe_id,series_id,book_id,unlock_chapter_id,spoiler_safe_description,
+    universe_id,series_id,book_id,unlock_chapter_id,chapter_number,spoiler_safe_description,
     artwork_url,is_active,sort_order
    ) values (
     v_id,p_category_id,v_number,v_card_number,trim(p_name),p_rarity,p_set_id,
-    'orlong','eden','trials-of-eden',nullif(trim(p_unlock_chapter_id),''),
+    'orlong','eden','trials-of-eden',nullif(trim(p_unlock_chapter_id),''),p_chapter_number,
     nullif(trim(p_description),''),nullif(trim(p_artwork_url),''),coalesce(p_active,true),v_number
    );
  else
@@ -114,7 +122,7 @@ begin
    if v_existing_category is distinct from p_category_id then raise exception 'A card category cannot be changed after its permanent card number has been assigned'; end if;
    update public.card_catalogue set
     name=trim(p_name),category_id=p_category_id,rarity=p_rarity,set_id=p_set_id,
-    unlock_chapter_id=nullif(trim(p_unlock_chapter_id),''),
+    unlock_chapter_id=nullif(trim(p_unlock_chapter_id),''),chapter_number=p_chapter_number,
     spoiler_safe_description=nullif(trim(p_description),''),
     artwork_url=nullif(trim(p_artwork_url),''),is_active=coalesce(p_active,true),
     updated_at=now()
@@ -126,25 +134,26 @@ end;
 $$;
 
 revoke all on function public.get_moderator_card_studio() from public,anon;
-revoke all on function public.save_moderator_card(text,text,text,text,text,text,text,text,boolean) from public,anon;
+revoke all on function public.save_moderator_card(text,text,text,text,text,text,integer,text,text,boolean) from public,anon;
 grant execute on function public.get_moderator_card_studio() to authenticated;
-grant execute on function public.save_moderator_card(text,text,text,text,text,text,text,text,boolean) to authenticated;
+grant execute on function public.save_moderator_card(text,text,text,text,text,text,integer,text,text,boolean) to authenticated;
 
 -- Verification: these functions return data only to registered moderators.
 select public.is_reader_moderator() as current_user_is_moderator;
 
 -- Public archive feed. Unreleased chapter-linked cards remain hidden until
 -- their unlock chapter is released and the moderator clears that chapter lock.
-create or replace function public.get_public_card_catalogue()
+drop function if exists public.get_public_card_catalogue();
+create function public.get_public_card_catalogue()
 returns table (
- card_id text,card_number text,name text,rarity text,category_id text,
+ card_id text,card_number text,name text,rarity text,category_id text,chapter_number integer,
  category_label text,category_code text,set_id text,unlock_chapter_id text,
  spoiler_safe_description text,artwork_url text
 )
 language sql stable security definer
 set search_path=public,pg_temp
 as $$
- select c.card_id,c.card_number,c.name,c.rarity,c.category_id,
+ select c.card_id,c.card_number,c.name,c.rarity,c.category_id,c.chapter_number,
         cat.label,cat.category_code,c.set_id,c.unlock_chapter_id,
         c.spoiler_safe_description,c.artwork_url
  from public.card_catalogue c
