@@ -86,3 +86,11 @@
 .orlong-reveal-card-front.orlong-reveal-art-unavailable:before{content:"ARTWORK UNAVAILABLE";display:grid;place-items:center;flex:1;color:#b9d9f5;font:600 11px Inter,sans-serif;letter-spacing:2px;}
 .orlong-reveal-card-wrap{transition:opacity .35s ease,transform .45s ease!important;}
 .orlong-reveal-card{transition:transform .65s cubic-bezier(.2,.75,.2,1)!important;}
+
+/* Keep the eel behind the card so the artwork is never obscured. */
+.orlong-reveal-card-wrap{z-index:5!important;}
+.orlong-reveal-eel{z-index:3!important;}
+.orlong-reveal-overlay{transition:opacity .35s ease!important;}
+.orlong-reveal-overlay:before{transition:opacity .55s ease,filter .55s ease!important;}
+.orlong-reveal-overlay[data-stage="materialising"] .orlong-reveal-eel,.orlong-reveal-overlay[data-stage="flipping"] .orlong-reveal-eel,.orlong-reveal-overlay[data-stage="rarity"] .orlong-reveal-eel,.orlong-reveal-overlay[data-stage="revealed"] .orlong-reveal-eel{opacity:.18;}
+.orlong-reveal-overlay[data-stage="eel"] .eel-body,.orlong-reveal-overlay[data-stage="eel"] .eel-spine,.orlong-reveal-overlay[data-stage="eel"] .eel-halo{animation-duration:.85s!important;}
