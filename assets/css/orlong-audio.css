@@ -1,12 +1,12 @@
 /* One consistent Main Menu panel, matching the approved SETTINGS / SOUNDTRACK layout. */
 .nav-main-menu-panel{
- min-width:300px!important;width:320px!important;max-width:min(92vw,320px)!important;
+ min-width:300px!important;width:480px!important;max-width:calc(100vw - 14px)!important;
  padding:18px!important;max-height:min(78vh,680px)!important;overflow-y:auto!important;
  background:#070d18!important;border:1px solid rgba(141,191,255,.28)!important;
  box-shadow:0 16px 42px #0009!important;backdrop-filter:blur(16px);
 }
 .nav-main-menu-panel .nav-menu-section-label{
- display:block;margin:0 0 22px 4px;color:#91caff;font-size:11px;
+ display:block;margin:0 0 22px 4px;color:#91caff;font-size:15px;
  font-weight:600;letter-spacing:2.4px;line-height:1.5;
 }
 .nav-main-menu-panel .nav-menu-action,
@@ -15,7 +15,7 @@
  width:100%!important;min-height:58px!important;padding:14px 18px!important;
  color:#c2d5ec!important;background:transparent!important;border:1px solid transparent!important;
  text-align:left!important;text-decoration:none!important;
- font:600 12px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
+ font:600 18px Inter,sans-serif!important;letter-spacing:1.8px!important;cursor:pointer;
 }
 .nav-main-menu-panel .nav-menu-action:hover,
 .nav-main-menu-panel .nav-menu-statistics:hover{
@@ -29,26 +29,26 @@
 }
 .nav-main-menu-panel .orlong-menu-section-label{
  display:block;margin:0 0 22px!important;color:#91caff!important;
- font-size:11px!important;font-weight:600;letter-spacing:2.5px!important;
+ font-size:15px!important;font-weight:600;letter-spacing:2.5px!important;
 }
 .nav-main-menu-panel .orlong-menu-music-toggle{
  display:flex!important;align-items:center!important;justify-content:center!important;
  width:100%!important;min-height:54px!important;padding:12px!important;
  color:#9ca9bd!important;background:transparent!important;border:1px solid transparent!important;
- font:600 12px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
+ font:600 18px Inter,sans-serif!important;letter-spacing:2px!important;cursor:pointer;
 }
 .nav-main-menu-panel .orlong-menu-music-toggle:hover{color:#e4f2ff!important;background:#398cff12!important}
 .nav-main-menu-panel .orlong-menu-volume-label{
  display:grid!important;gap:18px!important;margin:12px 0 0!important;
- color:#a9bfd7!important;font-size:11px!important;letter-spacing:2px!important;
+ color:#a9bfd7!important;font-size:15px!important;letter-spacing:2px!important;
 }
 .nav-main-menu-panel .orlong-menu-volume-label input{
  display:block;width:100%!important;height:16px!important;margin:0!important;accent-color:#72bdff;
 }
 .nav-main-menu-panel .orlong-menu-music-note{
  margin:20px 0 0!important;color:#91a9c4!important;
- font:400 12px/1.65 Inter,sans-serif!important;letter-spacing:0!important;
+ font:400 18px/1.65 Inter,sans-serif!important;letter-spacing:0!important;
 }
 @media(max-width:760px){
- .nav-main-menu-panel{left:auto!important;right:0!important;max-width:min(92vw,320px)!important}
+ .nav-main-menu-panel{left:auto!important;right:0!important;max-width:calc(100vw - 14px)!important}
 }
