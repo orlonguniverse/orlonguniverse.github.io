@@ -14,9 +14,9 @@ HOW TO USE THIS FILE
    <orlong-scene-break variant="electric-eel"></orlong-scene-break>
 6. Add the optional quiz by uncommenting and editing the chapterQuizData block
    in this template. Leave it commented out if this chapter has no quiz.
-7. Add the chapter to ../chapters.js and set available: true.
-8. Add Companion definitions to that chapter's companionTerms list in chapters.js.
-8. Add a "triggers" array to each Companion definition. These are the words
+7. In Moderator Headquarters → Chapter Management, create the chapter record and upload this finished HTML file.
+8. Set its Part, release date, visibility and Companion references in the administrator form.
+9. Add a "triggers" array to each Companion definition. These are the words
    and phrases that should open that entry (for example: ["Maya", "Maya Garcia"]).
    Matching phrases are automatically highlighted in the manuscript.
    The Companion entry only appears if at least one trigger occurs in the chapter.
@@ -31,6 +31,7 @@ EXAMPLE COMPANION ENTRY IN chapters.js:
 }
 
 IMPORTANT
+- Upload finished manuscripts only through Moderator Headquarters. Never commit a finished chapter HTML file to public GitHub.
 - Keep the "chapter-document" class on the article.
 - Keep the "chapterText" id on the manuscript container.
 - Use one <p>...</p> block for each paragraph.
