@@ -13,7 +13,9 @@
     if(document.getElementById("orlongMusicControl"))return;
     const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/css/orlong-audio.css?v=stage-6a";document.head.append(style);
     const wrap=document.createElement("div");wrap.className="orlong-music-widget";wrap.id="orlongMusicControl";
+    const controls=document.createElement("div");controls.className="orlong-music-controls";
     button=document.createElement("button");button.type="button";button.className="orlong-music-toggle";button.setAttribute("aria-label","Toggle background music");button.addEventListener("click",()=>{if(player&&!player.paused)stop();else start();});
+    const settings=document.createElement("button");settings.type="button";settings.className="orlong-music-settings";settings.textContent="⚙";settings.setAttribute("aria-label","Music settings");settings.addEventListener("click",()=>{panel.hidden=!panel.hidden;});
     panel=document.createElement("div");panel.className="orlong-music-panel";panel.hidden=true;
     const heading=document.createElement("strong");heading.textContent="ORLONG SOUNDTRACK";
     const note=document.createElement("p");note.className="orlong-music-note";note.textContent="Background music is optional. Your choice is remembered on this device.";
@@ -21,9 +23,7 @@
     slider=document.createElement("input");slider.type="range";slider.min="0";slider.max="1";slider.step=".01";slider.value=String(Number(localStorage.getItem("orlongMusicVolume")||"0.28"));slider.setAttribute("aria-label","Background music volume");
     slider.addEventListener("input",()=>{const value=Number(slider.value);localStorage.setItem("orlongMusicVolume",String(value));if(player)player.volume=value;});
     const close=document.createElement("button");close.type="button";close.className="orlong-music-close";close.textContent="CLOSE";close.addEventListener("click",()=>panel.hidden=true);
-    volumeLabel.append(slider);panel.append(heading,note,volumeLabel,close);wrap.append(button,panel);document.body.append(wrap);
-    button.addEventListener("contextmenu",event=>{event.preventDefault();panel.hidden=!panel.hidden;});
-    button.addEventListener("dblclick",()=>{panel.hidden=!panel.hidden;});
+    volumeLabel.append(slider);panel.append(heading,note,volumeLabel,close);controls.append(button,settings);wrap.append(controls,panel);document.body.append(wrap);
     setButton();
     if(enabled())start();
   }
