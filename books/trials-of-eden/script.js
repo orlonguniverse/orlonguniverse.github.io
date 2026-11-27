@@ -316,7 +316,7 @@ function renderChapterDirectory() {
     name.textContent = chapter.title;
     const status = document.createElement("span");
     status.className = "chapter-status";
-    status.textContent = chapter.available ? (chapter.id === currentChapter ? "Currently reading" : "Available to read") : "Not yet released";
+    status.textContent = chapter.available ? (chapter.id === currentChapter ? "Currently reading" : "Available to read") : (chapter.accessLocked ? "Special access required" : "Not yet released");
     item.append(number, name, status);
     list.appendChild(item);
   });
@@ -536,12 +536,16 @@ function renderChapterSource(source, chapter) {
 }
 
 async function loadChapter(chapterId) {
-  const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === chapterId && item.available);
+  const chapter = (window.EDEN_CHAPTERS || []).find(item => item.id === chapterId);
   const target = document.getElementById("chapterContent");
   if (!target) return;
 
-  if (!chapter) {
-    target.innerHTML = '<p class="placeholder">This chapter is not available yet.</p>';
+  if (!chapter || !chapter.available) {
+    if (chapter?.accessLocked) {
+      target.innerHTML = '<div class="reader-access-gate"><h2>SPECIAL ACCESS REQUIRED</h2><p>This chapter requires an access code. Redeem your code from your account page, then return here.</p><a href="account.html">OPEN YOUR ACCOUNT</a></div>';
+    } else {
+      target.innerHTML = '<p class="placeholder">This chapter is not available yet.</p>';
+    }
     return;
   }
 
