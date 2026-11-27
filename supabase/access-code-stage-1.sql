@@ -62,11 +62,14 @@ revoke all on public.reader_access_grants from anon, authenticated;
 
 -- Create a code as a moderator. The plaintext is returned once only.
 -- Example access keys: early_access, event:summer-launch, feature:arena.
+drop function if exists public.create_access_code(text, text[], timestamptz, integer);
+
 create or replace function public.create_access_code(
   campaign_label text,
   granted_access_keys text[],
   code_expires_at timestamptz default null,
-  redemption_limit integer default null
+  redemption_limit integer default null,
+  custom_code text default null
 )
 returns text
 language plpgsql
@@ -107,15 +110,30 @@ begin
     raise exception 'Expiry must be in the future';
   end if;
 
-  new_code := 'ORLONG-' || upper(substr(encode(gen_random_bytes(16), 'hex'), 1, 20));
+  if custom_code is not null and trim(custom_code) <> '' then
+    if trim(custom_code) !~ '^[A-Za-z0-9]{6,40}$' then
+      raise exception 'Custom codes must be 6–40 letters or numbers, with no spaces or symbols';
+    end if;
+    new_code := trim(custom_code);
+  else
+    new_code := 'ORLONG-' || upper(substr(encode(gen_random_bytes(16), 'hex'), 1, 20));
+  end if;
+
   normalized_code := regexp_replace(upper(new_code), '[^A-Z0-9]', '', 'g');
+
+  if exists (
+    select 1 from public.access_code_campaigns c
+    where c.code_hash = encode(digest(convert_to(normalized_code, 'UTF8'), 'sha256'), 'hex')
+  ) then
+    raise exception 'That access code is already in use. Please choose a different custom code';
+  end if;
 
   insert into public.access_code_campaigns
     (label, code_hash, code_prefix, access_keys, expires_at, max_redemptions, created_by)
   values (
     trim(campaign_label),
     encode(digest(convert_to(normalized_code, 'UTF8'), 'sha256'), 'hex'),
-    left(new_code, 10),
+    left(upper(new_code), 3),
     granted_access_keys,
     code_expires_at,
     redemption_limit,
@@ -222,11 +240,11 @@ as $$
   order by g.access_key;
 $$;
 
-revoke all on function public.create_access_code(text, text[], timestamptz, integer) from public, anon;
+revoke all on function public.create_access_code(text, text[], timestamptz, integer, text) from public, anon;
 revoke all on function public.redeem_access_code(text) from public, anon;
 revoke all on function public.get_my_access_grants() from public, anon;
 
-grant execute on function public.create_access_code(text, text[], timestamptz, integer) to authenticated;
+grant execute on function public.create_access_code(text, text[], timestamptz, integer, text) to authenticated;
 grant execute on function public.redeem_access_code(text) to authenticated;
 grant execute on function public.get_my_access_grants() to authenticated;
 
