@@ -162,7 +162,8 @@ begin
  perform 1 from public.reader_xanth_accounts where user_id in (uid,l.seller_user_id) order by user_id for update;
  select balance_cents into buyer_balance from public.reader_xanth_accounts where user_id=uid;
  if buyer_balance<l.price_cents then raise exception 'Not enough Xanth'; end if;
- if not exists(select 1 from public.reader_card_copies where copy_id=l.copy_id and owner_user_id=l.seller_user_id for update) then raise exception 'Seller no longer owns this card'; end if;
+ perform 1 from public.reader_card_copies where copy_id=l.copy_id and owner_user_id=l.seller_user_id for update;
+ if not found then raise exception 'Seller no longer owns this card'; end if;
  update public.reader_xanth_accounts set balance_cents=balance_cents-l.price_cents,updated_at=now() where user_id=uid returning balance_cents into buyer_balance;
  update public.reader_xanth_accounts set balance_cents=balance_cents+l.price_cents,updated_at=now() where user_id=l.seller_user_id returning balance_cents into seller_balance;
  update public.reader_card_copies set owner_user_id=uid where copy_id=l.copy_id;
