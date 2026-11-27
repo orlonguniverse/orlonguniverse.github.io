@@ -180,3 +180,16 @@ The ten cards are Maya Garcia, Leo Lee, Kiera Patel, Al Jones, Marcus Roberts, C
 The Early Access journey contains ten missions. The original eight testing activities remain, with Explore Eden and Founding Readers added as missions nine and ten. The old eight concept-card rewards (CON-101–CON-108) are retired and removed, including their existing copies and claims. Existing mission completion progress is retained, and completed missions receive a random Special Edition card during the migration.
 
 Run `supabase/early-access-special-edition-character-packs.sql` in the Supabase SQL Editor after the existing Early Access Stage 4 and collectible-card migrations. This migration updates the reward function and should be run before testing the updated Early Access page.
+
+
+## Moderator Headquarters and Card Studio
+
+The private Moderator Headquarters is at `/moderator/`. The shared navigation displays its link only after the signed-in account passes `is_reader_moderator()`; the page independently checks the same permission and refuses access to other accounts.
+
+The Card Studio provides a shared 2:3 portrait card template and live preview. Moderators enter a card name, category, rarity, set, unlock chapter and spoiler-safe description, then upload artwork. The crop tool supports drag-to-position and zoom, and exports a consistent WebP card-art image. The database assigns the permanent category number and card number automatically. Existing cards can be edited without changing their permanent identity or category.
+
+Card artwork is stored in the public `orlong-card-artwork` Supabase Storage bucket. Only moderators can upload, replace or delete objects in that bucket; readers can view the published artwork. The `get_public_card_catalogue()` RPC supplies Explore Eden with active cards that have no chapter lock or are unlocked at Chapter One. Future chapter-locked cards remain hidden until the moderator clears their unlock chapter after release.
+
+Install `supabase/moderator-card-studio.sql` in Supabase after the existing card foundation and moderator schema. This creates the artwork bucket, moderator-only storage policies and the secure catalogue RPCs. The migration must be run before using Card Studio or loading the dynamic card catalogue in Explore Eden.
+
+Community moderation and access-code management are linked from Moderator Headquarters to the existing approved moderation and account tools. They continue to use the established moderator role and database policies.
