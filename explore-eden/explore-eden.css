@@ -221,3 +221,17 @@
 .rarity-odds-guide>p{margin:12px 0 0;color:#94a7bf;font-size:9px;line-height:1.65}
 @media(max-width:620px){.rarity-odds-list{grid-template-columns:repeat(3,minmax(0,1fr))}.rarity-odds-heading{align-items:flex-start;flex-direction:column}.rarity-odds-heading span{text-align:left}}
 @media(max-width:380px){.rarity-odds-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Collapsible Xanth transaction history */
+.xanth-history{margin-top:34px;padding-top:20px;border-top:1px solid var(--eden-border)}
+.xanth-history-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;list-style:none;cursor:pointer;user-select:none}
+.xanth-history-summary::-webkit-details-marker{display:none}
+.xanth-history-heading{display:grid;gap:7px}
+.xanth-history-heading strong{color:var(--eden-text);font:500 17px Cinzel,serif;letter-spacing:1.1px}
+.xanth-history-summary-side{display:flex;align-items:center;gap:12px}
+.xanth-history-chevron{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--eden-border);border-radius:50%;color:#d8bd7b;font-size:19px;line-height:1;transition:transform .2s ease,background .2s ease}
+.xanth-history-summary:hover .xanth-history-chevron{background:#d8bd7b16}
+.xanth-history[open] .xanth-history-chevron{transform:rotate(180deg)}
+.xanth-history .xanth-transactions{margin-top:16px}
+@media(max-width:600px){.xanth-history-heading strong{font-size:14px}.xanth-history-summary-side{gap:7px}}
