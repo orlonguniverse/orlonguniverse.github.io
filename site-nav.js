@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const settingsLabel=document.createElement("span");settingsLabel.className="nav-menu-section-label";settingsLabel.textContent="SETTINGS";
   const theme=document.createElement("button");theme.type="button";theme.id="mainMenuThemeButton";theme.className="nav-menu-action";theme.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";theme.addEventListener("click",window.toggleSiteTheme);
   panel.append(settingsLabel,theme);
-  if(statsLink){statsLink.textContent="MY STATISTICS";statsLink.href=statsLink.getAttribute("href")||"/books/trials-of-eden/account.html#dashboard";statsLink.classList.add("nav-menu-statistics");panel.append(statsLink);}
+  if(statsLink){statsLink.textContent="MY STATISTICS";statsLink.href="/books/trials-of-eden/account.html#dashboard";statsLink.classList.add("nav-menu-statistics");panel.append(statsLink);}
   const musicSlot=document.createElement("div");musicSlot.className="nav-menu-music-slot";musicSlot.id="orlongMenuMusicSlot";panel.append(musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
@@ -138,6 +138,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  }
  // Shared optional background soundtrack control on pages using the site navigation.
  if(!document.querySelector("script[data-orlong-music]")){
-  const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6c";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
+  const musicScript=document.createElement("script");musicScript.src="/assets/js/orlong-audio.js?v=stage-6d";musicScript.dataset.orlongMusic="true";document.body.appendChild(musicScript);
  }
 });
