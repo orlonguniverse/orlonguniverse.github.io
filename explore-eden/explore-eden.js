@@ -76,7 +76,17 @@ async function loadMarketplace(){
  grid.replaceChildren();
  slots.forEach(slot=>{
   const card=catalogue.find(c=>c.id===slot.card_id)||{id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,name:slot.card_name,rarity:slot.rarity,categoryId:slot.category_id,categoryLabel:slot.category_label,chapterNumber:slot.chapter_number,artworkUrl:slot.artwork_url,spoilerSafeDescription:slot.description};
-  const item=cardElement(card,owned.some(c=>c.card_id===card.id));
+  const isOwned=owned.some(c=>c.card_id===card.id);
+  const item=cardElement(card,isOwned);
+  // Reserve the ownership row for every shop card so later price and purchase
+  // controls sit at the same vertical position whether or not the card is owned.
+  if(!isOwned){
+   const spacer=text("span","eden-card-count shop-owned-count-empty"," ");
+   spacer.setAttribute("aria-hidden","true");
+   item.append(spacer);
+  }else{
+   item.querySelector(".eden-card-count")?.classList.add("shop-owned-count");
+  }
   const price=text("div","shop-price",formatXanth(slot.price_cents));
   const label=text("small","shop-slot-label","FEATURED CARD · "+String(slot.selection_mode||"automatic").toUpperCase());
   item.append(label,price);
