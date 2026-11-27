@@ -65,8 +65,42 @@ function renderCatalogue(){
  if(!visible.length)grid.append(text("div","eden-empty","No cards are available in this category yet."));
 }
 function formatXanth(cents){return "XƵ"+(Number(cents||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});}
+async function loadXanthTransactions(){
+ const root=$("xanthTransactions");if(!root)return;
+ root.replaceChildren(text("div","eden-empty","Loading your transaction history…"));
+ const {data,error}=await client.rpc("get_my_xanth_transactions",{p_limit:30});
+ if(error){console.error(error);root.replaceChildren(text("div","eden-empty","Your transaction history is temporarily unavailable."));return;}
+ const rows=data||[];root.replaceChildren();
+ if(!rows.length){root.append(text("div","eden-empty","No transactions yet. Your purchases and future Xanth rewards will appear here."));return;}
+ rows.forEach(row=>{
+  const item=document.createElement("article");item.className="xanth-transaction";
+  const details=document.createElement("div");
+  details.append(text("strong","xanth-transaction-title",row.description||row.transaction_type||"Xanth transaction"),
+    text("small","xanth-transaction-date",new Date(row.created_at).toLocaleString("en-AU",{dateStyle:"medium",timeStyle:"short"})));
+  const amount=Number(row.amount_cents||0);
+  const value=text("strong","xanth-transaction-amount"+(amount>0?" is-credit":" is-debit"),(amount>0?"+":"−")+formatXanth(Math.abs(amount)));
+  item.append(details,value);root.append(item);
+ });
+}
+async function purchaseShopCard(slotNumber,button){
+ button.disabled=true;button.textContent="PROCESSING…";
+ const {data,error}=await client.rpc("purchase_xanth_shop_card",{p_slot_number:slotNumber});
+ if(error){
+  console.error("Xanth purchase failed:",error);
+  const message=String(error.message||"").toLowerCase();
+  button.textContent=message.includes("not enough xanth")?"NOT ENOUGH XANTH":"TRY AGAIN";
+  button.disabled=false;
+  $("shopPurchaseStatus").textContent=error.message||"The purchase could not be completed.";
+  return;
+ }
+ button.textContent="PURCHASED";
+ $("shopPurchaseStatus").textContent="Purchase successful! "+(data.card_number||"Your card")+" has been added to your collection. Your card reveal is ready.";
+ const collectionResult=await client.rpc("get_my_card_collection");
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
+ await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+}
 async function loadMarketplace(){
- const wallet=$("xanthWallet"),grid=$("dailyShopGrid");
+ const grid=$("dailyShopGrid");
  const [walletResult,shopResult]=await Promise.all([client.rpc("get_my_xanth_wallet"),client.rpc("get_xanth_daily_shop")]);
  if(walletResult.error){$("xanthBalance").textContent="WALLET UNAVAILABLE";console.error(walletResult.error);}
  else{const account=Array.isArray(walletResult.data)?walletResult.data[0]:walletResult.data;$("xanthBalance").textContent=formatXanth(account?.balance_cents);}
@@ -78,21 +112,16 @@ async function loadMarketplace(){
   const card=catalogue.find(c=>c.id===slot.card_id)||{id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,name:slot.card_name,rarity:slot.rarity,categoryId:slot.category_id,categoryLabel:slot.category_label,chapterNumber:slot.chapter_number,artworkUrl:slot.artwork_url,spoilerSafeDescription:slot.description};
   const isOwned=owned.some(c=>c.card_id===card.id);
   const item=cardElement(card,isOwned);
-  // Reserve the ownership row for every shop card so later price and purchase
-  // controls sit at the same vertical position whether or not the card is owned.
-  if(!isOwned){
-   const spacer=text("span","eden-card-count shop-owned-count-empty"," ");
-   spacer.setAttribute("aria-hidden","true");
-   item.append(spacer);
-  }else{
-   item.querySelector(".eden-card-count")?.classList.add("shop-owned-count");
-  }
-  const price=text("div","shop-price",formatXanth(slot.price_cents));
+  if(!isOwned){const spacer=text("span","eden-card-count shop-owned-count-empty"," ");spacer.setAttribute("aria-hidden","true");item.append(spacer);}
+  else item.querySelector(".eden-card-count")?.classList.add("shop-owned-count");
   const label=text("small","shop-slot-label","FEATURED CARD · "+String(slot.selection_mode||"automatic").toUpperCase());
-  item.append(label,price);
-  grid.append(item);
+  const price=text("div","shop-price",formatXanth(slot.price_cents));
+  const button=text("button","shop-purchase-button","PURCHASE CARD");button.type="button";
+  button.addEventListener("click",()=>purchaseShopCard(Number(slot.slot_number),button));
+  item.append(label,price,button);grid.append(item);
  });
  if(!slots.length)grid.append(text("div","eden-empty","No released cards are currently eligible for the daily exchange."));
+ await loadXanthTransactions();
 }
 function renderMarketplace(){
  const grid=$("marketplaceGrid");grid.replaceChildren();
