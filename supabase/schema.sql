@@ -365,8 +365,8 @@ create policy "Authenticated readers can download Eden chapters"
 -- Supabase Dashboard as the project owner; do not make this bucket public.
 
 
--- Immutable chapter quiz attempts. Readers may submit multiple attempts,
--- but each submission is a separate row and cannot be edited or deleted.
+-- Immutable official chapter quiz attempts. A unique index added by
+-- stage-8b-official-quiz-attempts.sql enforces one row per reader, chapter and quiz version.
 create table if not exists public.chapter_quiz_attempts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
