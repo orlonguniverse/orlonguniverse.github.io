@@ -410,7 +410,7 @@ async function refreshEngagement() {
   await Promise.all([loadContentInterests(),loadModeratorPanel()]);
 }
 
-// CHAPTER CHALLENGE — each submission is a new immutable database row.
+// CHAPTER CHALLENGE — one official first attempt per reader, chapter and quiz version.
 function renderQuizMessage(message) {
   const target = byId("chapterQuiz");
   if (!target) return;
@@ -421,12 +421,12 @@ function renderQuizMessage(message) {
   target.appendChild(note);
 }
 
-function renderQuizAttemptReview(quiz, attempt) {
+function renderQuizAttemptReview(quiz, attempt, practice = false) {
   const target = byId("chapterQuiz");
   target.replaceChildren();
   const result = document.createElement("p");
   result.className = "quiz-result";
-  result.textContent = "YOUR RESULT: " + attempt.score + " / " + attempt.total_questions;
+  result.textContent = (practice ? "PRACTICE RESULT: " : "OFFICIAL RESULT: ") + attempt.score + " / " + attempt.total_questions;
   target.appendChild(result);
   const answers = Array.isArray(attempt.answers) ? attempt.answers : [];
   quiz.questions.slice(0,3).forEach((question,index) => {
@@ -450,12 +450,12 @@ function renderQuizAttemptReview(quiz, attempt) {
   const retake = document.createElement("button");
   retake.type = "button";
   retake.className = "quiz-retake-button";
-  retake.textContent = "TAKE ANOTHER ATTEMPT";
-  retake.addEventListener("click",() => renderQuizForm(quiz));
+  retake.textContent = "PRACTISE AGAIN";
+  retake.addEventListener("click",() => renderQuizForm(quiz, true));
   target.appendChild(retake);
 }
 
-function renderQuizForm(quiz) {
+function renderQuizForm(quiz, practice = false) {
   const target = byId("chapterQuiz");
   target.replaceChildren();
 
@@ -501,7 +501,7 @@ function renderQuizForm(quiz) {
 
   const note = document.createElement("p");
   note.className = "engagement-small";
-  note.textContent = "Select one answer for each question. Once submitted, this attempt is locked; you can review it later and start a separate attempt.";
+  note.textContent = practice ? "PRACTICE MODE: this score is not saved and cannot change your official result." : "IMPORTANT: Only your first submission is recorded as your official attempt. Later attempts are practice only and will not change your official score.";
   form.appendChild(note);
 
   form.addEventListener("submit",async event => {
@@ -523,8 +523,12 @@ function renderQuizForm(quiz) {
     }
 
     const score = answers.reduce((total,answer,index) => total + (answer === quiz.questions[index].answer ? 1 : 0),0);
+    if (practice) {
+      renderQuizAttemptReview(quiz,{score,total_questions:3,answers},true);
+      return;
+    }
     submit.disabled = true;
-    submit.textContent = "SAVING ATTEMPT...";
+    submit.textContent = "SAVING OFFICIAL RESULT...";
     const {error} = await engagementClient.from("chapter_quiz_attempts").insert({
       user_id:engagementUser.id,
       chapter_id:engagementChapterId(),
@@ -536,9 +540,13 @@ function renderQuizForm(quiz) {
     if (error) {
       submit.disabled = false;
       submit.textContent = "SUBMIT MY ANSWERS";
+      if (error.code === "23505") {
+        await loadChapterQuiz();
+        return;
+      }
       const warning = document.createElement("p");
       warning.className = "engagement-small";
-      warning.textContent = "We couldn't save your attempt. Please try again.";
+      warning.textContent = "We couldn't save your official result. Please try again.";
       form.appendChild(warning);
       return;
     }
@@ -565,7 +573,7 @@ async function loadChapterQuiz() {
     .select("id,answers,score,total_questions,submitted_at,quiz_version")
     .eq("user_id",engagementUser.id).eq("chapter_id",engagementChapterId())
     .eq("quiz_version",String(quiz.version || "1"))
-    .order("submitted_at",{ascending:false});
+    .order("submitted_at",{ascending:true}).limit(1);
   if (error) {
     renderQuizMessage("Your chapter challenge is temporarily unavailable. Please refresh.");
     return;
@@ -574,20 +582,20 @@ async function loadChapterQuiz() {
   if (history.length) {
     const count = document.createElement("p");
     count.className = "engagement-small";
-    count.textContent = history.length + (history.length === 1 ? " attempt saved" : " attempts saved") + " for this chapter.";
+    count.textContent = "Your first attempt is permanently recorded as your official result. Further attempts are practice only.";
     target.replaceChildren(count);
     const latest = history[0];
     const review = document.createElement("button");
     review.type = "button";
     review.className = "quiz-retake-button";
-    review.textContent = "REVIEW LATEST ATTEMPT";
+    review.textContent = "REVIEW OFFICIAL RESULT";
     review.addEventListener("click",() => renderQuizAttemptReview(quiz,latest));
     target.appendChild(review);
     const retake = document.createElement("button");
     retake.type = "button";
     retake.className = "quiz-retake-button";
-    retake.textContent = "TAKE ANOTHER ATTEMPT";
-    retake.addEventListener("click",() => renderQuizForm(quiz));
+    retake.textContent = "PRACTISE AGAIN";
+    retake.addEventListener("click",() => renderQuizForm(quiz,true));
     target.appendChild(retake);
     return;
   }
