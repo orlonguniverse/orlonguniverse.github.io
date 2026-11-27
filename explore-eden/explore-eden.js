@@ -277,49 +277,141 @@ function renderMarketplace(){
 async function renderReaders(readers){
  const root=$("readerDirectory");root.replaceChildren();
  if(!readers.length){root.append(text("div","eden-empty","No readers have made their collections public yet. You can change your binder visibility in My Account."));return;}
- const copiesResult=await client.rpc("get_my_tradeable_card_copies");
- const myCopies=copiesResult.error?[]:(copiesResult.data||[]);
  readers.forEach(reader=>{
-  const item=document.createElement("article");item.className="reader-card";item.style.display="block";
-  const top=document.createElement("div");top.className="reader-card-top";top.style.display="flex";top.style.justifyContent="space-between";top.style.alignItems="center";top.style.gap="12px";
+  const item=document.createElement("article");item.className="reader-card market-reader-card";
+  const top=document.createElement("div");top.className="reader-card-top";
   const identity=document.createElement("div");identity.className="reader-identity";
   let avatar;
   if(reader.avatar_url){avatar=document.createElement("img");avatar.src=reader.avatar_url;avatar.alt="";avatar.className="reader-avatar";avatar.loading="lazy";}
-  else{avatar=text("span","reader-avatar reader-avatar-fallback",(reader.display_name||"R").trim().charAt(0).toUpperCase());}
+  else avatar=text("span","reader-avatar reader-avatar-fallback",(reader.display_name||"R").trim().charAt(0).toUpperCase());
   const details=document.createElement("div");details.append(text("div","reader-name",reader.display_name||"Reader"),text("div","reader-count",Number(reader.unique_cards||0)+" UNIQUE CARDS · "+Number(reader.total_copies||0)+" COPIES"));
   identity.append(avatar,details);
-  const view=text("button","reader-open","VIEW COLLECTION");view.type="button";
-  const holder=document.createElement("div");holder.hidden=true;holder.style.marginTop="14px";
+  const view=text("button","reader-open","BUILD AN OFFER");view.type="button";
+  const holder=document.createElement("div");holder.hidden=true;holder.className="market-reader-offer-builder";
   view.addEventListener("click",async()=>{
-   if(!holder.hidden){holder.hidden=true;view.textContent="VIEW COLLECTION";return;}
+   if(!holder.hidden){holder.hidden=true;view.textContent="BUILD AN OFFER";return;}
    view.disabled=true;view.textContent="LOADING…";
-   const {data,error}=await client.rpc("get_public_card_collection",{target_reader_id:reader.reader_id});
+   const [mine,theirs]=await Promise.all([client.rpc("get_my_market_tradeable_copies"),client.rpc("get_public_market_tradeable_copies",{p_reader_id:reader.reader_id})]);
    view.disabled=false;
-   if(error){console.error(error);view.textContent="TRY AGAIN";return;}
+   if(mine.error||theirs.error){holder.replaceChildren(text("p","marketplace-status","Could not load available cards. Please refresh and try again."));holder.hidden=false;view.textContent="HIDE OFFER BUILDER";return;}
    holder.replaceChildren();
-   if(!data?.length){holder.append(text("p","reader-count","This public binder is currently empty."));}
-   (data||[]).forEach(card=>{
-    const row=document.createElement("div");row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid rgba(135,174,220,.16)";
-    const info=document.createElement("div");info.append(text("strong","reader-name",(card.card_number||"CARD")+" · "+card.card_name),text("div","reader-count",card.category_label+" · "+card.rarity+" · "+card.copy_count+" owned"));
-    row.append(info);
-    if(myCopies.length){
-     const controls=document.createElement("div");controls.style.cssText="display:flex;gap:6px;align-items:center;flex-wrap:wrap";
-     const select=document.createElement("select");select.setAttribute("aria-label","Choose a card to offer for "+card.card_name);select.style.cssText="max-width:210px;padding:8px;background:#091321;color:#dceaff;border:1px solid rgba(135,174,220,.35);font-size:10px";
-     const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Choose your offer card";select.append(placeholder);
-     myCopies.forEach(copy=>{const opt=document.createElement("option");opt.value=copy.copy_id;opt.textContent=copy.card_number+" · "+copy.card_name;select.append(opt);});
-     const send=text("button","reader-open","MAKE OFFER");send.type="button";send.disabled=true;select.addEventListener("change",()=>send.disabled=!select.value);
-     send.addEventListener("click",async()=>{send.disabled=true;send.textContent="SENDING…";const result=await client.rpc("create_card_trade_offer",{target_recipient_id:reader.reader_id,offered_copy:select.value,requested_card:card.card_id});if(result.error){console.error(result.error);send.disabled=false;send.textContent="TRY AGAIN";return;}send.textContent="OFFER SENT";select.disabled=true;});
-     controls.append(select,send);row.append(controls);
-    }else row.append(text("span","reader-count","You have no available copies to offer."));
-    holder.append(row);
+   const form=document.createElement("div");form.className="market-offer-builder";
+   form.append(text("h4","","YOUR OFFER"));
+   const myChecks=document.createElement("div");myChecks.className="market-card-check-grid";
+   (mine.data||[]).forEach(copy=>{const label=document.createElement("label");label.className="market-card-check";const box=document.createElement("input");box.type="checkbox";box.value=copy.copy_id;label.append(box,text("span","",copy.card_number+" · "+copy.card_name+" ("+copy.rarity+")"));myChecks.append(label);});
+   form.append(myChecks,text("h4","","CARDS YOU WOULD LIKE"));
+   const theirChecks=document.createElement("div");theirChecks.className="market-card-check-grid";
+   (theirs.data||[]).forEach(copy=>{const label=document.createElement("label");label.className="market-card-check";const box=document.createElement("input");box.type="checkbox";box.value=copy.copy_id;label.append(box,text("span","",copy.card_number+" · "+copy.card_name+" ("+copy.rarity+")"));theirChecks.append(label);});
+   form.append(theirChecks);
+   const cash=document.createElement("label");cash.className="market-offer-cash";cash.append(text("span","","Xanth you will pay"),Object.assign(document.createElement("input"),{type:"number",min:"0",step:"0.01",value:"0"}));
+   form.append(cash);
+   const message=document.createElement("input");message.type="text";message.maxLength=500;message.placeholder="Add a message (optional)";message.className="market-offer-message";form.append(message);
+   const status=text("p","marketplace-status","");
+   const send=text("button","reader-open","SEND MULTI-CARD OFFER");send.type="button";
+   send.addEventListener("click",async()=>{
+    const offered=[...myChecks.querySelectorAll("input:checked")].map(x=>x.value),requested=[...theirChecks.querySelectorAll("input:checked")].map(x=>x.value),amount=Math.round(Number(cash.querySelector("input").value||0)*100);
+    if(!offered.length&&!requested.length&&amount<=0){status.textContent="Choose at least one card or enter a Xanth amount.";return;}
+    send.disabled=true;send.textContent="SENDING…";
+    const result=await client.rpc("create_reader_market_offer",{p_recipient_id:reader.reader_id,p_listing_id:null,p_proposer_copy_ids:offered,p_recipient_copy_ids:requested,p_proposer_pays_cents:amount,p_recipient_pays_cents:0,p_message:message.value.trim()||null});
+    if(result.error){status.textContent=result.error.message||"We couldn't send that offer.";send.disabled=false;send.textContent="TRY AGAIN";return;}
+    status.textContent="Offer sent! The selected cards are now reserved while the offer is open.";send.textContent="OFFER SENT";
+    await loadTradingMarket();
    });
-   holder.hidden=false;view.textContent="HIDE COLLECTION";
+   form.append(send,status);holder.append(form);holder.hidden=false;view.textContent="HIDE OFFER BUILDER";
   });
-  top.append(identity,view);
-  item.append(top,holder);root.append(item);
+  top.append(identity,view);item.append(top,holder);root.append(item);
  });
- if(copiesResult.error){const note=text("p","reader-count","Your tradeable cards could not be loaded. You can still browse collections; check the Stage 6 Trading Post migration to make offers.");root.prepend(note);}
-}function setTab(button){
+}
+function marketButton(label,handler,secondary=false){
+ const b=text("button",secondary?"reader-open market-secondary":"reader-open",label);b.type="button";b.addEventListener("click",handler);return b;
+}
+async function loadTradingMarket(){
+ const list=$("marketListCopy"),mine=$("myMarketListings"),publicGrid=$("readerMarketListings"),offersRoot=$("myReaderMarketOffers");
+ if(!list||!mine||!publicGrid||!offersRoot)return;
+ const [copies,ownListings,publicListings,offers]=await Promise.all([
+  client.rpc("get_my_market_tradeable_copies"),client.rpc("get_my_market_listings"),
+  client.rpc("get_reader_card_market"),client.rpc("get_my_reader_market_offers")
+ ]);
+ list.replaceChildren();const available=copies.data||[];
+ if(copies.error){list.append(new Option("Available cards could not be loaded",""));}
+ else if(!available.length){list.append(new Option("No unreserved cards available",""));}
+ else{list.append(new Option("Choose a physical card copy",""));available.forEach(copy=>list.append(new Option(copy.card_number+" · "+copy.card_name+" · "+copy.rarity,copy.copy_id)));}
+ $("marketCreateListing").disabled=!!copies.error||!available.length;
+ mine.replaceChildren();const own=ownListings.data||[];$("myMarketListingCount").textContent=own.length+" LISTED";
+ if(ownListings.error)mine.append(text("div","eden-empty","Your listings could not be loaded."));
+ else if(!own.length)mine.append(text("div","eden-empty","You have no active listings."));
+ own.forEach(item=>{
+  const row=document.createElement("article");row.className="market-listing-row";
+  row.append(text("strong","",item.card_number+" · "+item.card_name),text("span","market-listing-price",formatXanth(item.price_cents)));
+  row.append(marketButton("CANCEL LISTING",async()=>{const result=await client.rpc("cancel_market_card_listing",{p_listing_id:item.listing_id});$("marketListingStatus").textContent=result.error?.message||"Listing cancelled.";await loadTradingMarket();},true));mine.append(row);
+ });
+ publicGrid.replaceChildren();
+ if(publicListings.error)publicGrid.append(text("div","eden-empty","Reader listings are temporarily unavailable."));
+ else if(!publicListings.data?.length)publicGrid.append(text("div","eden-empty","No reader listings are available yet. Be the first to list a card!"));
+ (publicListings.data||[]).forEach(item=>{
+  const row=document.createElement("article");row.className="market-listing-row";
+  const details=document.createElement("div");details.className="market-listing-details";
+  if(item.artwork_url){const img=document.createElement("img");img.src=item.artwork_url;img.alt="";img.loading="lazy";details.append(img);}
+  const info=document.createElement("div");info.append(text("strong","",item.card_number+" · "+item.card_name),text("small","",item.rarity+" · Listed by "+item.seller_name));details.append(info);
+  row.append(details,text("strong","market-listing-price",formatXanth(item.price_cents)));
+  const actions=document.createElement("div");actions.className="market-listing-actions";
+  actions.append(marketButton("BUY NOW",async()=>{if(!confirm("Buy "+item.card_name+" for "+formatXanth(item.price_cents)+"?"))return;const b=actions.querySelector("button");b.disabled=true;b.textContent="PROCESSING…";const result=await client.rpc("buy_market_card_listing",{p_listing_id:item.listing_id});if(result.error){$("marketListingStatus").textContent=result.error.message;b.disabled=false;b.textContent="TRY AGAIN";return;}$("marketListingStatus").textContent="Purchase complete! "+item.card_name+" is now in your collection.";const collection=await client.rpc("get_my_card_collection");if(!collection.error){owned=collection.data||[];renderCollection();}await Promise.all([loadTradingMarket(),loadMarketplace()]);}));
+  actions.append(marketButton("MAKE OFFER",async()=>{
+   const builder=document.createElement("div");builder.className="market-offer-builder";
+   const mineResult=await client.rpc("get_my_market_tradeable_copies");
+   if(mineResult.error){builder.append(text("p","marketplace-status","Your available cards could not be loaded."));row.append(builder);return;}
+   builder.append(text("h4","","ADD CARDS TO YOUR OFFER"));
+   const checks=document.createElement("div");checks.className="market-card-check-grid";
+   (mineResult.data||[]).forEach(copy=>{const label=document.createElement("label");label.className="market-card-check";const box=document.createElement("input");box.type="checkbox";box.value=copy.copy_id;label.append(box,text("span","",copy.card_number+" · "+copy.card_name));checks.append(label);});
+   const cash=document.createElement("input");cash.type="number";cash.min="0";cash.step="0.01";cash.value=String((Number(item.price_cents)/100).toFixed(2));cash.className="market-offer-message";
+   const send=marketButton("SEND OFFER",async()=>{const selected=[...checks.querySelectorAll("input:checked")].map(x=>x.value);const amount=Math.round(Number(cash.value||0)*100);if(!selected.length&&amount<=0){status.textContent="Add cards or Xanth to your offer.";return;}send.disabled=true;const result=await client.rpc("create_reader_market_offer",{p_recipient_id:item.seller_user_id,p_listing_id:item.listing_id,p_proposer_copy_ids:selected,p_recipient_copy_ids:[],p_proposer_pays_cents:amount,p_recipient_pays_cents:0,p_message:null});status.textContent=result.error?.message||"Offer sent.";if(!result.error)await loadTradingMarket();else send.disabled=false;});
+   const status=text("p","marketplace-status","");
+   builder.append(checks,text("label","market-offer-cash","Xanth offered"),cash,send,status);row.append(builder);
+  },true));
+  row.append(actions);publicGrid.append(row);
+ });
+ offersRoot.replaceChildren();
+ if(offers.error)offersRoot.append(text("div","eden-empty","Your offers could not be loaded."));
+ else if(!offers.data?.length)offersRoot.append(text("div","eden-empty","No offers yet. Make an offer on a listing or in a public reader's binder."));
+ (offers.data||[]).forEach(offer=>{
+  const card=document.createElement("article");card.className="market-offer-card";
+  const title=text("strong","",offer.trade_role==="proposer"?"Your offer to "+offer.other_reader_name:offer.other_reader_name+" sent you an offer");
+  const status=text("span","market-offer-status",String(offer.status).toUpperCase()+" · REVISION "+offer.current_revision);
+  card.append(title,status);
+  const terms=text("p","marketplace-trading-copy","Proposer pays "+formatXanth(offer.proposer_pays_cents)+" · Recipient pays "+formatXanth(offer.recipient_pays_cents));
+  card.append(terms);
+  const itemSummary=(offer.items||[]).map(x=>(x.owner_side==="proposer"?"Proposer gives: ":"Recipient gives: ")+x.card_number+" · "+x.card_name).join(" | ");
+  card.append(text("p","market-offer-items",itemSummary||"Xanth-only offer"));
+  const history=offer.history||[];
+  if(history.length){const hist=document.createElement("details");const summary=text("summary","","OFFER HISTORY ("+history.length+")");hist.append(summary);history.forEach(h=>{const p=text("p","market-offer-history-line","Revision "+h.revision+" · "+(h.sender_user_id===offer.other_reader_id?offer.other_reader_name:"You")+" · "+formatXanth(h.proposer_pays_cents)+" from proposer / "+formatXanth(h.recipient_pays_cents)+" from recipient"+(h.message?" · "+h.message:""));hist.append(p);});card.append(hist);}
+  if(offer.status==="pending"){
+   const myTurn=(offer.current_revision%2===1&&offer.trade_role==="recipient")||(offer.current_revision%2===0&&offer.trade_role==="proposer");
+   const actions=document.createElement("div");actions.className="market-offer-actions";
+   if(myTurn){
+    actions.append(marketButton("ACCEPT",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:true});$("marketListingStatus").textContent=result.error?.message||"Offer accepted. Cards and Xanth have been transferred.";await loadTradingMarket();},false));
+    actions.append(marketButton("DECLINE",async()=>{const result=await client.rpc("respond_to_reader_market_offer",{p_offer_id:offer.offer_id,p_accept:false});$("marketListingStatus").textContent=result.error?.message||"Offer declined.";await loadTradingMarket();},true));
+    const counter=document.createElement("div");counter.className="market-counter-form";
+    const proposerCash=document.createElement("input");proposerCash.type="number";proposerCash.min="0";proposerCash.step="0.01";proposerCash.value=(Number(offer.proposer_pays_cents)/100).toFixed(2);
+    const recipientCash=document.createElement("input");recipientCash.type="number";recipientCash.min="0";recipientCash.step="0.01";recipientCash.value=(Number(offer.recipient_pays_cents)/100).toFixed(2);
+    counter.append(text("label","","Proposer pays Xanth"),proposerCash,text("label","","Recipient pays Xanth"),recipientCash);
+    const counterButton=marketButton("COUNTER-OFFER",async()=>{counterButton.disabled=true;const proposerIds=(offer.items||[]).filter(x=>x.owner_side==="proposer").map(x=>x.copy_id),recipientIds=(offer.items||[]).filter(x=>x.owner_side==="recipient").map(x=>x.copy_id);const result=await client.rpc("counter_reader_market_offer",{p_offer_id:offer.offer_id,p_proposer_copy_ids:proposerIds,p_recipient_copy_ids:recipientIds,p_proposer_pays_cents:Math.round(Number(proposerCash.value||0)*100),p_recipient_pays_cents:Math.round(Number(recipientCash.value||0)*100),p_message:null});$("marketListingStatus").textContent=result.error?.message||"Counter-offer sent.";await loadTradingMarket();});counter.append(counterButton);actions.append(counter);
+   }else if(offer.trade_role==="proposer")actions.append(marketButton("CANCEL OFFER",async()=>{const result=await client.rpc("cancel_reader_market_offer",{p_offer_id:offer.offer_id});$("marketListingStatus").textContent=result.error?.message||"Offer cancelled.";await loadTradingMarket();},true));
+   card.append(actions);
+  }
+  offersRoot.append(card);
+ });
+}
+async function createMarketListing(){
+ const copyId=$("marketListCopy")?.value,price=Math.round(Number($("marketListPrice")?.value||0)*100),status=$("marketListingStatus");
+ if(!copyId){status.textContent="Choose a card copy to list.";return;}
+ if(!Number.isSafeInteger(price)||price<1){status.textContent="Enter a valid price greater than zero.";return;}
+ const button=$("marketCreateListing");button.disabled=true;button.textContent="CREATING LISTING…";
+ const result=await client.rpc("create_market_card_listing",{p_copy_id:copyId,p_price_cents:price});
+ status.textContent=result.error?.message||"Your card is now listed for sale.";
+ button.textContent="LIST CARD FOR SALE";button.disabled=false;
+ if(!result.error){$("marketListPrice").value="";await loadTradingMarket();const collection=await client.rpc("get_my_card_collection");if(!collection.error){owned=collection.data||[];renderCollection();}}
+}
+function setTab(button){
  document.querySelectorAll(".eden-tab").forEach(tab=>{const active=tab===button;tab.classList.toggle("is-active",active);tab.setAttribute("aria-selected",String(active));});
  document.querySelectorAll(".eden-panel").forEach(panel=>{const active=panel.id===button.dataset.panel;panel.hidden=!active;panel.classList.toggle("is-active",active);});
 }
@@ -336,12 +428,15 @@ async function initialise(){
   if(collectionResult.error){$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection is temporarily unavailable. Please check that the Stage 3 binder migration has been installed."));$("collectionSummary").textContent="COLLECTION UNAVAILABLE";}
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
-  else renderReaders(readerResult.data||[]);
-  await loadMarketplace();
+  else await renderReaders(readerResult.data||[]);
+  await Promise.all([loadMarketplace(),loadTradingMarket()]);
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
  $("saveDuplicateSettings")?.addEventListener("click",()=>saveDuplicateSaleSettings());
+ $("marketCreateListing")?.addEventListener("click",createMarketListing);
+ $("refreshReaderMarket")?.addEventListener("click",loadTradingMarket);
+ $("refreshMarketOffers")?.addEventListener("click",loadTradingMarket);
  if(!window.supabase?.createClient){$("sessionMessage").textContent="The sign-in service is unavailable. Please refresh and try again.";return;}
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  try{
