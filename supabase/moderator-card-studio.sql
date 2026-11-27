@@ -1,0 +1,132 @@
+-- ORLONG MODERATOR HEADQUARTERS + CARD STUDIO
+-- Run once in Supabase SQL Editor after card-foundation.sql and schema.sql.
+-- All catalogue writes and uploads are restricted to reader_moderators.
+
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('orlong-card-artwork','orlong-card-artwork',true,12582912,
+       array['image/png','image/jpeg','image/webp'])
+on conflict(id) do update set public=true,file_size_limit=12582912,
+ allowed_mime_types=array['image/png','image/jpeg','image/webp'];
+
+drop policy if exists "Moderators upload Orlong card artwork" on storage.objects;
+create policy "Moderators upload Orlong card artwork"
+on storage.objects for insert to authenticated
+with check(bucket_id='orlong-card-artwork' and public.is_reader_moderator());
+
+drop policy if exists "Moderators update Orlong card artwork" on storage.objects;
+create policy "Moderators update Orlong card artwork"
+on storage.objects for update to authenticated
+using(bucket_id='orlong-card-artwork' and public.is_reader_moderator())
+with check(bucket_id='orlong-card-artwork' and public.is_reader_moderator());
+
+drop policy if exists "Moderators delete Orlong card artwork" on storage.objects;
+create policy "Moderators delete Orlong card artwork"
+on storage.objects for delete to authenticated
+using(bucket_id='orlong-card-artwork' and public.is_reader_moderator());
+
+drop policy if exists "Public can view Orlong card artwork" on storage.objects;
+create policy "Public can view Orlong card artwork"
+on storage.objects for select to anon,authenticated
+using(bucket_id='orlong-card-artwork');
+
+create or replace function public.get_moderator_card_studio()
+returns jsonb
+language plpgsql stable security definer
+set search_path=public,pg_temp
+as $$
+begin
+ if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
+ return jsonb_build_object(
+  'categories',(select coalesce(jsonb_agg(jsonb_build_object(
+    'id',category_id,'label',label,'code',category_code
+  ) order by sort_order),'[]'::jsonb) from public.card_categories where is_active),
+  'sets',(select coalesce(jsonb_agg(jsonb_build_object(
+    'id',set_id,'title',title
+  ) order by sort_order,title),'[]'::jsonb) from public.card_sets where is_active),
+  'cards',(select coalesce(jsonb_agg(jsonb_build_object(
+    'id',c.card_id,'number',c.card_number,'category_id',c.category_id,
+    'category_number',c.category_number,'name',c.name,'rarity',c.rarity,
+    'set_id',c.set_id,'unlock_chapter_id',c.unlock_chapter_id,
+    'description',c.spoiler_safe_description,'artwork_url',c.artwork_url,
+    'active',c.is_active
+  ) order by cat.sort_order,c.category_number),'[]'::jsonb)
+   from public.card_catalogue c join public.card_categories cat on cat.category_id=c.category_id)
+ );
+end;
+$$;
+
+create or replace function public.save_moderator_card(
+ p_card_id text,
+ p_name text,
+ p_category_id text,
+ p_rarity text,
+ p_set_id text,
+ p_unlock_chapter_id text,
+ p_description text,
+ p_artwork_url text,
+ p_active boolean default true
+)
+returns jsonb
+language plpgsql security definer
+set search_path=public,pg_temp
+as $$
+declare
+ v_id text;
+ v_number integer;
+ v_code text;
+ v_card_number text;
+ v_is_new boolean;
+begin
+ if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
+ if nullif(trim(p_name),'') is null then raise exception 'Card name is required'; end if;
+ if p_rarity not in ('common','uncommon','rare','epic','legendary') then raise exception 'Invalid rarity'; end if;
+ if not exists(select 1 from public.card_categories where category_id=p_category_id and is_active) then raise exception 'Choose a valid category'; end if;
+ if p_set_id is not null and not exists(select 1 from public.card_sets where set_id=p_set_id and is_active) then raise exception 'Choose a valid card set'; end if;
+ if p_unlock_chapter_id is not null and p_unlock_chapter_id !~ '^[a-z0-9-]{1,80}$' then raise exception 'Chapter ID must use lowercase letters, numbers and hyphens'; end if;
+ if p_description is not null and char_length(p_description)>1200 then raise exception 'Description must be 1,200 characters or fewer'; end if;
+ if p_artwork_url is not null and char_length(p_artwork_url)>2000 then raise exception 'Artwork URL is too long'; end if;
+
+ v_is_new := p_card_id is null or trim(p_card_id)='';
+ if v_is_new then
+   v_id := trim(both '-' from regexp_replace(lower(trim(p_name)),'[^a-z0-9]+','-','g'));
+   if v_id='' then raise exception 'Card name must contain letters or numbers'; end if;
+   if exists(select 1 from public.card_catalogue where card_id=v_id) then
+     v_id := v_id||'-'||substr(replace(gen_random_uuid()::text,'-',''),1,6);
+   end if;
+   select category_code into v_code from public.card_categories where category_id=p_category_id;
+   select coalesce(max(category_number),0)+1 into v_number
+   from public.card_catalogue where category_id=p_category_id;
+   v_card_number := v_code||'-'||lpad(v_number::text,3,'0');
+   insert into public.card_catalogue(
+    card_id,category_id,category_number,card_number,name,rarity,set_id,
+    universe_id,series_id,book_id,unlock_chapter_id,spoiler_safe_description,
+    artwork_url,is_active,sort_order
+   ) values (
+    v_id,p_category_id,v_number,v_card_number,trim(p_name),p_rarity,p_set_id,
+    'orlong','eden','trials-of-eden',nullif(trim(p_unlock_chapter_id),''),
+    nullif(trim(p_description),''),nullif(trim(p_artwork_url),''),coalesce(p_active,true),v_number
+   );
+ else
+   select category_number,card_number into v_number,v_card_number
+   from public.card_catalogue where card_id=p_card_id;
+   if not found then raise exception 'Card not found'; end if;
+   update public.card_catalogue set
+    name=trim(p_name),category_id=p_category_id,rarity=p_rarity,set_id=p_set_id,
+    unlock_chapter_id=nullif(trim(p_unlock_chapter_id),''),
+    spoiler_safe_description=nullif(trim(p_description),''),
+    artwork_url=nullif(trim(p_artwork_url),''),is_active=coalesce(p_active,true),
+    updated_at=now()
+   where card_id=p_card_id;
+   v_id:=p_card_id;
+ end if;
+ return jsonb_build_object('card_id',v_id,'card_number',v_card_number,'category_number',v_number,'created',v_is_new);
+end;
+$$;
+
+revoke all on function public.get_moderator_card_studio() from public,anon;
+revoke all on function public.save_moderator_card(text,text,text,text,text,text,text,text,boolean) from public,anon;
+grant execute on function public.get_moderator_card_studio() to authenticated;
+grant execute on function public.save_moderator_card(text,text,text,text,text,text,text,text,boolean) to authenticated;
+
+-- Verification: these functions return data only to registered moderators.
+select public.is_reader_moderator() as current_user_is_moderator;
