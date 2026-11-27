@@ -794,3 +794,21 @@ body[data-reader-theme="midnight"] .orlong-scene-break {
   outline: 2px solid #a8d2ff;
   outline-offset: 3px;
 }
+
+
+/* Stage 8A — first-visit orientation, kept calm and secondary to the manuscript. */
+.first-reader-guide{max-width:1120px;margin:28px auto 0;padding:22px 25px;background:linear-gradient(120deg,#11233a,#0c1726);border:1px solid #398cff55;border-radius:6px;display:grid;grid-template-columns:1.1fr 1.5fr auto;gap:24px;align-items:center}
+.first-reader-guide-copy .guide-eyebrow{margin:0 0 8px;color:#9ecaff;font-size:9px;letter-spacing:2px}
+.first-reader-guide-copy h2{margin:0 0 8px;color:#f0f5fc;font:500 18px Cinzel,serif}
+.first-reader-guide-copy>p:last-child{margin:0;color:#aebdd0;font-size:11px;line-height:1.7}
+.first-reader-guide-steps{display:grid;gap:10px}
+.first-reader-guide-steps div{display:grid;gap:3px}
+.first-reader-guide-steps strong{color:#c8e1ff;font-size:9px;letter-spacing:1px}
+.first-reader-guide-steps span{color:#aab8cb;font-size:10px;line-height:1.6}
+.first-reader-guide-actions{display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.first-reader-guide-actions a,.first-reader-guide-actions button{min-height:36px;padding:9px 12px;border:1px solid #6baaff88;background:#122b48;color:#e8f3ff;text-align:center;font:600 9px Inter,sans-serif;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+.first-reader-guide-actions button{background:transparent;color:#b7c5d8;border-color:#ffffff2b}
+.first-reader-guide.is-dismissed{display:none}
+@media(max-width:1050px){.first-reader-guide{margin:20px 20px 0;grid-template-columns:1fr 1fr}.first-reader-guide-actions{grid-column:1/-1;flex-direction:row;justify-content:flex-end}}
+@media(max-width:650px){.first-reader-guide{grid-template-columns:1fr;padding:19px;margin:16px 12px 0;gap:16px}.first-reader-guide-actions{grid-column:auto}.first-reader-guide-actions a,.first-reader-guide-actions button{flex:1}}
+@media(prefers-reduced-motion:reduce){.first-reader-guide *{transition:none!important}}
