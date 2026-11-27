@@ -92,6 +92,8 @@ $$;
 
 -- Trade history now reads the durable card snapshot rather than relying on
 -- the physical offered copy still existing in the collection.
+drop function if exists public.get_my_card_trades();
+
 create or replace function public.get_my_card_trades()
 returns table (
   offer_id uuid,
