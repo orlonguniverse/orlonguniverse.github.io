@@ -136,6 +136,14 @@ language sql stable security definer set search_path=public,pg_temp as $$
  order by l.created_at desc;
 $$;
 
+create or replace function public.get_my_market_listings()
+returns table(listing_id uuid,copy_id uuid,card_id text,card_number text,card_name text,rarity text,artwork_url text,price_cents bigint,status text,created_at timestamptz)
+language sql stable security definer set search_path=public,pg_temp as $
+ select l.listing_id,l.copy_id,l.card_id,c.card_number,c.name,c.rarity,c.artwork_url,l.price_cents,l.status,l.created_at
+ from public.reader_card_market_listings l join public.card_catalogue c on c.card_id=l.card_id
+ where l.seller_user_id=auth.uid() and l.status='active' order by l.created_at desc;
+$;
+
 create or replace function public.buy_market_card_listing(p_listing_id uuid)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 declare uid uuid:=auth.uid(); l public.reader_card_market_listings%rowtype; seller_balance bigint; buyer_balance bigint; card_name text;
@@ -399,6 +407,7 @@ revoke all on function public.get_public_market_tradeable_copies(uuid) from publ
 revoke all on function public.create_market_card_listing(uuid,bigint) from public,anon;
 revoke all on function public.cancel_market_card_listing(uuid) from public,anon;
 revoke all on function public.get_reader_card_market() from public,anon;
+revoke all on function public.get_my_market_listings() from public,anon;
 revoke all on function public.buy_market_card_listing(uuid) from public,anon;
 revoke all on function public.create_reader_market_offer(uuid,uuid,uuid[],uuid[],bigint,bigint,text) from public,anon;
 revoke all on function public.counter_reader_market_offer(uuid,uuid[],uuid[],bigint,bigint,text) from public,anon;
@@ -408,7 +417,7 @@ revoke all on function public.get_my_reader_market_offers() from public,anon;
 revoke all on function public.sell_my_duplicate_cards(text,integer) from public,anon;
 revoke all on function public.auto_sell_excess_card_copies() from public,anon,authenticated;
 revoke all on function public.apply_my_duplicate_sale_limit(uuid) from public,anon,authenticated;
-grant execute on function public.get_my_market_tradeable_copies(),public.get_public_market_tradeable_copies(uuid),public.get_reader_card_market(),public.get_my_reader_market_offers() to authenticated;
+grant execute on function public.get_my_market_tradeable_copies(),public.get_public_market_tradeable_copies(uuid),public.get_reader_card_market(),public.get_my_market_listings(),public.get_my_reader_market_offers() to authenticated;
 grant execute on function public.create_market_card_listing(uuid,bigint),public.cancel_market_card_listing(uuid),public.buy_market_card_listing(uuid) to authenticated;
 grant execute on function public.create_reader_market_offer(uuid,uuid,uuid[],uuid[],bigint,bigint,text) to authenticated;
 grant execute on function public.counter_reader_market_offer(uuid,uuid[],uuid[],bigint,bigint,text),public.respond_to_reader_market_offer(uuid,boolean),public.cancel_reader_market_offer(uuid) to authenticated;
