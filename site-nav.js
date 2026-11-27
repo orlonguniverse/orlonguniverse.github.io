@@ -23,6 +23,18 @@ document.addEventListener("DOMContentLoaded",()=>{
  const themeButton=document.getElementById("themeButton")||document.getElementById("contentsThemeButton");
  if(themeButton)themeButton.textContent=document.body.classList.contains("light")?"DARK MODE":"LIGHT MODE";
 
+ // Temporary Stage 2 route: keep Early Access discoverable from the shared main menu.
+ const navLinks=document.querySelector(".topbar-right, .top-actions");
+ if(navLinks&&!navLinks.querySelector("[data-early-access-nav]")){
+  const earlyLink=document.createElement("a");
+  earlyLink.href="/early-access/";
+  earlyLink.textContent="EARLY ACCESS";
+  earlyLink.dataset.earlyAccessNav="true";
+  const eventsLink=[...navLinks.querySelectorAll("a")].find(link=>/events\\.html(?:$|[?#])/.test(link.getAttribute("href")||""));
+  if(eventsLink)eventsLink.insertAdjacentElement("afterend",earlyLink);
+  else navLinks.appendChild(earlyLink);
+ }
+
  // Account forms manage their own session and call the shared label updater.
  const accountButton=document.getElementById("openAccountButton");
  if(!accountButton||document.getElementById("authForm")||!window.supabase?.createClient)return;
