@@ -147,3 +147,14 @@ The database foundation introduces:
 The trade tables have row-level security enabled and direct reader access revoked. All collection visibility and trade actions are performed through authenticated, narrowly scoped database functions. Public visibility does not expose achievements, currency, account activity or other private statistics.
 
 No in-game currency or automatic duplicate exchange is introduced in this stage. Duplicate copies remain owned unless the reader explicitly trades one. The Trading Post interface is now connected to the My Account page. Readers can toggle binder visibility, browse opted-in collections, send card-for-card offers, and accept, decline or cancel offers. The owner-only `get_my_tradeable_card_copies()` RPC supplies the physical copy IDs needed to make offers without exposing those IDs to other readers. After the UI was connected, this RPC was added to the Stage 6 SQL migration; rerun the latest complete migration so the website can use it.
+
+
+## Stage 7 — editable Events Hub
+
+The Events page is available at `/events.html`. The event list is controlled by the root-level `events-config.js` file, so new events can be added without editing the page layout or JavaScript.
+
+To create an event, copy one of the commented examples in `events-config.js` into the `window.ORLONG_EVENTS` array. Choose `type: "announcement"` for an information-only event or `type: "interactive"` for an event with reader activity links. Set `published: false` to hide an event without deleting its configuration. Dates use `YYYY-MM-DD`; the page automatically labels events upcoming, live or ended and provides All, Live Now, Upcoming and Past filters.
+
+Each event can include a summary, full description, potential rewards and (for interactive events) as many activities as desired. Each activity has a title, description, button label and destination URL. The Events page displays reward descriptions and links to activities.
+
+**Current Stage 7 scope:** this is the editable event directory and activity-launch hub. Interactive buttons direct readers to the relevant website activities, but this first version does not yet verify completion, maintain event-specific progress, or automatically grant event rewards. Reward descriptions are informational only. A later reward-claim stage will be needed before configuring exclusive collectible rewards as automatically earnable.
