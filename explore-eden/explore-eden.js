@@ -325,6 +325,24 @@ async function renderReaders(readers){
 function marketButton(label,handler,secondary=false){
  const b=text("button",secondary?"reader-open market-secondary":"reader-open",label);b.type="button";b.addEventListener("click",handler);return b;
 }
+async function loadMarketVisibility(){
+ const button=$("marketVisibilityToggle"),status=$("marketVisibilityStatus");if(!button||!status)return;
+ const {data,error}=await client.rpc("get_my_card_collection_visibility");
+ if(error){status.textContent="Your binder visibility could not be loaded. Check the Trading Post database setup.";button.disabled=true;return;}
+ const isPublic=!!data;
+ status.textContent=isPublic?"Your binder is public. Other readers can browse your collection and make offers.":"Your binder is private. Make it public to appear in the reader directory and receive offers.";
+ button.disabled=false;button.textContent=isPublic?"MAKE BINDER PRIVATE":"MAKE BINDER PUBLIC";button.dataset.public=String(isPublic);
+}
+async function toggleMarketVisibility(){
+ const button=$("marketVisibilityToggle"),status=$("marketVisibilityStatus");if(!button||button.disabled)return;
+ const next=button.dataset.public!=="true";button.disabled=true;button.textContent="UPDATING…";
+ const {error}=await client.rpc("set_my_card_collection_visibility",{make_public:next});
+ if(error){status.textContent=error.message||"We couldn't update your binder visibility.";button.disabled=false;return;}
+ await loadMarketVisibility();
+ const {data,error:directoryError}=await client.rpc("get_public_card_collections");
+ if(!directoryError)await renderReaders(data||[]);
+ await loadTradingMarket();
+}
 async function loadTradingMarket(){
  const list=$("marketListCopy"),mine=$("myMarketListings"),publicGrid=$("readerMarketListings"),offersRoot=$("myReaderMarketOffers");
  if(!list||!mine||!publicGrid||!offersRoot)return;
@@ -420,7 +438,7 @@ async function initialise(){
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
- if(!session){$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
+ if(!session){$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
   await loadDuplicateSaleSettings();
@@ -429,7 +447,7 @@ async function initialise(){
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
-  await Promise.all([loadMarketplace(),loadTradingMarket()]);
+  await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility()]);
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
@@ -437,6 +455,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
  $("marketCreateListing")?.addEventListener("click",createMarketListing);
  $("refreshReaderMarket")?.addEventListener("click",loadTradingMarket);
  $("refreshMarketOffers")?.addEventListener("click",loadTradingMarket);
+ $("marketVisibilityToggle")?.addEventListener("click",toggleMarketVisibility);
  if(!window.supabase?.createClient){$("sessionMessage").textContent="The sign-in service is unavailable. Please refresh and try again.";return;}
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  try{
