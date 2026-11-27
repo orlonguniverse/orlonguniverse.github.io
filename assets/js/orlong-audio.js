@@ -1,6 +1,7 @@
 /* Optional Orlong soundtrack: resumes at the previous position after page navigation. */
 (() => {
  if(window.OrlongMusic)return;
+ if(!document.querySelector("link[data-orlong-audio-css]")){const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/css/orlong-audio.css?v=stage-6c";style.dataset.orlongAudioCss="true";document.head.append(style);}
  const source="/assets/audio/background-music.mp3",enabledKey="orlongMusicEnabled",positionKey="orlongMusicPosition";
  let player=null,button=null,slider=null,note=null;
  const enabled=()=>localStorage.getItem(enabledKey)==="true";
