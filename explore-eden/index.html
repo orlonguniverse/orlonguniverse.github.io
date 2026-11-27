@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-6d">
-<link rel="stylesheet" href="explore-eden.css?v=stage-5f">
+<link rel="stylesheet" href="explore-eden.css?v=stage-7a">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -46,13 +46,16 @@
 </section>
 <section class="eden-panel" id="marketplacePanel" role="tabpanel" aria-labelledby="marketplaceTab" hidden>
 <div class="section-heading"><div><p class="eyebrow">THE CARD EXCHANGE</p><h2>MARKETPLACE</h2></div><p class="section-stat">CATALOGUE PREVIEW</p></div>
-<p class="section-intro">Explore the cards that will be available through the marketplace. Purchasing, currency and shop transactions are intentionally reserved for a later stage.</p>
-<div class="marketplace-notice"><span class="notice-mark">✦</span><div><strong>THE MARKETPLACE IS BEING PREPARED</strong><p>Card browsing is open now. Purchasing and the collector economy will arrive in Stage 7.</p></div></div>
-<div class="eden-card-grid" id="marketplaceGrid"><div class="eden-empty">Loading the catalogue…</div></div>
+<p class="section-intro">Welcome to the Xantheon Exchange. Featured cards rotate every day at midnight Brisbane time. Every released, active card in the catalogue can be selected, regardless of how it is normally obtained.</p>
+<div class="xanth-wallet" id="xanthWallet"><div><span class="eyebrow">YOUR XANTH WALLET</span><strong id="xanthBalance">—</strong><small> XANTHEON XANTH · XTH</small></div><p>100 XTH = A$1.00<br><span>1 Xanth = 100 cents</span></p></div>
+<div class="shop-heading"><div><p class="eyebrow">TODAY'S ROTATION</p><h3>THE DAILY EXCHANGE</h3></div><p class="section-stat" id="shopDate">LOADING TODAY'S SHOP…</p></div>
+<p class="shop-note">Three featured cards, selected automatically from the released catalogue. Prices are shown in Xanths.</p>
+<div class="eden-card-grid" id="dailyShopGrid"><div class="eden-empty">The daily exchange is loading…</div></div>
+<div class="shop-coming"><strong>THE MYSTERY VAULT</strong><p>Chapter, category and rarity packs are being prepared. Each pack will draw from its own eligible card pool.</p></div>
 </section>
 </main>
 <footer class="eden-footer">ORLONG UNIVERSE · EXPLORE EDEN<br><a href="../index.html">RETURN HOME</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-6k"></script>
-<script src="explore-eden.js?v=stage-5g"></script>
+<script src="explore-eden.js?v=stage-7a"></script>
 </body></html>
