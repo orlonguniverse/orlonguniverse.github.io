@@ -19,6 +19,7 @@ function cardElement(card,isOwned,showUnownedArtwork=true){
  article.append(text("p","eden-card-number",card.cardNumber||card.card_number||"CARD"));
  article.append(text("h3","eden-card-name",isOwned?(card.name||card.card_name):"Undiscovered Card"));
  article.append(text("p","eden-card-meta",[(card.categoryLabel||card.category_label||card.categoryId||"Collectible"),card.rarity||"Unknown"].filter(Boolean).join(" · ")));
+ const cardId=card.id||card.card_id||"";if(card.setId==="early-access-special-edition"||cardId.startsWith("special-"))article.append(text("span","eden-card-edition","SPECIAL EDITION"));
  if(isOwned)article.append(text("span","eden-card-count",Number(card.copy_count||1)+" "+(Number(card.copy_count||1)===1?"COPY":"COPIES")));
  return article;
 }
