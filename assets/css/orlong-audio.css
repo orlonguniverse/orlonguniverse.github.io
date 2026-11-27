@@ -1,4 +1,6 @@
 .orlong-music-widget{position:fixed;right:18px;bottom:18px;z-index:9000;font-family:Inter,Arial,sans-serif}
+.orlong-music-controls{display:flex;gap:5px;align-items:center;justify-content:flex-end}
+.orlong-music-settings{width:36px;height:36px;border:1px solid #6baeff66;background:#071426ed;color:#d8edff;font-size:17px;cursor:pointer;box-shadow:0 8px 28px #0006}
 .orlong-music-toggle{min-width:112px;padding:12px 15px;border:1px solid #6baeff88;background:#071426ed;color:#d8edff;font:500 9px Inter,sans-serif;letter-spacing:1.5px;cursor:pointer;box-shadow:0 8px 28px #0006;backdrop-filter:blur(12px)}
 .orlong-music-toggle:hover{background:#12345a}
 .orlong-music-panel{position:absolute;right:0;bottom:calc(100% + 9px);width:min(280px,calc(100vw - 36px));padding:17px;background:#071426f5;border:1px solid #6baeff66;color:#e7f3ff;box-shadow:0 12px 35px #0009;backdrop-filter:blur(15px)}
