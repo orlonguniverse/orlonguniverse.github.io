@@ -320,7 +320,7 @@ language sql
 stable
 security definer
 set search_path = public, pg_temp
-as $
+as $$
   select c.copy_id, c.card_id, cat.card_number, cat.name, cat.artwork_url
   from public.reader_card_copies c
   join public.card_catalogue cat on cat.card_id = c.card_id and cat.is_active = true
@@ -330,7 +330,7 @@ as $
       where t.offered_copy_id = c.copy_id and t.status = 'pending'
     )
   order by cat.card_number, c.acquired_at;
-$;
+$$;
 
 -- Returns only offers involving the signed-in reader, with public
 -- display names and card details needed for the Trading Post UI.
