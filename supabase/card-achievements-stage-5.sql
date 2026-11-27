@@ -101,7 +101,7 @@ begin
  insert into public.reader_achievement_unlocks(user_id,achievement_id)
  select reader_id,e.achievement_id from evaluated e
  where e.current_progress>=e.target_progress
- on conflict (user_id,achievement_id) do nothing;
+ on conflict on constraint reader_achievement_unlocks_pkey do nothing;
 
  return query
  select a.achievement_id,a.title,a.description,
