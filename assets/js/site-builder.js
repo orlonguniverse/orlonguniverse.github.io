@@ -367,7 +367,7 @@ async function start(db,path,bar){
  manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message("Could not open section manager: "+e.message))});
  pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load custom page manager: "+e.message))});
  mapButton.addEventListener("click",()=>window.open("/moderator/#tab-sitemap","_blank","noopener"));
- try{await reload()}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
+ try{await reload();if(new URLSearchParams(location.search).get("orlong-sections")==="1"){panel.hidden=false;await reload();message("All sections on this page are ready to manage. This includes the sections originally built into the website.");}}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
 }
 window.OrlongSiteBuilder={render,start};
 })();
