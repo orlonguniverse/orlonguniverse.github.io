@@ -136,7 +136,7 @@ async function start(db,path,bar){
  };
  const renderNativeSections=()=>{
   const main=document.querySelector("main");if(!main)return;
-  const native=[...main.querySelectorAll(":scope > section,:scope > article,:scope > header,:scope > footer")]
+  const native=[...main.querySelectorAll("section,article,header,footer")]
    .filter(node=>!node.hasAttribute("data-orlong-section-id")&&!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"));
   const contentSelectorFor=node=>{
    if(node.id)return "#"+CSS.escape(node.id);
