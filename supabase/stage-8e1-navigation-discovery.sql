@@ -77,17 +77,3 @@ set config = jsonb_set(
 updated_at=now()
 where config_id=true;
 
-update public.orlong_site_map_config
-set config=jsonb_set(
-  config,
-  '{menus}',
-  case
-    when exists (
-      select 1 from jsonb_array_elements(coalesce(config->'menus','[]'::jsonb)) menu
-      where menu->>'id'='discover'
-    ) then config->'menus'
-    else '[{"id":"discover","label":"DISCOVER","enabled":true,"order":0}]'::jsonb
-  end
-),
-updated_at=now()
-where config_id=true;
