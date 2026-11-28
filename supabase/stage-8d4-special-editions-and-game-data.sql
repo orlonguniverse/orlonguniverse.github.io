@@ -153,3 +153,22 @@ grant execute on function public.get_public_card_game_data(text[]) to authentica
 select release_type,count(*) as card_count,
  count(*) filter(where limited_quantity is not null) as quantity_limited
 from public.eden_card_release_metadata group by release_type order by release_type;
+
+
+-- Reader-facing release labels for cards already returned by the public catalogue.
+create or replace function public.get_public_card_release_metadata()
+returns jsonb language sql stable security definer set search_path=public,pg_temp
+as $$
+ select coalesce(jsonb_agg(jsonb_build_object(
+  'card_id',c.card_id,
+  'release_type',coalesce(m.release_type,'standard'),
+  'release_label',m.release_label,
+  'available_from',m.available_from,
+  'available_until',m.available_until
+ ) order by c.card_id),'[]'::jsonb)
+ from public.card_catalogue c
+ left join public.eden_card_release_metadata m on m.card_id=c.card_id
+ where c.active=true;
+$$;
+revoke all on function public.get_public_card_release_metadata() from public;
+grant execute on function public.get_public_card_release_metadata() to anon,authenticated;
