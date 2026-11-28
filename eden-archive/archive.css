@@ -99,3 +99,23 @@ body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17345a 0,transpare
 .archive-reader-blocks>*{animation:archive-record-arrive .45s both}
 .archive-reader-blocks>*:nth-child(2){animation-delay:45ms}.archive-reader-blocks>*:nth-child(3){animation-delay:90ms}.archive-reader-blocks>*:nth-child(4){animation-delay:135ms}
 @media(prefers-reduced-motion:reduce){.archive-entry,.archive-reader-blocks>*{animation:none!important}.archive-reader-shell{scroll-behavior:auto}}
+
+/* 8D.2C — fast directory browsing, conditional reveals and connected lore graph */
+.archive-load-more{display:block;margin:24px auto 0;padding:13px 20px;border:1px solid #4c8bd0;background:#102b49;color:#eaf4ff;font:700 9px Inter,sans-serif;letter-spacing:1.5px;cursor:pointer}
+.archive-load-more:hover{background:#1b4772}
+.archive-entry[hidden]{display:none}
+.archive-block-gate select{min-height:96px}
+.archive-block-gate small{font-size:9px;line-height:1.5;letter-spacing:0;color:#8fa6bf}
+.archive-connection-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:13px}
+.archive-connection-card{position:relative;display:grid;gap:8px;text-align:left;padding:15px 16px 15px 20px;background:linear-gradient(135deg,#142a43,#0b1929);border:1px solid #385574;color:#e5edf7;cursor:pointer;transition:transform .2s,border-color .2s,background .2s}
+.archive-connection-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#d8bb80,#5b9ad5)}
+.archive-connection-card:hover{transform:translateY(-2px);border-color:#8cb9e5;background:#193653}
+.archive-connection-card strong{font:500 14px Cinzel,serif;color:#f0e2c4}
+.archive-connection-card small{font:11px/1.6 Inter,sans-serif;color:#aebfd2}
+.archive-connection-type{font:700 8px Inter,sans-serif;letter-spacing:1.3px;color:#8fc5ff}
+.archive-entry-connections{margin-top:24px}
+.archive-block-relationship-map{padding:20px;background:radial-gradient(ellipse at 50% 0%,#24456a66,transparent 65%),#0c1a2b;border:1px solid #355171}
+.archive-block-relationship-map .archive-connection-grid{position:relative;padding-top:12px}
+.archive-block-relationship-map .archive-connection-card{min-height:105px}
+.archive-reader-dialog[open]{animation:archive-record-arrive .22s ease-out}
+@media(prefers-reduced-motion:reduce){.archive-connection-card,.archive-reader-dialog[open]{animation:none;transition:none}.archive-connection-card:hover{transform:none}}
