@@ -105,10 +105,10 @@ function buildPicker(){
  dialog.addEventListener("click",event=>{if(event.target===dialog)dialog.close();});
 }
 function initialise(){
- const form=$("commentForm"),body=$("commentBody");if(!form||!body)return;
+ const form=$("commentForm"),body=$("commentBody");if(!form||!body)return;body.removeAttribute("required");
  const tools=make("div","expression-composer-tools");
  const add=make("button","expression-open-button","＋ ADD EMOJIS, STICKERS, GIFS & MEMES");add.type="button";
- add.addEventListener("click",()=>{if(!$("expressionPickerDialog"))buildPicker();$("expressionPickerDialog").showModal();loadLibrary();});
+ add.addEventListener("click",()=>{if(!engagementUser){setMessage("commentMessage","Sign in to use the Expression Library.");openAccountDialog();return;}if(!$("expressionPickerDialog"))buildPicker();const dialog=$("expressionPickerDialog");if(!dialog.open)dialog.showModal();loadLibrary();});
  const selected=make("div","expression-selected-items");selected.id="selectedExpressionItems";
  const status=make("span","expression-selection-status","0/4 selected");status.id="expressionSelectionStatus";
  const previewButton=make("button","expression-preview-button","PREVIEW COMMENT");previewButton.type="button";
