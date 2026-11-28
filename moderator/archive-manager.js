@@ -65,7 +65,7 @@ function editEntry(entry){
  $("archiveEntryDeleteButton").hidden=false;$("archiveEntrySaveButton").textContent="SAVE CHANGES";
  message("Editing "+entry.title+".");$("archiveEntryForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
-const blockLabels={text:"TEXT SECTION",quote:"PULL QUOTE",image:"IMAGE / ILLUSTRATION",callout:"HIGHLIGHTED NOTE",divider:"ORLONG DIVIDER",timeline:"TIMELINE",reveal:"INTERACTIVE REVEAL",facts:"FACT PANEL",gallery:"IMAGE GALLERY"};
+const blockLabels={text:"TEXT SECTION",quote:"PULL QUOTE",image:"IMAGE / ILLUSTRATION",callout:"HIGHLIGHTED NOTE",divider:"ORLONG DIVIDER",timeline:"TIMELINE",reveal:"INTERACTIVE REVEAL",facts:"FACT PANEL",gallery:"IMAGE GALLERY",relationship_map:"RELATIONSHIP MAP"};
 function rowsToText(items,type){return (items||[]).map(item=>type==="timeline"?[item.label,item.body].join(" | "):type==="facts"?[item.label,item.value].join(" | "):[item.url,item.caption].join(" | ")).join("\n");}
 function textToRows(value,type){return value.split("\n").map(line=>line.trim()).filter(Boolean).map(line=>{const parts=line.split("|").map(x=>x.trim());return type==="timeline"?{label:parts[0]||"",body:parts.slice(1).join(" | ")}:type==="facts"?{label:parts[0]||"",value:parts.slice(1).join(" | ")}:{url:parts[0]||"",caption:parts.slice(1).join(" | ")};});}
 async function uploadArchiveAsset(file){
@@ -122,6 +122,7 @@ function renderBlocks(){
   else if(block.type==="timeline"){addField("TIMELINE HEADING","heading",block.heading);addField("TIMELINE MOMENTS","itemsText",rowsToText(block.items,"timeline"),true,"One moment per line: DATE / PERIOD | What happened");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"timeline");});}
   else if(block.type==="reveal"){addField("READER-FACING BUTTON LABEL","label",block.label||"REVEAL RECORD");addField("HIDDEN CONTENT","body",block.body,true,"The information revealed when the reader chooses to open it.");}
   else if(block.type==="facts"){addField("PANEL HEADING","heading",block.heading);addField("FACTS","itemsText",rowsToText(block.items,"facts"),true,"One fact per line: LABEL | VALUE");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"facts");});}
+  else if(block.type==="relationship_map"){addField("MAP HEADING","heading",block.heading||"CONNECTED THREADS");addField("INTRODUCTION","body",block.body,true,"Introduce this family tree, friendship network or lore connection map.");}
   else if(block.type==="gallery"){addField("GALLERY HEADING","heading",block.heading);addField("GALLERY IMAGES","itemsText",rowsToText(block.items,"gallery"),true,"One image per line: IMAGE URL | CAPTION");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"gallery");});addImageUpload(fields,block,true);}
   else if(block.type==="divider"){fields.append(el("p","hint","A decorative Orlong sigil divider. It creates breathing room between sections."));}
   addBlockCardGate(fields,block);card.append(fields);root.append(card);
