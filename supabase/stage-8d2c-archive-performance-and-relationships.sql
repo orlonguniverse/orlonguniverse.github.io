@@ -93,23 +93,36 @@ begin
         from jsonb_array_elements_text(b.value->'requiredCardIds') req(card_id)
         join public.reader_card_copies owned on owned.card_id=req.card_id and owned.owner_user_id=auth.uid())
        =jsonb_array_length(b.value->'requiredCardIds');
+ with edges as (
+  select r.relation_id,r.source_block_id,r.target_entry_id,r.target_block_id,
+   r.relationship_type,r.label,r.description,r.is_bidirectional,r.sort_order
+  from public.eden_archive_relations r
+  where r.source_entry_id=p_entry_id and public.reader_can_access_eden_archive_entry(r.target_entry_id)
+  union all
+  select r.relation_id,r.target_block_id as source_block_id,r.source_entry_id as target_entry_id,
+   r.source_block_id as target_block_id,
+   case r.relationship_type when 'parent' then 'child' when 'child' then 'parent'
+    when 'created_by' then 'created' when 'created' then 'created_by'
+    when 'leader' then 'member' when 'member' then 'leader' else r.relationship_type end,
+   r.label,r.description,r.is_bidirectional,r.sort_order
+  from public.eden_archive_relations r
+  where r.target_entry_id=p_entry_id and r.is_bidirectional=true
+   and public.reader_can_access_eden_archive_entry(r.source_entry_id)
+ )
  select coalesce(jsonb_agg(jsonb_build_object(
-   'id',r.relation_id,'sourceBlockId',r.source_block_id,'targetEntryId',r.target_entry_id,
-   'targetBlockId',r.target_block_id,'targetTitle',target.title,'targetCategory',target.category,
-   'relationshipType',r.relationship_type,'label',r.label,'description',r.description,
-   'bidirectional',r.is_bidirectional
-  ) order by r.sort_order,r.relation_id),'[]'::jsonb)
+   'id',edge.relation_id,'sourceBlockId',edge.source_block_id,'targetEntryId',edge.target_entry_id,
+   'targetBlockId',edge.target_block_id,'targetTitle',target.title,'targetCategory',target.category,
+   'relationshipType',edge.relationship_type,'label',edge.label,'description',edge.description,
+   'bidirectional',edge.is_bidirectional
+  ) order by edge.sort_order,edge.relation_id),'[]'::jsonb)
  into v_connections
- from public.eden_archive_relations r
- join public.eden_archive_entries target on target.entry_id=r.target_entry_id
- where r.source_entry_id=p_entry_id
-  and public.reader_can_access_eden_archive_entry(r.target_entry_id)
-  and (r.source_block_id is null or exists(
-    select 1 from jsonb_array_elements(v_blocks) b
-    where b->>'id'=r.source_block_id))
-  and (r.target_block_id is null or exists(
+ from edges edge
+ join public.eden_archive_entries target on target.entry_id=edge.target_entry_id
+ where (edge.source_block_id is null or exists(
+    select 1 from jsonb_array_elements(v_blocks) b where b->>'id'=edge.source_block_id))
+  and (edge.target_block_id is null or exists(
     select 1 from jsonb_array_elements(coalesce(target.content_blocks,'[]'::jsonb)) tb
-    where tb->>'id'=r.target_block_id
+    where tb->>'id'=edge.target_block_id
      and (coalesce(jsonb_typeof(tb->'requiredCardIds'),'null')='null'
       or jsonb_array_length(coalesce(tb->'requiredCardIds','[]'::jsonb))=0
       or (select count(distinct owned.card_id)
@@ -151,7 +164,7 @@ begin
  if jsonb_typeof(v_blocks)<>'array' or octet_length(v_blocks::text)>180000 then raise exception 'Archive blocks must be an array under 180 KB'; end if;
  if exists(select 1 from jsonb_array_elements(v_blocks) b
   where jsonb_typeof(b)<>'object' or coalesce(b->>'type','') not in
-  ('text','quote','image','callout','divider','timeline','reveal','facts','gallery')) then
+  ('text','quote','image','callout','divider','timeline','reveal','facts','gallery','relationship_map')) then
   raise exception 'One or more archive blocks use an unsupported format'; end if;
  if exists(select 1 from jsonb_array_elements(v_blocks) b
   where nullif(b->>'id','') is null) then raise exception 'Every archive block needs a stable block ID'; end if;
