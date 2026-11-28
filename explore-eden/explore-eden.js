@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map(),collectionRefreshInFlight=null;
+let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map(),collectionRefreshInFlight=null,collectionRefreshQueued=false;
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 
@@ -138,22 +138,32 @@ function undiscoveredProgressSlot(slot){
 }
 async function refreshCollectionState(options={}){
  if(!client)return false;
- if(collectionRefreshInFlight)return collectionRefreshInFlight;
+ if(collectionRefreshInFlight){collectionRefreshQueued=true;return collectionRefreshInFlight;}
  const button=$("refreshCardProgress"),status=$("progressRefreshStatus");
  if(button){button.disabled=true;button.textContent="REFRESHING…";}
  if(status&&!options.silent)status.textContent="Synchronising your collection and discovery record…";
  collectionRefreshInFlight=(async()=>{
-  const [collectionResult,progressResult]=await Promise.all([
-   client.rpc("get_my_card_collection"),
-   client.rpc("get_my_card_progress")
-  ]);
-  let success=false;
-  if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();success=true;}
-  else console.error("Collection synchronisation failed:",collectionResult.error);
-  if(!progressResult.error){cardProgress=progressResult.data||[];renderCardProgress();success=true;}
-  else console.error("Progress synchronisation failed:",progressResult.error);
-  if(status)status.textContent=collectionResult.error&&progressResult.error?"Could not synchronise just now. Your previous data is still shown.":"SYNCHRONISED "+new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
-  return success;
+  let fullySynced=true;
+  do{
+   collectionRefreshQueued=false;
+   const [collectionResult,progressResult]=await Promise.all([
+    client.rpc("get_my_card_collection"),
+    client.rpc("get_my_card_progress")
+   ]);
+   if(!collectionResult.error&&!progressResult.error){
+    owned=collectionResult.data||[];
+    cardProgress=progressResult.data||[];
+    renderCollection();
+    renderCardProgress();
+    if(status)status.textContent="SYNCHRONISED "+new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
+   }else{
+    fullySynced=false;
+    if(collectionResult.error)console.error("Collection synchronisation failed:",collectionResult.error);
+    if(progressResult.error)console.error("Progress synchronisation failed:",progressResult.error);
+    if(status)status.textContent=!collectionResult.error||!progressResult.error?"PARTIAL UPDATE FAILED — previous collection and progress are preserved.":"Could not synchronise just now. Your previous data is still shown.";
+   }
+  }while(collectionRefreshQueued);
+  return fullySynced;
  })();
  try{return await collectionRefreshInFlight;}
  finally{collectionRefreshInFlight=null;if(button){button.disabled=false;button.textContent="REFRESH COLLECTION";}}
