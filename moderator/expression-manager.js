@@ -35,7 +35,7 @@ function buildPanel(){
      <label>SORT ORDER <input id="expressionSort" type="number" value="100"></label>
     </div>
     <label>UNLOCK AFTER CHAPTERS <input id="expressionUnlockChapters" placeholder="chapter-02, chapter-05"><small>Leave blank to make it available to everyone. Separate chapter IDs with commas.</small></label>
-    <label>UNLOCK WHEN READER OWNS CARD IDS <textarea id="expressionUnlockCards" rows="2" placeholder="Paste card UUIDs, separated by commas"></textarea></label>
+    <label>UNLOCK WHEN READER OWNS THESE CARDS <select id="expressionUnlockCards" multiple size="7"></select><small>Hold Ctrl (Windows) or Command (Mac) to select multiple cards.</small></label>
     <label class="expression-admin-check"><input type="checkbox" id="expressionPublic" checked> Available to everyone</label>
     <label class="expression-admin-check"><input type="checkbox" id="expressionFeatured"> Feature in the library</label>
     <div class="form-actions"><button class="primary" type="submit" id="saveExpressionAsset">SAVE TO LIBRARY</button><button class="secondary" type="button" id="resetExpressionAsset">NEW ITEM</button></div>
@@ -57,12 +57,13 @@ function buildPanel(){
  $("resetExpressionAsset").addEventListener("click",resetForm);
  $("refreshExpressionAssets").addEventListener("click",loadAssets);
  $("saveExpressionGiphy").addEventListener("click",saveGiphy);
- loadAssets();loadRequests();loadGiphySettings();
+ loadAssets();loadRequests();loadGiphySettings();loadCardChoices();
 }
 function resetForm(){
  activeId=null;$("expressionAssetForm").reset();$("expressionCategory").value="Orlong";$("expressionSort").value="100";$("expressionPublic").checked=true;$("saveExpressionAsset").textContent="SAVE TO LIBRARY";say("Ready to create a new library item.");
 }
-function parseList(id){return $(id).value.split(",").map(x=>x.trim()).filter(Boolean);}
+function parseList(id){const el=$(id);if(el.multiple)return [...el.selectedOptions].map(option=>option.value);return el.value.split(",").map(x=>x.trim()).filter(Boolean);}
+async function loadCardChoices(){const select=$("expressionUnlockCards");if(!select)return;const {data,error}=await client.rpc("get_moderator_card_studio");if(error){select.append(new Option("Card catalogue unavailable",""));return;}select.replaceChildren();(data?.cards||[]).forEach(card=>select.append(new Option(card.number+" · "+card.name,card.id)));}
 async function saveAsset(event){
  event.preventDefault();const button=$("saveExpressionAsset");button.disabled=true;button.textContent="SAVING…";
  try{
@@ -110,7 +111,7 @@ function editAsset(item){
  activeId=item.id;$("expressionTitle").value=item.title;$("expressionType").value=item.asset_type;$("expressionCategory").value=item.category;
  $("expressionEmoji").value=item.emoji_text||"";$("expressionUrl").value=item.asset_url||"";$("expressionAlt").value=item.alt_text||"";
  $("expressionKey").value=item.asset_key;$("expressionSort").value=item.sort_order;$("expressionUnlockChapters").value=(item.unlock_chapter_ids||[]).join(", ");
- $("expressionUnlockCards").value=(item.unlock_card_ids||[]).join(", ");$("expressionPublic").checked=item.is_public;$("expressionFeatured").checked=item.is_featured;
+ Array.from($("expressionUnlockCards").options).forEach(option=>{option.selected=(item.unlock_card_ids||[]).includes(option.value);});$("expressionPublic").checked=item.is_public;$("expressionFeatured").checked=item.is_featured;
  $("saveExpressionAsset").textContent="UPDATE LIBRARY ITEM";say("Editing "+item.title+".");$("expressionAssetForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
 async function loadRequests(){
