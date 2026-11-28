@@ -130,7 +130,7 @@ function renderBlocks(){
 }
 function addBlock(){
  const type=$("archiveBlockType").value;
- const defaults={text:{type,heading:"",body:""},quote:{type,body:"",attribution:""},image:{type,url:"",alt:"",caption:""},callout:{type,heading:"",body:""},divider:{type},timeline:{type,heading:"",items:[]},reveal:{type,label:"REVEAL RECORD",body:""},facts:{type,heading:"",items:[]},gallery:{type,heading:"",items:[]}};
+ const defaults={text:{type,heading:"",body:""},quote:{type,body:"",attribution:""},image:{type,url:"",alt:"",caption:""},callout:{type,heading:"",body:""},divider:{type},timeline:{type,heading:"",items:[]},reveal:{type,label:"REVEAL RECORD",body:""},facts:{type,heading:"",items:[]},gallery:{type,heading:"",items:[]},relationship_map:{type,heading:"CONNECTED THREADS",body:""}};
  defaults[type].id=blockId();defaults[type].requiredCardIds=[];archiveBlocks.push(defaults[type]);renderBlocks();
  const last=$("archiveBlockList").lastElementChild;last?.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
