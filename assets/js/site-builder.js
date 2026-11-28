@@ -65,10 +65,11 @@ async function start(db,path,bar){
   const actions=$("div","builder-row");
   const edit=$("button","","EDIT SECTION");edit.addEventListener("click",()=>editSection(section));
   const block=$("button","","＋ ADD CONTENT");block.addEventListener("click",()=>addBlock(section));
+  const manage=$("button","","MANAGE CONTENT");manage.addEventListener("click",()=>manageBlocks(section));
   const up=$("button","","↑");up.title="Move section up";up.disabled=index===0;up.addEventListener("click",()=>moveSection(section,-1));
   const down=$("button","","↓");down.title="Move section down";down.disabled=index===sections.length-1;down.addEventListener("click",()=>moveSection(section,1));
   const del=$("button","danger","DELETE");del.addEventListener("click",()=>deleteSection(section));
-  actions.append(edit,block,up,down,del);entry.append(title,meta,actions);body.append(entry);
+  actions.append(edit,block,manage,up,down,del);entry.append(title,meta,actions);body.append(entry);
  });
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
@@ -105,6 +106,38 @@ async function start(db,path,bar){
    if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const folder=path.replace(/[^a-z0-9]/gi,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")||"site";const filePath=folder+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image URL or upload an image.");block.url=url;block.alt=v[1];block.caption=v[2];}
    if(t==="button"){block.text=v[0];block.url=v[1];if(!safeUrl(block.url))throw new Error("Enter a valid button destination.");}
    section.data.blocks=[...(section.data.blocks||[]),block];await save(section);
+  });
+ };
+ const manageBlocks=section=>{
+  body.replaceChildren($("h2","","MANAGE SECTION CONTENT"));
+  const blocks=section.data.blocks||[];
+  if(!blocks.length)body.append($("p","","This section is empty. Add your first content block."));
+  blocks.forEach((block,index)=>{
+   const entry=$("div","builder-entry"),name=$("strong","",(index+1)+". "+block.type.toUpperCase()),preview=$("p","",(block.text||block.title||block.caption||block.url||"").slice(0,150));
+   const actions=$("div","builder-row"),edit=$("button","","EDIT"),remove=$("button","danger","REMOVE"),up=$("button","","↑"),down=$("button","","↓");
+   edit.addEventListener("click",()=>editBlock(section,index));
+   remove.addEventListener("click",async()=>{if(!confirm("Remove this content block?"))return;section.data.blocks.splice(index,1);try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   up.disabled=index===0;down.disabled=index===blocks.length-1;
+   up.addEventListener("click",async()=>{const a=section.data.blocks;[a[index-1],a[index]]=[a[index],a[index-1]];try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   down.addEventListener("click",async()=>{const a=section.data.blocks;[a[index+1],a[index]]=[a[index],a[index+1]];try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   actions.append(edit,up,down,remove);entry.append(name,preview,actions);body.append(entry);
+  });
+  const back=$("button","","BACK TO SECTIONS");back.addEventListener("click",reload);body.append(back);
+ };
+ const editBlock=(section,index)=>{
+  const block=section.data.blocks[index],fields=[];
+  const addField=(label,value,multi=false)=>{const f=input(label,value||"",multi);fields.push(f);return f};
+  if(["heading","text","callout"].includes(block.type))addField(block.type==="heading"?"HEADING TEXT":"TEXT CONTENT",block.text,true);
+  if(block.type==="accordion"){addField("MENU TITLE",block.title);addField("ITEMS (one per line: title | content)",(block.items||[]).map(x=>x.title+" | "+x.text).join("\n"),true)}
+  if(block.type==="image"){addField("IMAGE URL",block.url);addField("ALT TEXT",block.alt);addField("CAPTION",block.caption)}
+  if(block.type==="button"){addField("BUTTON TEXT",block.text);addField("DESTINATION URL",block.url)}
+  dialog("EDIT "+block.type.toUpperCase(),fields.map(f=>f.wrap),async()=>{
+   const v=fields.map(f=>f.field.value);
+   if(["heading","text","callout"].includes(block.type))block.text=v[0];
+   if(block.type==="accordion"){block.title=v[0];block.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(block.type==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image URL.");block.url=v[0];block.alt=v[1];block.caption=v[2]}
+   if(block.type==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");block.text=v[0];block.url=v[1]}
+   section.data.blocks[index]=block;await save(section);
   });
  };
  const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
