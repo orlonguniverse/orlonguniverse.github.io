@@ -22,7 +22,7 @@ begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if p_page_path is null or p_page_path !~ '^/[A-Za-z0-9_./-]*$' or length(p_page_path)>240 then raise exception 'Invalid page path'; end if;
  if p_selector is null or length(trim(p_selector))<1 or length(p_selector)>500 then raise exception 'Enter a valid page element'; end if;
- if p_property not in ('text','href','src','alt','title','placeholder','value','hidden','aria-label') then raise exception 'Unsupported content property'; end if;
+ if p_property not in ('text','href','src','alt','title','placeholder','value','hidden','aria-label','style:background-color','style:color','style:padding','style:max-width','style:border-radius','style:text-align','style:font-size') then raise exception 'Unsupported content property'; end if;
  if length(v_value)>12000 then raise exception 'Content is too long'; end if;
  if p_property in ('href','src') and v_value<>'' and v_value !~ '^(https://|http://|/|#|mailto:|tel:)' then raise exception 'Links and images must use a safe web, relative, anchor, email or telephone URL'; end if;
  if p_property='hidden' and v_value not in ('true','false') then raise exception 'Visibility must be true or false'; end if;
