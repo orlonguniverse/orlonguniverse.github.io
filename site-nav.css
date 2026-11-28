@@ -138,3 +138,10 @@ body.book-only-mode .nav-book-only-entry{display:none!important}
 .topbar .nav-main-menu-panel .nav-moderator-link{display:flex;align-items:center;min-height:38px;padding:10px 12px;color:#c8ddf4;font-size:9px;letter-spacing:1px;border:1px solid transparent}
 .topbar .nav-main-menu-panel .nav-moderator-link:hover{color:#fff;background:#398cff18;border-color:#398cff55}
 @media(max-width:760px){.topbar>.topbar-right,.topbar>.top-actions{gap:5px!important}.topbar>.topbar-right>a,.topbar>.topbar-right>button,.topbar>.top-actions>a,.topbar>.top-actions>button,.topbar .nav-dropdown>summary{min-height:36px!important;padding:8px 10px!important}}
+
+
+/* Stage 8D.11 — moderator-only icon shortcut beside Instagram. */
+.topbar .nav-moderator-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;height:36px;min-height:36px;padding:8px!important;color:var(--orlong-ice,#b8d8ff)!important;border:1px solid color-mix(in srgb,var(--orlong-accent,#398cff) 48%,transparent)!important;border-radius:5px!important;background:color-mix(in srgb,var(--orlong-accent,#398cff) 12%,transparent)!important;text-decoration:none!important}
+.topbar .nav-moderator-icon svg{display:block;width:19px;height:19px}
+.topbar .nav-moderator-icon:hover{color:var(--orlong-on-accent,#fff)!important;background:var(--orlong-accent,#398cff)!important;border-color:var(--orlong-ice,#b8d8ff)!important}
+.topbar .nav-moderator-icon:focus-visible{outline:2px solid var(--orlong-ice,#8bbdff);outline-offset:3px}
