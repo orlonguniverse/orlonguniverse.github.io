@@ -113,7 +113,7 @@ as $$
  ) order by c.card_id),'[]'::jsonb)
  from public.card_catalogue c
  left join public.eden_card_release_metadata m on m.card_id=c.card_id
- where c.active=true and (p_card_ids is null or c.card_id=any(p_card_ids));
+ where c.is_active=true and (p_card_ids is null or c.card_id=any(p_card_ids));
 $$;
 
 -- Enforce the total print-run limit at the ownership table, regardless of which
@@ -169,7 +169,7 @@ as $$
  ) order by c.card_id),'[]'::jsonb)
  from public.card_catalogue c
  left join public.eden_card_release_metadata m on m.card_id=c.card_id
- where c.active=true;
+ where c.is_active=true;
 $$;
 revoke all on function public.get_public_card_release_metadata() from public;
 grant execute on function public.get_public_card_release_metadata() to anon,authenticated;
