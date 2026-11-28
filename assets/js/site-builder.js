@@ -169,11 +169,11 @@ async function start(db,path,bar){
    if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const folder=path.replace(/[^a-z0-9]/gi,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")||"site";const filePath=folder+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image URL or upload an image.");block.url=url;block.alt=v[1];block.caption=v[2];}
    if(t==="button"){block.text=v[0];block.url=v[1];if(!safeUrl(block.url))throw new Error("Enter a valid button destination.");}
    section.data.blocks=[...(section.data.blocks||[]),block];await save(section);
-  });
+  },()=>manageBlocks(section),()=>manageBlocks(section));
   type.field.addEventListener("change",()=>{dynamic();refreshFields()});dynamic();refreshFields();
  };
  const manageBlocks=section=>{
-  body.replaceChildren($("h2","","MANAGE SECTION CONTENT"));
+  body.replaceChildren($("h2","","EDIT SECTION CONTENT"),$("p","","This is the content inside this section. Edit an item, move it up or down, remove it, or add another item. Changes appear in the page preview as soon as they are saved."));
   const blocks=section.data.blocks||[];
   if(!blocks.length)body.append($("p","","This section is empty. Add your first content block."));
   blocks.forEach((block,index)=>{
@@ -186,7 +186,7 @@ async function start(db,path,bar){
    down.addEventListener("click",async()=>{const a=section.data.blocks;[a[index+1],a[index]]=[a[index],a[index+1]];try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
    actions.append(edit,up,down,remove);entry.append(name,preview,actions);body.append(entry);
   });
-  const back=$("button","","BACK TO SECTIONS");back.addEventListener("click",reload);body.append(back);
+  const controls=$("div","builder-row"),addContent=$("button","","＋ ADD CONTENT BLOCK"),back=$("button","","BACK TO SECTIONS");addContent.addEventListener("click",()=>addBlock(section));back.addEventListener("click",reload);controls.append(addContent,back);body.append(controls);
  };
  const editBlock=(section,index)=>{
   const block=section.data.blocks[index],fields=[];
@@ -202,7 +202,7 @@ async function start(db,path,bar){
    if(block.type==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image URL.");block.url=v[0];block.alt=v[1];block.caption=v[2]}
    if(block.type==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");block.text=v[0];block.url=v[1]}
    section.data.blocks[index]=block;await save(section);
-  });
+  },()=>manageBlocks(section),()=>manageBlocks(section));
  };
  const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
  const deleteSection=async section=>{if(!confirm("Delete this custom section and all its content?"))return;const {error:delError}=await db.rpc("delete_moderator_orlong_site_section",{p_section_id:section.id});if(delError){message(delError.message);return}await reload();message("Section deleted.")};
