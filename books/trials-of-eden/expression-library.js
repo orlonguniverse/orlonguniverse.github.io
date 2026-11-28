@@ -48,8 +48,9 @@ async function loadGiphy(query){
  if(!giphyKey){root.replaceChildren(make("p","engagement-muted","GIF search will be available once the Orlong administrator connects the GIF library. The built-in collection is ready now."));return;}
  root.replaceChildren(make("p","engagement-muted","Finding GIFs…"));
  try{
+  const contentType=$("giphyExpressionType")?.value||"gifs";
   const mode=query?"search":"trending";
-  const url="https://api.giphy.com/v1/gifs/"+mode+"?api_key="+encodeURIComponent(giphyKey)+"&limit=30&rating=pg-13&bundle=messaging_non_clips"+(query?"&q="+encodeURIComponent(query):"");
+  const url="https://api.giphy.com/v1/"+contentType+"/"+mode+"?api_key="+encodeURIComponent(giphyKey)+"&limit=30&rating=pg-13&bundle=messaging_non_clips"+(query?"&q="+encodeURIComponent(query):"");
   const response=await fetch(url);if(!response.ok)throw new Error("GIF search unavailable");
   const data=await response.json();root.replaceChildren();
   (data.data||[]).forEach(gif=>{
@@ -57,11 +58,11 @@ async function loadGiphy(query){
    const button=make("button","expression-picker-item");button.type="button";
    const img=document.createElement("img");img.src=still.webp||still.url;img.alt=gif.title||"GIF";img.loading="lazy";
    button.append(img,make("span","expression-picker-title",gif.title||"GIF"));
-   button.addEventListener("click",()=>addSelection({title:gif.title||"GIF",type:"gif",url:gif.images?.fixed_height?.url||gif.images?.original?.url||still.url,preview:still.webp||still.url,alt:gif.title||"GIF",source:"giphy"}));
+   button.addEventListener("click",()=>addSelection({title:gif.title||"GIF",type:contentType==="stickers"?"sticker":"gif",url:gif.images?.fixed_height?.url||gif.images?.original?.url||still.url,preview:still.webp||still.url,alt:gif.title||"GIF",source:"giphy"}));
    root.append(button);
   });
   if(!root.childNodes.length)root.append(make("p","engagement-muted","No GIFs found. Try a different search."));
-  root.append(make("p","giphy-attribution","GIF search powered by GIPHY"));
+  root.append(make("p","giphy-attribution","Powered by GIPHY"));
  }catch(error){console.error(error);root.replaceChildren(make("p","engagement-muted","GIF search could not connect. The Orlong library is still available."));}
 }
 async function loadLibrary(){
@@ -92,9 +93,9 @@ function buildPicker(){
  const library=make("section","expression-picker-section");library.append(make("h4","","THE ORLONG COLLECTION"));
  const grid=make("div","expression-picker-grid");grid.id="expressionPickerGrid";library.append(grid);
  const giphy=make("section","expression-picker-section");giphy.append(make("h4","","GIF DISCOVERY"));
- const gifSearch=document.createElement("input");gifSearch.type="search";gifSearch.placeholder="Search GIFs…";
+ const giphyControls=make("div","giphy-expression-controls");const gifType=document.createElement("select");gifType.id="giphyExpressionType";[["gifs","GIFs"],["stickers","Stickers"]].forEach(pair=>{const option=document.createElement("option");option.value=pair[0];option.textContent=pair[1];gifType.append(option);});gifType.addEventListener("change",()=>loadGiphy(gifSearch.value.trim()));const gifSearch=document.createElement("input");gifSearch.type="search";gifSearch.placeholder="Search GIFs and stickers…";
  gifSearch.addEventListener("input",()=>{window.clearTimeout(gifTimer);gifTimer=window.setTimeout(()=>loadGiphy(gifSearch.value.trim()),300);});
- const gifGrid=make("div","expression-picker-grid");gifGrid.id="giphyExpressionGrid";giphy.append(gifSearch,gifGrid);
+ const gifGrid=make("div","expression-picker-grid");gifGrid.id="giphyExpressionGrid";giphyControls.append(gifSearch,gifType);giphy.append(giphyControls,gifGrid);
  const request=make("details","expression-request-panel");request.append(make("summary","","REQUEST A NEW EXPRESSION"));
  const form=document.createElement("form");form.id="expressionRequestForm";
  const requestType=document.createElement("select");requestType.id="expressionRequestType";
