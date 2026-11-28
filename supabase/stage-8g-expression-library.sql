@@ -70,16 +70,6 @@ create table if not exists public.expression_provider_settings (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.chapter_comment_expression_assets (
-  comment_id uuid not null references public.chapter_comments(id) on delete cascade,
-  asset_id uuid not null references public.expression_assets(id) on delete restrict,
-  position smallint not null default 1 check (position between 1 and 4),
-  primary key(comment_id, asset_id),
-  unique(comment_id, position)
-);
-create index if not exists chapter_comment_expression_assets_asset_idx
-  on public.chapter_comment_expression_assets(asset_id);
-
 -- GIF-provider and catalogue media can be attached as a compact JSON payload.
 alter table public.chapter_comments
  add column if not exists expression_attachments jsonb not null default '[]'::jsonb;
@@ -127,7 +117,6 @@ alter table public.expression_assets enable row level security;
 alter table public.reader_expression_unlocks enable row level security;
 alter table public.expression_asset_requests enable row level security;
 alter table public.expression_provider_settings enable row level security;
-alter table public.chapter_comment_expression_assets enable row level security;
 
 drop policy if exists "Readers view active expression assets" on public.expression_assets;
 create policy "Readers view active expression assets" on public.expression_assets
@@ -141,16 +130,6 @@ create policy "Readers submit own expression requests" on public.expression_asse
 drop policy if exists "Readers view own expression requests" on public.expression_asset_requests;
 create policy "Readers view own expression requests" on public.expression_asset_requests
  for select to authenticated using (auth.uid() = user_id or public.is_reader_moderator());
-drop policy if exists "Readers view attached expression assets" on public.chapter_comment_expression_assets;
-create policy "Readers view attached expression assets" on public.chapter_comment_expression_assets
- for select to authenticated using (true);
-drop policy if exists "Readers attach expressions to own comments" on public.chapter_comment_expression_assets;
-create policy "Readers attach expressions to own comments" on public.chapter_comment_expression_assets
- for insert to authenticated with check (
-   exists(select 1 from public.chapter_comments c where c.id=comment_id and c.user_id=auth.uid())
-   and exists(select 1 from public.expression_assets a where a.id=asset_id and a.is_active
-     and (a.is_public or exists(select 1 from public.reader_expression_unlocks u where u.user_id=auth.uid() and u.asset_id=a.id)))
- );
 drop policy if exists "Moderators manage expression assets" on public.expression_assets;
 create policy "Moderators manage expression assets" on public.expression_assets
  for all to authenticated using (public.is_reader_moderator()) with check (public.is_reader_moderator());
@@ -162,8 +141,8 @@ create policy "Moderators manage expression provider settings" on public.express
  for all to authenticated using (public.is_reader_moderator()) with check (public.is_reader_moderator());
 
 grant select on public.expression_assets, public.reader_expression_unlocks,
- public.expression_asset_requests, public.chapter_comment_expression_assets to authenticated;
-grant insert on public.expression_asset_requests, public.chapter_comment_expression_assets to authenticated;
+ public.expression_asset_requests to authenticated;
+grant insert on public.expression_asset_requests, 
 grant select, insert, update, delete on public.expression_assets, public.expression_asset_requests,
  public.expression_provider_settings to authenticated;
 grant select on public.expression_provider_settings to authenticated;
@@ -309,22 +288,6 @@ create trigger chapter_completion_expression_unlock after insert on public.chapt
 drop trigger if exists card_copy_expression_unlock on public.reader_card_copies;
 create trigger card_copy_expression_unlock after insert or update on public.reader_card_copies
  for each row execute function public.grant_expression_unlocks_for_progress();
-
--- Existing chapter discussions remain text-first; readers can attach up to four
--- library items to a comment. The trigger enforces the cap at database level.
-create or replace function public.limit_comment_expression_attachments()
-returns trigger language plpgsql set search_path=public
-as $$
-begin
- if (select count(*) from chapter_comment_expression_assets where comment_id=new.comment_id)>=4 then
-  raise exception 'A comment can contain up to four expression items.';
- end if;
- return new;
-end;
-$$;
-drop trigger if exists chapter_comment_expression_attachment_limit on public.chapter_comment_expression_assets;
-create trigger chapter_comment_expression_attachment_limit before insert on public.chapter_comment_expression_assets
- for each row execute function public.limit_comment_expression_attachments();
 
 -- A public GIPHY API key is intentionally exposed only to signed-in readers.
 -- Restrict the key to the Orlong website domain in the GIPHY developer console.
