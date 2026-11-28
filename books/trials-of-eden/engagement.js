@@ -22,6 +22,9 @@ let discussionChapterOverride = null;
 let discussionOffset = 0;
 const DISCUSSION_PAGE_SIZE = 20;
 let discussionRows = [];
+let selectedExpressionAssets = [];
+let expressionLibraryCache = null;
+let expressionGiphyKey = "";
 
 const CONTENT_INTERESTS = [
   { id:"characters", title:"Characters" },
@@ -316,6 +319,13 @@ function renderDiscussionRows(){
  });
  rows.filter(r=>r.parent_id&&!rows.some(p=>p.id===r.parent_id)).forEach(r=>box.appendChild(createCommentElement(r,r.profile)));
 }
+function renderCommentExpressions(container,comment){
+ const items=Array.isArray(comment.expression_attachments)?comment.expression_attachments:[];
+ if(!items.length)return;
+ const gallery=document.createElement("div");gallery.className="comment-expression-gallery";
+ items.forEach(item=>{if(item.type==="emoji"&&item.emoji){const span=document.createElement("span");span.className="comment-expression-emoji";span.textContent=item.emoji;gallery.append(span);return;}if(!item.url)return;const link=document.createElement("a");link.href=item.url;link.target="_blank";link.rel="noopener noreferrer";const img=document.createElement("img");img.src=item.preview||item.url;img.alt=item.alt||item.title||"Community expression";img.loading="lazy";link.append(img);gallery.append(link);});
+ if(gallery.childNodes.length)container.append(gallery);
+}
 function createCommentElement(comment,profile){
  const article=document.createElement("article");article.className="comment-item";
  const meta=document.createElement("div");meta.className="comment-meta";
@@ -327,8 +337,8 @@ function createCommentElement(comment,profile){
  const date=document.createElement("span");date.textContent=" · "+new Date(comment.created_at).toLocaleDateString();author.append(name,date);meta.appendChild(author);
  const tag=document.createElement("span");tag.className="comment-category";tag.textContent=({general:"DISCUSSION",question:"QUESTION",theory:"THEORY"})[comment.category||"general"];meta.appendChild(tag);
  const body=document.createElement("p");body.className="comment-body";
- if(comment.contains_spoiler){const reveal=document.createElement("button");reveal.type="button";reveal.className="comment-spoiler";reveal.textContent="SPOILER — REVEAL COMMENT";reveal.addEventListener("click",()=>{body.textContent=comment.body;reveal.remove();});article.append(meta,reveal,body);}
- else{body.textContent=comment.body;article.append(meta,body);}
+ if(comment.contains_spoiler){const reveal=document.createElement("button");reveal.type="button";reveal.className="comment-spoiler";reveal.textContent="SPOILER — REVEAL COMMENT";reveal.addEventListener("click",()=>{body.textContent=comment.body;reveal.remove();renderCommentExpressions(article,comment);});article.append(meta,reveal,body);}
+ else{body.textContent=comment.body;article.append(meta,body);renderCommentExpressions(article,comment);}
  const tools=document.createElement("div");tools.className="comment-tools";
  const reply=document.createElement("button");reply.type="button";reply.textContent="REPLY";reply.disabled=!engagementUser;reply.addEventListener("click",()=>{replyToComment=comment.id;setMessage("commentMessage","Your reply will be submitted beneath this comment.");byId("commentBody").focus();});
  const report=document.createElement("button");report.type="button";report.className="secondary";report.textContent="REPORT";report.disabled=!engagementUser||comment.user_id===engagementUser.id;report.addEventListener("click",()=>reportComment(comment.id));
@@ -337,7 +347,7 @@ function createCommentElement(comment,profile){
 async function loadChapterComments(reset=true){
  const box=byId("chapterComments");if(!box)return;
  if(reset){discussionOffset=0;discussionRows=[];box.replaceChildren();}
- const {data,error}=await engagementClient.from("chapter_comments").select("id,user_id,chapter_id,parent_id,body,category,contains_spoiler,created_at").eq("chapter_id",discussionChapterId()).eq("moderation_status","approved").order("created_at",{ascending:false}).range(discussionOffset,discussionOffset+DISCUSSION_PAGE_SIZE-1);
+ const {data,error}=await engagementClient.from("chapter_comments").select("id,user_id,chapter_id,parent_id,body,category,contains_spoiler,expression_attachments,created_at").eq("chapter_id",discussionChapterId()).eq("moderation_status","approved").order("created_at",{ascending:false}).range(discussionOffset,discussionOffset+DISCUSSION_PAGE_SIZE-1);
  if(error){const p=document.createElement("p");p.className="engagement-muted";p.textContent="Discussion is temporarily unavailable. Please refresh and try again.";box.replaceChildren(p);return;}
  const rows=data||[],ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))],profiles=new Map();
  if(ids.length){const {data:ps}=await engagementClient.from("reader_profiles").select("user_id,display_name,avatar_url").in("user_id",ids);(ps||[]).forEach(p=>profiles.set(p.user_id,p));}
@@ -353,10 +363,12 @@ async function submitComment(event) {
   const { error } = await engagementClient.from("chapter_comments").insert({
     user_id:engagementUser.id, chapter_id:discussionChapterId(),
     parent_id:replyToComment, body, category:byId("commentCategory")?.value||"general", contains_spoiler:byId("commentSpoiler").checked,
-    moderation_status:"pending"
+    moderation_status:"pending", expression_attachments:selectedExpressionAssets.map(item=>({id:item.id||null,key:item.key||null,title:item.title,type:item.type,url:item.url||null,preview:item.preview||item.url||null,emoji:item.emoji||null,alt:item.alt||item.title,source:item.source||"orlong"}))
   });
   if (error) { setMessage("commentMessage","Your comment could not be submitted. Please try again."); return; }
   byId("commentForm").reset();
+  selectedExpressionAssets = [];
+  renderSelectedExpressions();
   replyToComment = null;
   setMessage("commentMessage","Thank you! Your comment has been sent for review and will appear once approved.");
   loadPublicStats();
