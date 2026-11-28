@@ -9,7 +9,8 @@ function status(t){$("siteMapStatus").textContent=t}
 function mark(){dirty=true;$("siteMapSave").disabled=false;status("You have unsaved changes. Select SAVE CHANGES when you are ready to update the live website menu.")}
 function field(label,value,placeholder){const wrap=node("label","site-map-field",label),el=node("input");el.value=value||"";el.placeholder=placeholder||"";wrap.append(el);return {wrap,el}}
 function action(label,cls,fn){const b=node("button",cls||"secondary",label);b.type="button";b.addEventListener("click",fn);return b}
-function move(arr,id,delta){const i=arr.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];arr.forEach((x,n)=>x.order=n);mark();render()}\nfunction movePage(id,delta){const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));move(pages,id,delta);config.pages=pages;}
+function move(arr,id,delta){const i=arr.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];arr.forEach((x,n)=>x.order=n);mark();render()}
+function movePage(id,delta){const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));move(pages,id,delta);config.pages=pages;}
 function pageForm(page){
  const form=node("div","site-map-inline-form"),name=field("PAGE NAME",page?.label||"","e.g. About the Author"),path=field("PAGE ADDRESS",page?.path||"","e.g. /about/");
  form.append(name.wrap,path.wrap,node("p","site-map-help","Use the address of a page that already exists. This tool does not create the page itself."));
