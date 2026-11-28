@@ -99,7 +99,7 @@ create or replace function public.save_moderator_orlong_homepage_version(
  p_version_id uuid,p_version_name text,p_theme text,p_design jsonb,p_status text default 'draft',
  p_publish_at timestamptz default null,p_revision_note text default ''
 ) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
-declare v_id uuid:=p_version_id; v_next integer; v_old jsonb;
+declare v_id uuid:=p_version_id; v_next integer; v_old jsonb; v_color record;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if length(trim(coalesce(p_version_name,''))) not between 1 and 120 then raise exception 'Give this homepage version a name'; end if;
@@ -111,6 +111,79 @@ begin
   or length(coalesce(p_design->>'heroSubtitle',''))>240 or length(coalesce(p_design->>'heroCopy',''))>2000
   or length(coalesce(p_design->>'primaryLabel',''))>80 or length(coalesce(p_design->>'secondaryLabel',''))>80 then raise exception 'One of the homepage text fields is too long'; end if;
  if coalesce(p_design->>'primaryHref','') !~ '^(https://|http://|/|#)' or coalesce(p_design->>'secondaryHref','') !~ '^(https://|http://|/|#)' then raise exception 'Homepage buttons need safe website or web addresses'; end if;
+ if p_design ? 'colors' then
+  if jsonb_typeof(p_design->'colors') is distinct from 'object' then raise exception 'Homepage colours must be a colour settings object'; end if;
+  for v_color in select key,value from jsonb_each_text(p_design->'colors') loop
+   if v_color.key not in ('accent','highlight','background','surface','text') or v_color.value !~ '^#[0-9A-Fa-f]{6}
+ if v_id is null then
+  insert into public.orlong_homepage_versions(version_name,theme,design,status,publish_at,created_by,updated_by)
+  values(trim(p_version_name),p_theme,p_design,p_status,case when p_status='published' then now() when p_status='scheduled' then p_publish_at else null end,auth.uid(),auth.uid())
+  returning version_id into v_id;
+  v_next:=1;
+ else
+  select jsonb_build_object('name',version_name,'theme',theme,'design',design,'status',status,'publishAt',publish_at)
+  into v_old from public.orlong_homepage_versions where version_id=v_id for update;
+  if v_old is null then raise exception 'Homepage version not found'; end if;
+  select coalesce(max(revision_number),0)+1 into v_next from public.orlong_homepage_version_revisions where version_id=v_id;
+  insert into public.orlong_homepage_version_revisions(version_id,revision_number,snapshot,revision_note,created_by)
+  values(v_id,v_next,v_old,coalesce(p_revision_note,''),auth.uid());
+  update public.orlong_homepage_versions set version_name=trim(p_version_name),theme=p_theme,design=p_design,status=p_status,
+   publish_at=case when p_status='published' then now() when p_status='scheduled' then p_publish_at else null end,
+   updated_by=auth.uid(),updated_at=now() where version_id=v_id;
+ end if;
+ if v_next=1 then
+  insert into public.orlong_homepage_version_revisions(version_id,revision_number,snapshot,revision_note,created_by)
+  values(v_id,1,jsonb_build_object('name',trim(p_version_name),'theme',p_theme,'design',p_design,'status',p_status,
+   'publishAt',case when p_status='published' then now() when p_status='scheduled' then p_publish_at else null end),
+   coalesce(p_revision_note,'Initial version'),auth.uid());
+ end if;
+ return jsonb_build_object('success',true,'version_id',v_id,'revision_number',v_next);
+end; $$;
+
+create or replace function public.delete_moderator_orlong_homepage_version(p_version_id uuid)
+returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
+begin
+ if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
+ delete from public.orlong_homepage_versions where version_id=p_version_id and status<>'published';
+ if not found then raise exception 'Only draft or scheduled versions can be deleted. Archive a live version instead.'; end if;
+ return jsonb_build_object('success',true);
+end; $$;
+
+revoke all on function public.get_public_orlong_homepage_design() from public;
+revoke all on function public.get_moderator_orlong_homepage_versions() from public,anon;
+revoke all on function public.get_moderator_orlong_homepage_revisions(uuid) from public,anon;
+revoke all on function public.save_moderator_orlong_homepage_version(uuid,text,text,jsonb,text,timestamptz,text) from public,anon;
+revoke all on function public.delete_moderator_orlong_homepage_version(uuid) from public,anon;
+grant execute on function public.get_public_orlong_homepage_design() to anon,authenticated;
+grant execute on function public.get_moderator_orlong_homepage_versions() to authenticated;
+grant execute on function public.get_moderator_orlong_homepage_revisions(uuid) to authenticated;
+grant execute on function public.save_moderator_orlong_homepage_version(uuid,text,text,jsonb,text,timestamptz,text) to authenticated;
+grant execute on function public.delete_moderator_orlong_homepage_version(uuid) to authenticated;
+
+-- Seed the current blue Eden homepage as the first live, versioned design.
+insert into public.orlong_homepage_versions(version_name,theme,design,status,publish_at)
+select 'Current homepage — Eden Blue','blue',
+ jsonb_build_object(
+  'heroKicker','A new world. A new beginning. A new nightmare.',
+  'heroTitle','THE TRIALS OF EDEN',
+  'heroSubtitle','EDEN TRILOGY · BOOK ONE',
+  'heroCopy','Twenty contestants enter a competition built to test the limits of human potential. But in a world where every move is watched, the greatest danger may be what lies beyond the Trials.',
+  'primaryLabel','ENTER THE READING ROOM','primaryHref','/books/trials-of-eden/',
+  'secondaryLabel','HOW IT WORKS','secondaryHref','#your-first-visit'
+ ),'published',now()
+where not exists(select 1 from public.orlong_homepage_versions);
+
+insert into public.orlong_homepage_version_revisions(version_id,revision_number,snapshot,revision_note)
+select version_id,1,jsonb_build_object(
+ 'name',version_name,'theme',theme,'design',design,'status',status,'publishAt',publish_at
+),'Initial live homepage snapshot'
+from public.orlong_homepage_versions v
+where not exists(select 1 from public.orlong_homepage_version_revisions r where r.version_id=v.version_id);
+ then
+    raise exception 'Use six-digit hexadecimal values for the five homepage colours';
+   end if;
+  end loop;
+ end if;
  if v_id is null then
   insert into public.orlong_homepage_versions(version_name,theme,design,status,publish_at,created_by,updated_by)
   values(trim(p_version_name),p_theme,p_design,p_status,case when p_status='published' then now() when p_status='scheduled' then p_publish_at else null end,auth.uid(),auth.uid())
