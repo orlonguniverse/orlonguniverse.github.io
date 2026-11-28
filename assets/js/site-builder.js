@@ -135,7 +135,9 @@ async function start(db,path,bar){
   renderNativeSections();
  };
  const renderNativeSections=()=>{
+  body.querySelectorAll(".native-section-inventory").forEach(el=>el.remove());
   const main=document.querySelector("main");if(!main)return;
+  const host=$("div","native-section-inventory");
   const native=[...main.querySelectorAll("section,article,header,footer")]
    .filter(node=>!node.hasAttribute("data-orlong-section-id")&&!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"));
   const contentSelectorFor=node=>{
@@ -150,8 +152,8 @@ async function start(db,path,bar){
    }
    return "main > "+parts.join(" > ");
   };
-  body.append($("h2","","EXISTING PAGE SECTIONS"),$("p","","These are sections already built into this page, not just sections you create. Hide or restore them here. To edit individual wording, images or links, select the visual editor and click that item on the page."));
-  if(!native.length){body.append($("div","builder-entry","No built-in page sections were found inside the main content area."));return}
+  host.append($("h2","","EXISTING PAGE SECTIONS"),$("p","","These are sections already built into this page, not just sections you create. Hide or restore them here. To edit individual wording, images or links, select the visual editor and click that item on the page."));
+  if(!native.length){host.append($("div","builder-entry","No built-in page sections were found inside the main content area."));body.append(host);return}
   native.forEach((node,index)=>{
    const title=node.querySelector("h1,h2,h3,h4")?.textContent?.trim()||node.getAttribute("aria-label")||node.className?.toString().split(" ")[0]||node.tagName.toLowerCase();
    const entry=$("div","builder-entry"),name=$("strong","",(index+1)+". "+title.slice(0,90));
@@ -165,7 +167,7 @@ async function start(db,path,bar){
      if(error)throw error;node.hidden=next;message(next?"Existing section hidden. You can restore it here at any time.":"Existing section restored.");renderNativeSections();
     }catch(e){message(e.message||"Could not change this section.")}finally{toggle.disabled=false}
    });
-   actions.append(locate,toggle);entry.append(name,meta,actions);body.append(entry);
+   actions.append(locate,toggle);entry.append(name,meta,actions);host.append(entry);
   });
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
