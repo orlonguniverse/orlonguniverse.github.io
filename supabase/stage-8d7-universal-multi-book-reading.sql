@@ -27,7 +27,7 @@ create table if not exists public.orlong_book_chapters (
   updated_at timestamptz not null default now(),
   primary key(book_key,chapter_id),
   constraint orlong_book_chapter_part_fk foreign key(book_key,part_id)
-    references public.orlong_book_parts(book_key,part_id) on update cascade on delete restrict
+    references public.orlong_book_parts(book_key,part_id) on update cascade on delete cascade
 );
 create index if not exists orlong_book_chapters_order_idx
   on public.orlong_book_chapters(book_key,part_id,sort_order);
