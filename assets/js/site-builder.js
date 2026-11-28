@@ -107,12 +107,12 @@ async function start(db,path,bar){
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
  const choose=(label,values,value)=>{const wrap=$("label","",label),field=$("select");values.forEach(v=>{const o=$("option","",v[1]);o.value=v[0];field.append(o)});field.value=value;wrap.append(field);return {wrap,field}};
- const dialog=(title,fields,onSave)=>{
+ const dialog=(title,fields,onSave,afterSave=reload,onCancel=reload)=>{
   body.replaceChildren();const h=$("h2","",title),fieldHost=$("div","builder-dialog-fields");body.append(h,fieldHost);
   const renderFields=()=>{const list=typeof fields==="function"?fields():fields;fieldHost.replaceChildren();list.forEach(f=>fieldHost.append(f?.wrap||f));};
   renderFields();
-  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",reload);
-  saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await reload();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
+  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",onCancel);
+  saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await afterSave();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
   actions.append(saveBtn,cancel);body.append(actions);return renderFields;
  };
  const placementDescription=section=>{
@@ -254,8 +254,8 @@ async function start(db,path,bar){
    if(t==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image address.");b.url=v[0];b.alt=v[1]||"";b.caption=v[2]||""}
    if(t==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");b.text=v[0]||"Learn more";b.url=v[1]}
    if(index===null)page.content.blocks.push(b);else page.content.blocks[index]=b;
-   await managedPageSave(page);manageManagedPageBlocks(page);
-  });
+   await managedPageSave(page);
+  },()=>manageManagedPageBlocks(page),()=>manageManagedPageBlocks(page));
   type.field.addEventListener("change",()=>{dynamic();render()});dynamic();render();
  };
  add.addEventListener("click",()=>{panel.hidden=false;addSection()});
