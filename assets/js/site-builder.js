@@ -182,6 +182,82 @@ async function start(db,path,bar){
  };
  const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
  const deleteSection=async section=>{if(!confirm("Delete this custom section and all its content?"))return;const {error:delError}=await db.rpc("delete_moderator_orlong_site_section",{p_section_id:section.id});if(delError){message(delError.message);return}await reload();message("Section deleted.")};
+ const managedPageSave=async(page)=>{
+  const {data,error}=await db.rpc("save_moderator_orlong_managed_page",{
+   p_page_id:page.id||null,p_slug:page.slug,p_title:page.title,p_description:page.description||"",
+   p_content:page.content||{blocks:[]},p_is_published:page.published===true,p_sort_order:page.sortOrder||0
+  });
+  if(error)throw error;page.id=data.page_id;page.slug=data.slug;return page;
+ };
+ const openPages=async()=>{
+  body.replaceChildren($("h2","","YOUR WEBSITE PAGES"),$("p","","Create new pages, keep unfinished ideas as drafts, and publish them whenever you're ready. Each page gets its own shareable address."));
+  const toolbar=$("div","builder-row"),create=$("button","","＋ CREATE NEW PAGE"),refresh=$("button","","REFRESH LIST");
+  create.addEventListener("click",()=>editManagedPage(null));refresh.addEventListener("click",()=>openPages());toolbar.append(create,refresh);body.append(toolbar);
+  const {data,error}=await db.rpc("get_moderator_orlong_managed_pages");if(error)throw error;
+  const pages=Array.isArray(data)?data:[];
+  if(!pages.length)body.append($("div","builder-entry","You haven't created any custom pages yet. Select CREATE NEW PAGE to begin."));
+  pages.forEach(page=>{
+   const entry=$("div","builder-entry"),title=$("strong","",page.title),meta=$("p","", "/managed-page.html?slug="+page.slug+" · "+((page.content?.blocks||[]).length)+" content blocks · "+(page.published?"PUBLISHED":"DRAFT"));
+   const actions=$("div","builder-row"),edit=$("button","","EDIT PAGE"),content=$("button","","EDIT PAGE CONTENT"),preview=$("button","","OPEN PAGE ↗"),copy=$("button","","DUPLICATE"),del=$("button","danger","DELETE");
+   edit.addEventListener("click",()=>editManagedPage(page));
+   content.addEventListener("click",()=>manageManagedPageBlocks(page));
+   preview.addEventListener("click",()=>window.open("/managed-page.html?slug="+encodeURIComponent(page.slug),"_blank","noopener"));
+   copy.addEventListener("click",async()=>{const clone={...JSON.parse(JSON.stringify(page)),id:null,slug:page.slug+"-copy",title:"Copy of "+page.title,published:false,sortOrder:page.sortOrder||0};try{await managedPageSave(clone);message("Page duplicated as a draft.");await openPages()}catch(e){message(e.message)}});
+   del.addEventListener("click",async()=>{if(!confirm("Permanently delete this custom page? This cannot be undone."))return;const {error}=await db.rpc("delete_moderator_orlong_managed_page",{p_page_id:page.id});if(error){message(error.message);return}message("Page deleted.");await openPages()});
+   entry.append(title,meta,actions);actions.append(edit,content,preview,copy,del);body.append(entry);
+  });
+  const back=$("button","","BACK TO THIS PAGE'S SECTIONS");back.addEventListener("click",reload);body.append(back);
+ };
+ const editManagedPage=page=>{
+  const model=page?JSON.parse(JSON.stringify(page)):{id:null,slug:"",title:"",description:"",content:{blocks:[]},published:false,sortOrder:0};
+  body.replaceChildren($("h2","",page?"EDIT PAGE DETAILS":"CREATE A NEW PAGE"),$("p","","This creates a real page on your website. You can keep it private as a draft until you're ready to publish it."));
+  const title=input("PAGE TITLE",model.title),slug=input("PAGE ADDRESS (lowercase words separated by hyphens)",model.slug),description=input("SHORT INTRODUCTION",model.description,true);
+  const published=$("label","","PUBLISH THIS PAGE"),check=$("input");check.type="checkbox";check.checked=model.published===true;published.append(check);
+  const pathPreview=$("p","", "Page address: /managed-page.html?slug="+(model.slug||"your-page-name"));
+  slug.field.addEventListener("input",()=>{pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")});
+  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE PAGE DETAILS"),contentBtn=$("button","","EDIT PAGE CONTENT"),back=$("button","","CANCEL");
+  saveBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;try{await managedPageSave(model);message("Page details saved.");editManagedPage(model)}catch(e){message(e.message)}});
+  contentBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;if(!model.id){try{await managedPageSave(model)}catch(e){message(e.message);return}}manageManagedPageBlocks(model)});
+  back.addEventListener("click",openPages);
+  [title.wrap,slug.wrap,description.wrap,published,pathPreview,actions].forEach(n=>body.append(n));actions.append(saveBtn,contentBtn,back);
+ };
+ const manageManagedPageBlocks=page=>{
+  page.content=page.content||{blocks:[]};page.content.blocks=page.content.blocks||[];
+  body.replaceChildren($("h2","","PAGE CONTENT"),$("p","","Build this page using headings, paragraphs, images, buttons and collapsible sections. Select EDIT to change an item or use the arrows to change its order."));
+  page.content.blocks.forEach((block,index)=>{
+   const entry=$("div","builder-entry"),summary=$("strong","",(index+1)+". "+block.type.toUpperCase()),preview=$("p","",(block.text||block.title||block.caption||block.url||"").slice(0,140)),actions=$("div","builder-row");
+   const edit=$("button","","EDIT"),up=$("button","","MOVE UP"),down=$("button","","MOVE DOWN"),remove=$("button","danger","REMOVE");
+   edit.addEventListener("click",()=>editManagedBlock(page,index));
+   up.disabled=index===0;down.disabled=index===page.content.blocks.length-1;
+   up.addEventListener("click",async()=>{[page.content.blocks[index-1],page.content.blocks[index]]=[page.content.blocks[index],page.content.blocks[index-1]];try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   down.addEventListener("click",async()=>{[page.content.blocks[index+1],page.content.blocks[index]]=[page.content.blocks[index],page.content.blocks[index+1]];try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   remove.addEventListener("click",async()=>{if(!confirm("Remove this content block?"))return;page.content.blocks.splice(index,1);try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   actions.append(edit,up,down,remove);entry.append(summary,preview,actions);body.append(entry);
+  });
+  const actions=$("div","builder-row"),addContent=$("button","","＋ ADD CONTENT"),save=$("button","","SAVE PAGE"),back=$("button","","BACK TO PAGE DETAILS");
+  addContent.addEventListener("click",()=>editManagedBlock(page,null));save.addEventListener("click",async()=>{try{await managedPageSave(page);message("Page content saved.")}catch(e){message(e.message)}});
+  back.addEventListener("click",()=>editManagedPage(page));actions.append(addContent,save,back);body.append(actions);
+ };
+ const editManagedBlock=(page,index)=>{
+  const old=index===null?{type:"text",text:""}:page.content.blocks[index],type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],old.type);
+  const fields=[type];const dynamic=()=>{fields.splice(1);const t=type.field.value;
+   if(["heading","text","callout"].includes(t))fields.push(input(t==="heading"?"HEADING":"TEXT","",true));
+   if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS — ONE PER LINE, TITLE | CONTENT","First question | Answer",true))}
+   if(t==="image"){fields.push(input("IMAGE ADDRESS",""));fields.push(input("ALT TEXT",""));fields.push(input("CAPTION",""))}
+   if(t==="button"){fields.push(input("BUTTON LABEL","Learn more"));fields.push(input("DESTINATION","/"))}
+   if(index!==null&&t===old.type){if(["heading","text","callout"].includes(t))fields[1].field.value=old.text||"";if(t==="accordion"){fields[1].field.value=old.title||"";fields[2].field.value=(old.items||[]).map(x=>x.title+" | "+x.text).join("\n")}if(t==="image"){fields[1].field.value=old.url||"";fields[2].field.value=old.alt||"";fields[3].field.value=old.caption||""}if(t==="button"){fields[1].field.value=old.text||"";fields[2].field.value=old.url||""}}
+  };
+  const render=dialog(index===null?"ADD PAGE CONTENT":"EDIT PAGE CONTENT",()=>fields,async()=>{
+   const t=type.field.value,v=fields.slice(1).map(f=>f.field.value),b={type:t};
+   if(["heading","text","callout"].includes(t))b.text=v[0]||"";
+   if(t==="accordion"){b.title=v[0]||"";b.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(t==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image address.");b.url=v[0];b.alt=v[1]||"";b.caption=v[2]||""}
+   if(t==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");b.text=v[0]||"Learn more";b.url=v[1]}
+   if(index===null)page.content.blocks.push(b);else page.content.blocks[index]=b;
+   await managedPageSave(page);manageManagedPageBlocks(page);
+  });
+  type.field.addEventListener("change",()=>{dynamic();render()});dynamic();render();
+ };
  add.addEventListener("click",()=>{panel.hidden=false;addSection()});
  manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message("Could not open section manager: "+e.message))});
  pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load page manager: "+e.message))});
