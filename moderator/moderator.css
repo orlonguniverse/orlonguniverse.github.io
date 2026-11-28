@@ -154,3 +154,7 @@
 .design-history{margin-top:14px}
 .design-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #2b4057;color:#b8c9db;font-size:10px}
 @media(max-width:850px){.design-studio-layout{grid-template-columns:1fr}.design-history-row{grid-template-columns:1fr}}
+
+.design-colour-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.design-colour-grid input[type=color]{height:42px;padding:3px;cursor:pointer}
+@media(max-width:600px){.design-colour-grid{grid-template-columns:1fr}}
