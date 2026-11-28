@@ -197,3 +197,15 @@
 .site-map-menu-setting .site-map-field{grid-column:2;grid-row:1}
 .site-map-menu-setting.drag-over{outline:2px dashed #8cc8ff;outline-offset:3}
 @media(max-width:600px){.site-map-route{grid-template-columns:24px minmax(0,1fr)!important}.site-map-menu-setting{grid-template-columns:24px minmax(0,1fr)}.site-map-menu-setting .site-map-actions{grid-column:2;grid-row:3}.site-map-menu-setting .site-map-enabled{grid-column:2;grid-row:2}}
+
+
+/* Stage 8D.11 — sortable top-level navigation controls. */
+.site-map-top-order-list{display:grid;gap:8px;margin-top:14px}
+.site-map-top-order-item{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(141,191,255,.2);background:rgba(255,255,255,.025);border-radius:5px;cursor:grab}
+.site-map-top-order-item:active{cursor:grabbing}
+.site-map-top-order-item.dragging{opacity:.42}
+.site-map-top-order-item.drag-over{border-color:var(--orlong-accent,#398cff);background:color-mix(in srgb,var(--orlong-accent,#398cff) 12%,transparent)}
+.site-map-top-order-label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.site-map-top-order-label strong{font-size:11px;letter-spacing:1px;color:var(--orlong-text,#f1f5fb)}
+.site-map-top-order-label small{font-size:10px;color:var(--orlong-muted,#a8ceff)}
+@media(max-width:640px){.site-map-top-order-item{grid-template-columns:22px minmax(0,1fr)}.site-map-top-order-item .site-map-actions{grid-column:2;justify-content:flex-start}}
