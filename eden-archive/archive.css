@@ -119,3 +119,6 @@ body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17345a 0,transpare
 .archive-block-relationship-map .archive-connection-card{min-height:105px}
 .archive-reader-dialog[open]{animation:archive-record-arrive .22s ease-out}
 @media(prefers-reduced-motion:reduce){.archive-connection-card,.archive-reader-dialog[open]{animation:none;transition:none}.archive-connection-card:hover{transform:none}}
+
+.archive-block-target-highlight{outline:2px solid #d8bb80;outline-offset:8px;box-shadow:0 0 28px #d8bb8040;transition:outline-color .3s,box-shadow .3s}
+.archive-block-relationship-map{scroll-margin:30px}
