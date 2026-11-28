@@ -157,7 +157,7 @@ async function refreshCollectionState(options={}){
   return success;
  })();
  try{return await collectionRefreshInFlight;}
- finally{collectionRefreshInFlight=null;if(button){button.disabled=false;button.textContent="REFRESH PROGRESS";}}
+ finally{collectionRefreshInFlight=null;if(button){button.disabled=false;button.textContent="REFRESH COLLECTION";}}
 }
 function renderCardProgress(){
  const root=$("cardProgressGrid");root.replaceChildren();
