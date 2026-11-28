@@ -80,6 +80,16 @@ create table if not exists public.chapter_comment_expression_assets (
 create index if not exists chapter_comment_expression_assets_asset_idx
   on public.chapter_comment_expression_assets(asset_id);
 
+-- GIF-provider and catalogue media can be attached as a compact JSON payload.
+alter table public.chapter_comments
+ add column if not exists expression_attachments jsonb not null default '[]'::jsonb;
+alter table public.chapter_comments
+ drop constraint if exists chapter_comments_expression_attachments_check;
+alter table public.chapter_comments
+ add constraint chapter_comments_expression_attachments_check
+ check (jsonb_typeof(expression_attachments)='array' and jsonb_array_length(expression_attachments)<=4);
+
+
 alter table public.expression_assets enable row level security;
 alter table public.reader_expression_unlocks enable row level security;
 alter table public.expression_asset_requests enable row level security;
