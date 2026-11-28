@@ -157,8 +157,22 @@ function renderRelations(){
   const source=entries.find(e=>e.id===rel.sourceEntryId),target=entries.find(e=>e.id===rel.targetEntryId);
   info.append(el("strong","",(source?.title||rel.sourceEntryId)+" → "+(target?.title||rel.targetEntryId)));
   info.append(el("small","",(rel.label||rel.type.replaceAll("_"," ").toUpperCase())+" · "+(rel.sourceBlockId?"BLOCK → ":"ENTRY → ")+(rel.targetBlockId?"BLOCK":"ENTRY")));
-  const actions=el("div","archive-admin-actions"),remove=el("button","danger","DELETE");remove.type="button";remove.addEventListener("click",()=>deleteRelation(rel));actions.append(remove);row.append(info,actions);root.append(row);
+  const actions=el("div","archive-admin-actions"),edit=el("button","secondary","EDIT"),remove=el("button","danger","DELETE");
+  edit.type="button";edit.addEventListener("click",()=>editRelation(rel));
+  remove.type="button";remove.addEventListener("click",()=>deleteRelation(rel));actions.append(edit,remove);row.append(info,actions);root.append(row);
  });
+}
+function editRelation(rel){
+ $("archiveRelationEditingId").value=rel.id;
+ $("archiveRelationSourceEntry").value=rel.sourceEntryId;renderRelationForm();
+ $("archiveRelationSourceBlock").value=rel.sourceBlockId||"";
+ $("archiveRelationTargetEntry").value=rel.targetEntryId;renderRelationForm();
+ $("archiveRelationTargetBlock").value=rel.targetBlockId||"";
+ $("archiveRelationType").value=rel.type;$("archiveRelationLabel").value=rel.label||"";
+ $("archiveRelationDescription").value=rel.description||"";
+ $("archiveRelationSort").value=rel.sortOrder||0;$("archiveRelationBidirectional").checked=Boolean(rel.bidirectional);
+ $("archiveRelationSave").textContent="SAVE CONNECTION CHANGES";
+ $("archiveRelationForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
 async function saveRelation(event){
  event.preventDefault();
@@ -170,11 +184,11 @@ async function saveRelation(event){
   p_is_bidirectional:$("archiveRelationBidirectional").checked};
  const button=$("archiveRelationSave");button.disabled=true;button.textContent="SAVING…";
  try{const {error}=await client.rpc("save_moderator_eden_archive_relation",args);if(error)throw error;
-  $("archiveRelationForm").reset();$("archiveRelationEditingId").value="";renderRelationForm();
+  $("archiveRelationForm").reset();$("archiveRelationEditingId").value="";$("archiveRelationSave").textContent="SAVE CONNECTION";renderRelationForm();
   const {data,error:loadError}=await client.rpc("get_moderator_eden_archive_relations");if(loadError)throw loadError;
   relations=Array.isArray(data)?data:[];renderRelations();message("Archive connection saved.");
  }catch(error){message(error.message||"Could not save archive connection.",true);}
- finally{button.disabled=false;button.textContent="SAVE CONNECTION";}
+ finally{button.disabled=false;button.textContent=$("archiveRelationEditingId").value?"SAVE CONNECTION CHANGES":"SAVE CONNECTION";}
 }
 async function deleteRelation(rel){
  if(!confirm("Delete this archive connection?"))return;
