@@ -41,7 +41,7 @@ function openEntry(entry){
  (entry.requiredCards||[]).forEach(card=>cards.append(el("span","archive-card-chip",card.number+" · "+card.name)));
  const root=$("archiveReaderBlocks");root.replaceChildren();
  const blocks=Array.isArray(entry.contentBlocks)?entry.contentBlocks:[];
- if(blocks.length)blocks.forEach((block,index)=>root.append(renderBlock(block,index)));
+ if(blocks.length){if(entry.content&&entry.content.trim()&&entry.content.trim()!==String(entry.summary||"").trim())paragraphs(root,entry.content);blocks.forEach((block,index)=>root.append(renderBlock(block,index)));}
  else paragraphs(root,entry.content||"");
  $("archiveReaderDialog").showModal();
  $("archiveReaderDialog").scrollTop=0;
