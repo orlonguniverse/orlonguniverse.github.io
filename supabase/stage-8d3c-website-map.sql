@@ -53,7 +53,7 @@ $$;
 create or replace function public.save_moderator_orlong_site_map(p_config jsonb)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp
 as $$
-declare v_item jsonb; v_path text; v_href text;
+declare v_item record; v_path text; v_href text;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if p_config is null or jsonb_typeof(p_config) is distinct from 'object' then raise exception 'Website map data is invalid'; end if;
@@ -61,15 +61,15 @@ begin
  if jsonb_array_length(p_config->'pages')>100 or jsonb_array_length(p_config->'links')>100 then raise exception 'The website map supports up to 100 pages and 100 navigation links'; end if;
  if length(p_config::text)>100000 then raise exception 'Website map configuration is too large'; end if;
  for v_item in select value from jsonb_array_elements(p_config->'pages') loop
-  v_path:=coalesce(v_item->>'path','');
+  v_path:=coalesce(v_item.value->>'path','');
   if v_path !~ '^/[A-Za-z0-9_./-]*$' or length(v_path)>240 or v_path like '%..%' then raise exception 'A page has an invalid website path'; end if;
-  if length(coalesce(v_item->>'label','')) not between 1 and 100 then raise exception 'Every page needs a name'; end if;
+  if length(coalesce(v_item.value->>'label','')) not between 1 and 100 then raise exception 'Every page needs a name'; end if;
  end loop;
  for v_item in select value from jsonb_array_elements(p_config->'links') loop
-  v_href:=coalesce(v_item->>'href','');
+  v_href:=coalesce(v_item.value->>'href','');
   if v_href !~ '^(https://|http://|/[A-Za-z0-9_./?#=&%-]*)$' or length(v_href)>500 then raise exception 'A navigation link has an invalid destination'; end if;
   if length(coalesce(v_item->>'label','')) not between 1 and 80 then raise exception 'Every navigation link needs a label'; end if;
-  if coalesce(v_item->>'group','') not in ('primary','book','discover') then raise exception 'Choose a valid navigation menu group'; end if;
+  if coalesce(v_item.value->>'group','') not in ('primary','book','discover') then raise exception 'Choose a valid navigation menu group'; end if;
  end loop;
  insert into public.orlong_site_map_config(config_id,config,updated_by,updated_at)
  values(true,p_config,auth.uid(),now())
