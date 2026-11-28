@@ -9,7 +9,7 @@ function status(t){$("siteMapStatus").textContent=t}
 function mark(){dirty=true;$("siteMapSave").disabled=false;status("You have unsaved changes. Select SAVE CHANGES when you are ready to update the live website menu.")}
 function field(label,value,placeholder){const wrap=node("label","site-map-field",label),el=node("input");el.value=value||"";el.placeholder=placeholder||"";wrap.append(el);return {wrap,el}}
 function action(label,cls,fn){const b=node("button",cls||"secondary",label);b.type="button";b.addEventListener("click",fn);return b}
-function move(arr,id,delta){const i=arr.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];arr.forEach((x,n)=>x.order=n);mark();render()}
+function move(arr,id,delta){const i=arr.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];arr.forEach((x,n)=>x.order=n);mark();render()}\nfunction movePage(id,delta){const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));move(pages,id,delta);config.pages=pages;}
 function pageForm(page){
  const form=node("div","site-map-inline-form"),name=field("PAGE NAME",page?.label||"","e.g. About the Author"),path=field("PAGE ADDRESS",page?.path||"","e.g. /about/");
  form.append(name.wrap,path.wrap,node("p","site-map-help","Use the address of a page that already exists. This tool does not create the page itself."));
@@ -24,7 +24,7 @@ function render(){
   top.append(node("strong","",p.label||"Unnamed page"),node("code","",p.path||"/"));
   details.append(node("span","site-map-page-kind",String(p.kind||"page").toUpperCase()));
   const actions=node("div","site-map-actions");
-  actions.append(action("MOVE UP","secondary",()=>move(config.pages,p.id,-1)),action("MOVE DOWN","secondary",()=>move(config.pages,p.id,1)),action("EDIT","secondary",()=>{card.append(pageForm(p));}));
+  actions.append(action("MOVE UP","secondary",()=>movePage(p.id,-1)),action("MOVE DOWN","secondary",()=>movePage(p.id,1)),action("EDIT","secondary",()=>{card.querySelectorAll(".site-map-inline-form").forEach(x=>x.remove());card.append(pageForm(p));}));
   actions.children[0].disabled=i===0;actions.children[1].disabled=i===pages.length-1;
   actions.append(action("REMOVE","danger",()=>{if(!confirm("Remove this page from the directory? This will not delete the actual website page or its menu links."))return;config.pages=config.pages.filter(x=>x.id!==p.id);mark();render()}));
   card.append(top,details,actions);directory.append(card)
