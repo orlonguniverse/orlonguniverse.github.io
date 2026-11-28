@@ -478,3 +478,25 @@
 .progress-undiscovered .progress-rarity-rare{background:#102d4b;color:#b9ddff;border-color:#42a5ff}
 .progress-undiscovered .progress-rarity-epic{background:#2b1940;color:#e2c5ff;border-color:#c18aff}
 .progress-undiscovered .progress-rarity-legendary{background:#443117;color:#ffe4a0;border-color:#ffd36b}
+
+.eden-card-inspectable{cursor:pointer;outline-offset:4px}
+.eden-card-inspectable:focus-visible{outline:2px solid var(--eden-blue)}
+.card-game-detail-dialog{width:min(680px,calc(100% - 28px));max-height:min(82vh,820px);padding:0;border:1px solid rgba(135,174,220,.35);border-radius:16px;background:#0b1523;color:#e8eef7;box-shadow:0 24px 90px #000b}
+.card-game-detail-dialog::backdrop{background:rgba(2,7,14,.78);backdrop-filter:blur(5px)}
+.card-game-detail-shell{position:relative;padding:30px;overflow:auto;max-height:82vh}
+.card-game-detail-close{position:absolute;right:18px;top:14px;width:38px;height:38px;border:1px solid #38516e;border-radius:50%;background:#14243a;color:#fff;font-size:25px;cursor:pointer}
+.card-game-detail-shell h2{margin:5px 45px 8px 0;font:500 24px Cinzel,serif;letter-spacing:1px}
+.card-game-detail-subtitle{color:#9aa9bc;font-size:10px;letter-spacing:1px}
+.card-game-detail-release{display:inline-block;margin:12px 0;padding:7px 10px;border:1px solid rgba(216,187,128,.35);border-radius:5px;color:#d8bb80;font-size:9px;letter-spacing:1px}
+.card-game-detail-section{margin-top:22px}
+.card-game-detail-section h3{margin:0 0 12px;color:#d8bb80;font:500 13px Cinzel,serif;letter-spacing:1px}
+.card-game-attribute-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}
+.card-game-attribute{display:grid;gap:6px;padding:12px;background:#122238;border:1px solid #29415e;border-radius:8px}
+.card-game-attribute span,.card-game-ability-type{color:#9aa9bc;font-size:9px;letter-spacing:.8px}
+.card-game-attribute strong{font-size:15px;overflow-wrap:anywhere}
+.card-game-ability-list{display:grid;gap:10px}
+.card-game-ability{display:grid;grid-template-columns:1fr auto;gap:7px;padding:14px;background:#122238;border:1px solid #29415e;border-radius:8px}
+.card-game-ability strong{font:500 14px Cinzel,serif}
+.card-game-ability p{grid-column:1/-1;margin:0;color:#b8c6d7;font-size:12px;line-height:1.6}
+.card-game-ability-power{grid-column:1/-1;color:#d8bb80;font-size:10px;letter-spacing:1px}
+@media(max-width:560px){.card-game-detail-shell{padding:22px}.card-game-detail-shell h2{font-size:19px}}
