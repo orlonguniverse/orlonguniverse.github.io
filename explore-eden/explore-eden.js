@@ -108,15 +108,18 @@ function undiscoveredProgressSlot(slot){
  const article=text("article","eden-card progress-undiscovered","");
  const front=document.createElement("div");front.className="eden-card-front progress-unknown";
  const shadow=document.createElement("div");shadow.className="eden-card-shadow";
- shadow.append(text("span","shadow-symbol","?"),text("small","","UNDISCOVERED"));
+ shadow.append(text("span","shadow-symbol","?"),text("small","","SEALED DISCOVERY"));
  const frame=document.createElement("div");frame.className="eden-card-frame";
  const top=document.createElement("div");top.className="eden-card-topline";
- top.append(text("span","eden-card-number","SLOT "+String(slot.slot_number).padStart(2,"0")),text("span","eden-card-rarity","UNREVEALED"));
+ const rarity=String(slot.rarity||"UNKNOWN").toUpperCase();
+ top.append(text("span","eden-card-number","SLOT "+String(slot.slot_number).padStart(2,"0")),text("span","eden-card-rarity",rarity));
  const details=document.createElement("div");details.className="eden-card-front-details";
  details.append(text("h3","eden-card-name","Undiscovered"));
  const footer=document.createElement("div");footer.className="eden-card-footer";
- footer.append(text("span","eden-card-category","UNKNOWN"),text("span","eden-card-chapter","—"),text("span","eden-card-book","THE TRIALS OF EDEN"));
- details.append(footer);frame.append(top,details);front.append(shadow,frame);article.append(front);return article;
+ footer.append(text("span","eden-card-category","IDENTITY SEALED"),text("span","eden-card-chapter",slot.chapter_number?"CH. "+slot.chapter_number:"CHAPTER UNKNOWN"),text("span","eden-card-book","THE TRIALS OF EDEN"));
+ details.append(footer);frame.append(top,details);front.append(shadow,frame);article.append(front);
+ article.setAttribute("aria-label","Undiscovered card. "+rarity+" rarity. "+(slot.chapter_number?"Found in chapter "+slot.chapter_number+".":"Chapter not specified."));
+ return article;
 }
 async function refreshCardProgress(){
  const {data,error}=await client.rpc("get_my_card_progress");
