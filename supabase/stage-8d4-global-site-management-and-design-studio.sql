@@ -389,7 +389,7 @@ select
       'accent','#398cff','highlight','#a8ceff','background','#12233b','surface','#101a29','text','#f1f5fb'
     ),
     'heroKicker','A new world. A new beginning. A new nightmare.',
-    'heroTitle','THE TRIALS OF EDEN',
+    'heroTitle','THE TRIALS' || chr(10) || 'OF EDEN',
     'heroSubtitle','EDEN TRILOGY · BOOK ONE',
     'heroCopy','Twenty contestants enter a competition built to test the limits of human potential. But in a world where every move is watched, the greatest danger may be what lies beyond the Trials.',
     'primaryLabel','ENTER THE READING ROOM',
