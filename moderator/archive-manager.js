@@ -68,7 +68,7 @@ async function uploadArchiveAsset(file){
  if(!file||!["image/png","image/jpeg","image/webp"].includes(file.type))throw new Error("Choose a PNG, JPEG or WebP image.");
  if(file.size>12*1024*1024)throw new Error("Each archive image must be smaller than 12 MB.");
  const extension=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
- const path="archive/"+slug(file.name.replace(/\\.[^.]+$/,""))+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)+"."+extension;
+ const path="archive/"+slug(file.name.split(".").slice(0,-1).join(".")||file.name)+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)+"."+extension;
  const {error}=await client.storage.from("orlong-card-artwork").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"31536000"});
  if(error)throw error;
  return client.storage.from("orlong-card-artwork").getPublicUrl(path).data.publicUrl;
