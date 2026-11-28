@@ -178,13 +178,18 @@ returns table(
 )
 language sql stable security definer set search_path=public
 as $$
- select a.id,a.asset_key,a.title,a.asset_type,a.category,case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.asset_url end,
+ select a.id,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.asset_key else 'locked-expression' end,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.title else 'Mystery expression reward' end,
+        a.asset_type,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.category else 'Mystery rewards' end,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.asset_url end,
         case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.preview_url end,
         case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.emoji_text end,
-        a.alt_text,a.source,a.provider_id,a.is_featured,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.alt_text else '' end,
+        a.source,a.provider_id,a.is_featured,
         (a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator()),
-        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.unlock_chapter_ids else '{}' end,
-        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.unlock_card_ids else '{}' end
+        a.unlock_chapter_ids,a.unlock_card_ids
  from expression_assets a
  where a.is_active
  order by a.is_featured desc,a.sort_order,a.title;
