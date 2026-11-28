@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../site-nav.css?v=stage-8c-nav">
-<link rel="stylesheet" href="explore-eden.css?v=stage-8d2">
+<link rel="stylesheet" href="explore-eden.css?v=stage-8d1-polish">
 </head>
 <body class="dark">
 <nav class="topbar" aria-label="Main navigation">
@@ -34,7 +34,7 @@
 <section class="notification-panel" id="notificationPanel" aria-label="Your notifications" hidden><div class="notification-panel-heading"><div><p class="eyebrow">YOUR READER INBOX</p><h3>NOTIFICATIONS</h3></div><div><button id="markAllNotificationsRead" type="button" class="notification-text-button">MARK ALL READ</button><button id="refreshNotifications" type="button" class="notification-text-button">REFRESH</button></div></div><div id="notificationList" class="notification-list"><div class="eden-empty">Sign in to view your notifications.</div></div></section>
 <nav class="eden-tabs" aria-label="Explore Eden sections" role="tablist">
 <button class="eden-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="collectionPanel" id="collectionTab" data-panel="collectionPanel">MY COLLECTION</button>
-<button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="progressPanel" id="progressTab" data-panel="progressPanel">CARD PROGRESS</button>
+<button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="progressPanel" id="progressTab" data-panel="progressPanel">COLLECTION PROGRESS</button>
 <button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="tradingPanel" id="tradingTab" data-panel="tradingPanel">TRADING POST</button>
 <button class="eden-tab" type="button" role="tab" aria-selected="false" aria-controls="marketplacePanel" id="marketplaceTab" data-panel="marketplacePanel">MARKETPLACE</button>
 </nav>
@@ -56,9 +56,15 @@
 <div class="eden-card-grid" id="collectionGrid"><div class="eden-empty">Sign in to see your collection.</div></div>
 </section>
 <section class="eden-panel" id="progressPanel" role="tabpanel" aria-labelledby="progressTab" hidden>
-<div class="section-heading"><div><p class="eyebrow">YOUR UNDISCOVERED ARCHIVE</p><h2>CARD PROGRESS</h2></div><p id="progressSummary" class="section-stat">SIGN IN TO LOAD YOUR PROGRESS</p></div>
-<p class="section-intro">Every active card has a numbered place in its category. You can see how much of the archive exists, but an undiscovered slot reveals no card name, artwork, rarity, description or card number. Discover a card to reveal its identity here.</p>
-<div id="cardProgressGrid" class="progress-category-list"><div class="eden-empty">Sign in to view your card progress.</div></div>
+<div class="section-heading"><div><p class="eyebrow">YOUR UNDISCOVERED ARCHIVE</p><h2>COLLECTION PROGRESS</h2></div><p id="progressSummary" class="section-stat">SIGN IN TO LOAD YOUR PROGRESS</p></div>
+<p class="section-intro">Every active card has a place in the archive. Track your discoveries by category, spot the gaps in your collection and reveal each card only when you earn it. Unfound cards stay sealed: no names, artwork, rarity or spoilers.</p>
+<div class="progress-overview" id="progressOverview" aria-live="polite">
+ <div class="progress-overview-ring" id="progressOverviewRing" role="img" aria-label="Collection completion: 0 percent"><div><strong id="progressPercent">0%</strong><span>COMPLETE</span></div></div>
+ <div class="progress-overview-copy"><p class="eyebrow">YOUR DISCOVERY RECORD</p><h3 id="progressOverviewTitle">A world waiting to be uncovered</h3><p id="progressOverviewText">Collect cards to reveal the stories, people and places hidden throughout the archive.</p><div class="progress-overview-stats"><div><strong id="progressDiscovered">0</strong><span>DISCOVERED</span></div><div><strong id="progressRemaining">0</strong><span>STILL SEALED</span></div><div><strong id="progressCategories">0</strong><span>CATEGORIES</span></div></div></div>
+ <div class="progress-overview-actions"><button type="button" class="reader-open" id="progressViewBinder">VIEW MY BINDER ↗</button></div>
+</div>
+<div class="progress-toolbar"><div><p class="eyebrow">THE ARCHIVE INDEX</p><h3>DISCOVERY BY CATEGORY</h3></div><div class="progress-filter" role="group" aria-label="Filter card slots"><button type="button" class="is-active" data-progress-filter="all" aria-pressed="true">ALL SLOTS</button><button type="button" data-progress-filter="undiscovered" aria-pressed="false">STILL SEALED</button><button type="button" data-progress-filter="discovered" aria-pressed="false">DISCOVERED</button></div></div>
+<div id="cardProgressGrid" class="progress-category-list"><div class="eden-empty">Sign in to view your collection progress.</div></div>
 </section>
 <section class="eden-panel" id="tradingPanel" role="tabpanel" aria-labelledby="tradingTab" hidden>
 <div class="section-heading"><div><p class="eyebrow">THE XANTHEON EXCHANGE</p><h2>TRADING POST</h2></div><p class="section-stat">READER-TO-READER</p></div>
@@ -134,5 +140,5 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../events-config.js?v=stage-7f1"></script>
 <script src="../site-nav.js?v=stage-8d38"></script>
-<script src="explore-eden.js?v=stage-8d1"></script>
+<script src="explore-eden.js?v=stage-8d1-polish"></script>
 </body></html>
