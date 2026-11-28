@@ -65,7 +65,11 @@ begin
   if v_type is null or v_type not in ('heading','text','callout','accordion','image','button','divider') then raise exception 'This page contains an unsupported content block'; end if;
   if length(coalesce(v_block->>'text',''))>12000 or length(coalesce(v_block->>'title',''))>500 or length(coalesce(v_block->>'caption',''))>1000 then raise exception 'A content block is too long'; end if;
   if v_type in ('image','button') and coalesce(v_block->>'url','') !~ '^(https://|http://|/|#)' then raise exception 'Images and buttons need a safe web or relative address'; end if;
-  if v_type='accordion' and (jsonb_typeof(v_block->'items') is distinct from 'array' or jsonb_array_length(v_block->'items')>20) then raise exception 'A collapsible section needs a valid list of up to 20 items'; end if;
+  if v_type='accordion' then
+   if jsonb_typeof(v_block->'items') is distinct from 'array' then raise exception 'A collapsible section needs a list of items'; end if;
+   if jsonb_array_length(v_block->'items')>20 then raise exception 'A collapsible section can contain up to 20 items'; end if;
+   if exists(select 1 from jsonb_array_elements(v_block->'items') item where length(coalesce(item->>'title',''))>500 or length(coalesce(item->>'text',''))>12000) then raise exception 'A collapsible section item is too long'; end if;
+  end if;
  end loop;
  if p_page_id is null then
   insert into public.orlong_managed_pages(slug,title,description,content,is_published,sort_order,created_by,updated_by)
