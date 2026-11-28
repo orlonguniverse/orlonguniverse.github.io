@@ -46,18 +46,18 @@ footer{padding:28px 20px;text-align:center;border-top:1px solid var(--line);colo
 <p class="hero-subtitle" id="homeHeroSubtitle">EDEN TRILOGY · BOOK ONE</p>
 <p class="hero-copy" id="homeHeroCopy">Twenty contestants enter a competition built to test the limits of human potential. But in a world where every move is watched, the greatest danger may be what lies beyond the Trials.</p>
 <div class="actions"><a class="button primary" id="homeHeroPrimary" href="/books/trials-of-eden/">ENTER THE READING ROOM</a><button class="button" type="button" id="homeBookOnlyButton">READ WITHOUT DISTRACTIONS</button><a class="button" id="homeHeroSecondary" href="#your-first-visit">HOW IT WORKS</a></div>
-<p class="hero-note">Your story starts here. You can explore the wider world whenever you're ready.</p>
+<p class="hero-note" id="homeHeroNote">Your story starts here. You can explore the wider world whenever you're ready.</p>
 </div>
 </header>
 <main>
 <section class="section book-section" aria-labelledby="bookIntroTitle">
 <div class="book-feature">
 <div class="book-cover" role="img" aria-label="Typographic cover design for The Trials of Eden, House Blue Eel, Eden Trilogy Book One"><div class="cover-copy"><span class="cover-house">HOUSE BLUE EEL</span><h2 class="cover-title">THE TRIALS<br>OF EDEN</h2><span class="cover-series">EDEN TRILOGY · BOOK ONE</span></div></div>
-<div class="book-copy"><p class="eyebrow">THE STORY BEGINS</p><h2 id="bookIntroTitle">Welcome to Eden.</h2><p>Maya Garcia has spent her life preparing for a future she never truly understood. Now she finds herself competing in the Trials of Eden, a prestigious competition where failure comes at a devastating cost.</p><p>Read at your own pace. The Reading Room keeps the chapters together and gives you the controls you need for a comfortable reading experience.</p><div class="actions"><a class="button primary" href="/books/trials-of-eden/">READ THE STORY</a><a class="button" href="/books/trials-of-eden/contents.html">VIEW CHAPTER CONTENTS</a></div></div>
+<div class="book-copy"><p class="eyebrow" id="homeBookEyebrow">THE STORY BEGINS</p><h2 id="bookIntroTitle">Welcome to Eden.</h2><p id="homeBookCopy1">Maya Garcia has spent her life preparing for a future she never truly understood. Now she finds herself competing in the Trials of Eden, a prestigious competition where failure comes at a devastating cost.</p><p id="homeBookCopy2">Read at your own pace. The Reading Room keeps the chapters together and gives you the controls you need for a comfortable reading experience.</p><div class="actions"><a class="button primary" href="/books/trials-of-eden/">READ THE STORY</a><a class="button" href="/books/trials-of-eden/contents.html">VIEW CHAPTER CONTENTS</a></div></div>
 </div>
 </section>
 <section class="section steps-section" id="your-first-visit" aria-labelledby="firstVisitTitle">
-<div class="section-inner"><div class="section-heading"><p class="eyebrow">A SIMPLE PLACE TO BEGIN</p><h2 id="firstVisitTitle">YOUR FIRST VISIT</h2><p>You don't need to learn the whole website before you start. Follow these steps and discover the extra features only when you want them.</p></div>
+<div class="section-inner"><div class="section-heading"><p class="eyebrow">A SIMPLE PLACE TO BEGIN</p><h2 id="firstVisitTitle">YOUR FIRST VISIT</h2><p id="firstVisitIntro">You don't need to learn the whole website before you start. Follow these steps and discover the extra features only when you want them.</p></div>
 <div class="steps">
 <article class="step"><span class="step-number">1</span><h3>Open the Reading Room</h3><p>Choose <strong>Enter the Reading Room</strong>. You'll find the current chapter, the chapter directory and your reading controls in one place. A free confirmed reader account is required to open released chapters.</p></article>
 <article class="step"><span class="step-number">2</span><h3>Set up your reading</h3><p>Adjust text size, font and page appearance whenever you like. Focus Mode hides distractions so you can concentrate on the story.</p></article>
@@ -65,14 +65,14 @@ footer{padding:28px 20px;text-align:center;border-top:1px solid var(--line);colo
 </div></div>
 </section>
 <section class="section discover-section">
-<div class="section-inner"><div class="section-heading"><p class="eyebrow">AFTER YOU'VE SETTLED IN</p><h2>THERE'S MORE TO DISCOVER</h2><p>The extras are optional. The book always comes first.</p></div>
+<div class="section-inner"><div class="section-heading"><p class="eyebrow">AFTER YOU'VE SETTLED IN</p><h2 id="discoverTitle">THERE'S MORE TO DISCOVER</h2><p id="discoverIntro">The extras are optional. The book always comes first.</p></div>
 <div class="discover-grid">
 <article class="discover-card"><h3>Your reading journey</h3><p>Keep track of chapter milestones, reactions and your reader profile.</p><a href="/books/trials-of-eden/account.html">READER ACCOUNT ↗</a></article>
 <article class="discover-card"><h3>Explore Eden</h3><p>Browse the released card archive, collect discoveries and connect with other readers.</p><a href="/explore-eden/">EXPLORE THE ARCHIVE ↗</a></article>
 <article class="discover-card"><h3>Community & events</h3><p>Find announcements, activities and opportunities to take part.</p><a href="/events.html">VIEW COMMUNITY EVENTS ↗</a></article>
 </div></div>
 </section>
-<section class="creator"><div class="creator-inner"><p class="eyebrow">BEHIND THE CREATION</p><h2>THE ORLONG UNIVERSE</h2><p>Created by Callum Macann, Orlong is an interconnected science-fiction and fantasy universe exploring society, identity, power and the future of humanity.</p><p><a href="https://www.instagram.com/orlong_official/" target="_blank" rel="noopener noreferrer">Follow Orlong on Instagram</a> · <a href="mailto:orlonguniverse@gmail.com">Contact the creator</a></p></div></section>
+<section class="creator"><div class="creator-inner"><p class="eyebrow">BEHIND THE CREATION</p><h2 id="creatorTitle">THE ORLONG UNIVERSE</h2><p id="creatorCopy">Created by Callum Macann, Orlong is an interconnected science-fiction and fantasy universe exploring society, identity, power and the future of humanity.</p><p><a href="https://www.instagram.com/orlong_official/" target="_blank" rel="noopener noreferrer">Follow Orlong on Instagram</a> · <a href="mailto:orlonguniverse@gmail.com">Contact the creator</a></p></div></section>
 </main>
 <footer>THE TRIALS OF EDEN · CREATED BY CALLUM MACANN<br>© <span id="year">2026</span> Callum Macann. All rights reserved.</footer>
 <script>document.getElementById("year").textContent=new Date().getFullYear();document.getElementById("homeBookOnlyButton")?.addEventListener("click",()=>window.enterBookOnlyMode());</script>
