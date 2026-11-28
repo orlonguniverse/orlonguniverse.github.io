@@ -472,3 +472,9 @@
 @media(max-width:760px){.progress-overview{grid-template-columns:112px minmax(0,1fr);gap:17px;padding:19px}.progress-overview-ring{width:108px;height:108px}.progress-overview-ring strong{font-size:24px}.progress-overview-actions{grid-column:1/-1}.progress-overview-actions .reader-open{width:100%}.progress-toolbar{align-items:flex-start;flex-direction:column}}
 @media(max-width:520px){.progress-overview{grid-template-columns:1fr;justify-items:center;text-align:center}.progress-overview-copy{width:100%}.progress-overview-stats{justify-content:center;gap:18px}.progress-overview-actions{width:100%}.progress-filter{width:100%}.progress-filter button{flex:1;padding:9px 6px;font-size:7px}.progress-category{padding:14px}}
 @media(prefers-reduced-motion:reduce){.progress-undiscovered,.progress-meter span,.progress-filter button{transition:none}.progress-undiscovered:hover{transform:none}}
+
+.progress-undiscovered .progress-rarity-common{background:#263340;color:#d3dce6;border-color:#aeb8c5}
+.progress-undiscovered .progress-rarity-uncommon{background:#123b2b;color:#a7f2c6;border-color:#45d58a}
+.progress-undiscovered .progress-rarity-rare{background:#102d4b;color:#b9ddff;border-color:#42a5ff}
+.progress-undiscovered .progress-rarity-epic{background:#2b1940;color:#e2c5ff;border-color:#c18aff}
+.progress-undiscovered .progress-rarity-legendary{background:#443117;color:#ffe4a0;border-color:#ffd36b}
