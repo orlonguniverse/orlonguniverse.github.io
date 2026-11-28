@@ -27,7 +27,22 @@ function apply(record){
  }
 }
 async function init(){
- try{const db=window.supabase?.createClient?.(URL_BASE,KEY);if(!db)return;
+ try{
+  const db=window.supabase?.createClient?.(URL_BASE,KEY);if(!db)return;
+  const previewId=new URLSearchParams(location.search).get("design-preview");
+  if(previewId){
+   const {data:session}=await db.auth.getSession();
+   if(session?.session){
+    const {data:allowed}=await db.rpc("is_reader_moderator");
+    if(allowed===true){
+     const {data:versions,error}=await db.rpc("get_moderator_orlong_homepage_versions");
+     if(!error&&Array.isArray(versions)){
+      const preview=versions.find(v=>v.id===previewId);
+      if(preview){apply(preview);const banner=document.createElement("div");banner.textContent="PRIVATE DESIGN PREVIEW — "+preview.name+" · NOT LIVE";Object.assign(banner.style,{position:"fixed",zIndex:"2147483647",bottom:"12px",left:"12px",padding:"10px 14px",background:"#152a42",color:"#fff",border:"1px solid #79baff",font:"700 11px Inter,Arial,sans-serif",letterSpacing:"1px"});document.body.append(banner);return}
+     }
+    }
+   }
+  }
   const {data,error}=await db.rpc("get_public_orlong_homepage_design");
   if(error){console.warn("Orlong series theme:",error.message);apply(null);return}
   apply(data||null);
