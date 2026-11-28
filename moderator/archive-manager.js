@@ -3,28 +3,32 @@
 const URL_BASE="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,entries=[],cards=[],chapters=[],archiveBlocks=[];
+let client=null,entries=[],cards=[],chapters=[],archiveBlocks=[],relations=[];
 const categoryNames={characters:"Characters",locations:"Locations",creatures:"Creatures",organisations:"Organisations",history:"History",technology:"Technology",events:"Events",other:"Other"};
+const blockId=()=> "block-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8));
 const slug=value=>String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,100);
 function message(value,error=false){$("archiveEntryMessage").textContent=value;$("archiveEntryMessage").style.color=error?"#ff9ca9":"#9dc9f5";}
 function fillSelect(select,items,label,value,first){select.replaceChildren();if(first){const option=document.createElement("option");option.value="";option.textContent=first;select.append(option);}items.forEach(item=>{const option=document.createElement("option");option.value=item[value];option.textContent=item[label];select.append(option);});}
 async function load(){
  $("archiveEntryList").textContent="Loading archive entries…";
- const [entryResult,cardResult,chapterResult]=await Promise.all([
+ const [entryResult,cardResult,chapterResult,relationResult]=await Promise.all([
   client.rpc("get_moderator_eden_archive_entries"),
   client.rpc("get_moderator_eden_archive_cards"),
-  client.rpc("get_moderator_eden_book_structure")
+  client.rpc("get_moderator_eden_book_structure"),
+  client.rpc("get_moderator_eden_archive_relations")
  ]);
  if(entryResult.error)throw entryResult.error;
  if(cardResult.error)throw cardResult.error;
  if(chapterResult.error)throw chapterResult.error;
+ if(relationResult.error)throw relationResult.error;
+ relations=Array.isArray(relationResult.data)?relationResult.data:[];
  entries=Array.isArray(entryResult.data)?entryResult.data:[];
  cards=Array.isArray(cardResult.data)?cardResult.data:[];
  chapters=chapterResult.data?.chapters||[];
  fillSelect($("archiveUnlockChapter"),chapters.map(c=>({id:c.id,label:c.number+" · "+c.title})),"label","id","No additional chapter gate");
  const cardSelect=$("archiveRequiredCards");cardSelect.replaceChildren();
  cards.forEach(card=>{const option=document.createElement("option");option.value=card.id;option.textContent=card.number+" · "+card.name+" ("+card.category+")";cardSelect.append(option);});
- renderList();
+ renderList();renderRelations();
  const published=entries.filter(e=>e.published).length;
  $("archiveAdminStats").textContent=entries.length+" TOTAL ENTRIES · "+published+" PUBLISHED · "+cards.length+" ACTIVE CARDS";
 }
@@ -55,7 +59,7 @@ function editEntry(entry){
  $("archiveEntryTitle").value=entry.title;$("archiveEntryCategory").value=entry.category;
  $("archiveEntrySummary").value=entry.summary||"";$("archiveEntryContent").value=entry.content||"";
  $("archiveUnlockChapter").value=entry.unlockChapterId||"";
- $("archiveEntrySort").value=entry.sortOrder??0;$("archiveEntryPublished").checked=Boolean(entry.published);archiveBlocks=Array.isArray(entry.contentBlocks)?JSON.parse(JSON.stringify(entry.contentBlocks)):[];renderBlocks();
+ $("archiveEntrySort").value=entry.sortOrder??0;$("archiveEntryPublished").checked=Boolean(entry.published);archiveBlocks=Array.isArray(entry.contentBlocks)?JSON.parse(JSON.stringify(entry.contentBlocks)):[];archiveBlocks.forEach(block=>{if(!block.id)block.id=blockId();});renderBlocks();
  const required=new Set(entry.requiredCardIds||[]);
  [...$("archiveRequiredCards").options].forEach(o=>o.selected=required.has(o.value));
  $("archiveEntryDeleteButton").hidden=false;$("archiveEntrySaveButton").textContent="SAVE CHANGES";
@@ -88,6 +92,13 @@ function addImageUpload(fields,block,multiple=false){
  });
  wrap.append(input);fields.append(wrap);
 }
+function addBlockCardGate(fields,block){
+ const wrap=el("label","archive-block-field archive-block-gate");wrap.append(el("span","","REQUIRED CARDS TO REVEAL THIS BLOCK"));
+ const select=document.createElement("select");select.multiple=true;select.size=Math.min(5,Math.max(3,cards.length));
+ cards.forEach(card=>{const option=document.createElement("option");option.value=card.id;option.textContent=card.number+" · "+card.name;option.selected=(block.requiredCardIds||[]).includes(card.id);select.append(option);});
+ select.addEventListener("change",()=>{block.requiredCardIds=[...select.selectedOptions].map(o=>o.value);});
+ wrap.append(select);const hint=el("small","hint","Leave empty to show this block to every reader who has unlocked the main record. If cards are selected, the reader must own ALL of them.");wrap.append(hint);fields.append(wrap);
+}
 function renderBlocks(){
  const root=$("archiveBlockList");root.replaceChildren();
  if(!archiveBlocks.length){root.append(el("p","hint","No content blocks yet. Add your first block above."));return;}
@@ -113,14 +124,62 @@ function renderBlocks(){
   else if(block.type==="facts"){addField("PANEL HEADING","heading",block.heading);addField("FACTS","itemsText",rowsToText(block.items,"facts"),true,"One fact per line: LABEL | VALUE");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"facts");});}
   else if(block.type==="gallery"){addField("GALLERY HEADING","heading",block.heading);addField("GALLERY IMAGES","itemsText",rowsToText(block.items,"gallery"),true,"One image per line: IMAGE URL | CAPTION");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"gallery");});addImageUpload(fields,block,true);}
   else if(block.type==="divider"){fields.append(el("p","hint","A decorative Orlong sigil divider. It creates breathing room between sections."));}
-  card.append(fields);root.append(card);
+  addBlockCardGate(fields,block);card.append(fields);root.append(card);
  });
 }
 function addBlock(){
  const type=$("archiveBlockType").value;
  const defaults={text:{type,heading:"",body:""},quote:{type,body:"",attribution:""},image:{type,url:"",alt:"",caption:""},callout:{type,heading:"",body:""},divider:{type},timeline:{type,heading:"",items:[]},reveal:{type,label:"REVEAL RECORD",body:""},facts:{type,heading:"",items:[]},gallery:{type,heading:"",items:[]}};
- archiveBlocks.push(defaults[type]);renderBlocks();
+ defaults[type].id=blockId();defaults[type].requiredCardIds=[];archiveBlocks.push(defaults[type]);renderBlocks();
  const last=$("archiveBlockList").lastElementChild;last?.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function relationEntryOptions(select,selected){
+ fillSelect(select,entries.map(e=>({id:e.id,label:e.title+" · "+(categoryNames[e.category]||e.category)})),"label","id","Choose an archive entry");
+ if(selected)select.value=selected;
+}
+function relationBlockOptions(entrySelect,blockSelect,selected){
+ const entry=entries.find(e=>e.id===entrySelect.value),blocks=entry?.contentBlocks||[];
+ fillSelect(blockSelect,blocks.map((b,i)=>({id:b.id,label:(i+1)+". "+(b.heading||blockLabels[b.type]||b.type)})),"label","id","Whole entry (not a specific block)");
+ if(selected)blockSelect.value=selected;
+}
+function renderRelationForm(){
+ relationEntryOptions($("archiveRelationSourceEntry"),$("archiveRelationSourceEntry").value);
+ relationEntryOptions($("archiveRelationTargetEntry"),$("archiveRelationTargetEntry").value);
+ relationBlockOptions($("archiveRelationSourceEntry"),$("archiveRelationSourceBlock"),$("archiveRelationSourceBlock").value);
+ relationBlockOptions($("archiveRelationTargetEntry"),$("archiveRelationTargetBlock"),$("archiveRelationTargetBlock").value);
+}
+function renderRelations(){
+ const root=$("archiveRelationList");if(!root)return;root.replaceChildren();
+ if(!relations.length){root.append(el("p","hint","No connections have been created yet."));return;}
+ relations.forEach(rel=>{
+  const row=el("article","archive-admin-row"),info=el("div","archive-admin-info");
+  const source=entries.find(e=>e.id===rel.sourceEntryId),target=entries.find(e=>e.id===rel.targetEntryId);
+  info.append(el("strong","",(source?.title||rel.sourceEntryId)+" → "+(target?.title||rel.targetEntryId)));
+  info.append(el("small","",(rel.label||rel.type.replaceAll("_"," ").toUpperCase())+" · "+(rel.sourceBlockId?"BLOCK → ":"ENTRY → ")+(rel.targetBlockId?"BLOCK":"ENTRY")));
+  const actions=el("div","archive-admin-actions"),remove=el("button","danger","DELETE");remove.type="button";remove.addEventListener("click",()=>deleteRelation(rel));actions.append(remove);row.append(info,actions);root.append(row);
+ });
+}
+async function saveRelation(event){
+ event.preventDefault();
+ const id=$("archiveRelationEditingId").value?Number($("archiveRelationEditingId").value):null;
+ const args={p_relation_id:id,p_source_entry_id:$("archiveRelationSourceEntry").value,p_source_block_id:$("archiveRelationSourceBlock").value||null,
+  p_target_entry_id:$("archiveRelationTargetEntry").value,p_target_block_id:$("archiveRelationTargetBlock").value||null,
+  p_relationship_type:$("archiveRelationType").value,p_label:$("archiveRelationLabel").value.trim(),
+  p_description:$("archiveRelationDescription").value.trim(),p_sort_order:Number($("archiveRelationSort").value||0),
+  p_is_bidirectional:$("archiveRelationBidirectional").checked};
+ const button=$("archiveRelationSave");button.disabled=true;button.textContent="SAVING…";
+ try{const {error}=await client.rpc("save_moderator_eden_archive_relation",args);if(error)throw error;
+  $("archiveRelationForm").reset();$("archiveRelationEditingId").value="";renderRelationForm();
+  const {data,error:loadError}=await client.rpc("get_moderator_eden_archive_relations");if(loadError)throw loadError;
+  relations=Array.isArray(data)?data:[];renderRelations();message("Archive connection saved.");
+ }catch(error){message(error.message||"Could not save archive connection.",true);}
+ finally{button.disabled=false;button.textContent="SAVE CONNECTION";}
+}
+async function deleteRelation(rel){
+ if(!confirm("Delete this archive connection?"))return;
+ try{const {error}=await client.rpc("delete_moderator_eden_archive_relation",{p_relation_id:rel.id});if(error)throw error;
+  relations=relations.filter(item=>item.id!==rel.id);renderRelations();message("Archive connection deleted.");
+ }catch(error){message(error.message||"Could not delete connection.",true);}
 }
 async function saveEntry(event){
  event.preventDefault();
@@ -159,6 +218,9 @@ async function init(){
  $("archiveEntryTitle").addEventListener("input",()=>{if(!$("archiveEditingId").value&&!$("archiveEntryId").dataset.manual)$("archiveEntryId").value=slug($("archiveEntryTitle").value);});
  $("archiveEntryId").addEventListener("input",()=>{$("archiveEntryId").dataset.manual="true";});
  $("archiveEntryForm").addEventListener("submit",saveEntry);$("archiveBlockAdd").addEventListener("click",addBlock);renderBlocks();
+ $("archiveRelationForm").addEventListener("submit",saveRelation);
+ ["archiveRelationSourceEntry","archiveRelationTargetEntry"].forEach(id=>$(id).addEventListener("change",renderRelationForm));
+ renderRelationForm();
  $("archiveEntryClearButton").addEventListener("click",resetForm);
  $("archiveNewEntryButton").addEventListener("click",()=>{resetForm();$("archiveEntryForm").scrollIntoView({behavior:"smooth",block:"start"});});
  $("archiveEntryRefresh").addEventListener("click",()=>load().catch(error=>message(error.message,true)));
