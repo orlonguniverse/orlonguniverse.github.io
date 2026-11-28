@@ -68,7 +68,7 @@ begin
  for v_item in select value from jsonb_array_elements(p_config->'links') loop
   v_href:=coalesce(v_item.value->>'href','');
   if v_href !~ '^(https://|http://|/[A-Za-z0-9_./?#=&%-]*)$' or length(v_href)>500 then raise exception 'A navigation link has an invalid destination'; end if;
-  if length(coalesce(v_item->>'label','')) not between 1 and 80 then raise exception 'Every navigation link needs a label'; end if;
+  if length(coalesce(v_item.value->>'label','')) not between 1 and 80 then raise exception 'Every navigation link needs a label'; end if;
   if coalesce(v_item.value->>'group','') not in ('primary','book','discover') then raise exception 'Choose a valid navigation menu group'; end if;
  end loop;
  insert into public.orlong_site_map_config(config_id,config,updated_by,updated_at)
