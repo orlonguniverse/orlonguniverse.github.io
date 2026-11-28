@@ -57,6 +57,9 @@ async function visualEditor(db){
   if(!chosen||!chosenSelector)return;
   const key=property.value,next=value.value;
   if((key==="href"||key==="src")&&next&&!/^(https?:\/\/|\/|#)/i.test(next)){status.textContent="Use a web address beginning with http:// or https://, or a site path beginning with /.";return}
+  if(["style:background-color","style:color"].includes(key)&&next&&!/^#[0-9a-f]{3,8}$/i.test(next)){status.textContent="Enter a hexadecimal colour, for example #183553.";return}
+  if(["style:padding","style:max-width","style:border-radius","style:font-size"].includes(key)&&next&&!/^(0|[0-9]{1,4}(px|rem|%))$/.test(next)){status.textContent="Use a simple size such as 24px, 1.5rem or 80%.";return}
+  if(key==="style:text-align"&&!["left","center","right"].includes(next)){status.textContent="Choose left, center or right.";return}
   save.disabled=true;status.textContent="Saving…";
   try{
    const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:pagePath(),p_selector:chosenSelector,p_property:key,p_content_value:next,p_is_published:true});
