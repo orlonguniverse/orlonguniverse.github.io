@@ -46,7 +46,7 @@ function renderLibrary(){
 async function loadGiphy(query,append=false){
  const root=$("giphyExpressionGrid");if(!root)return;
  if(!giphyKey){root.replaceChildren(make("p","engagement-muted","GIF search will be available once the Orlong administrator connects the GIF library. The built-in collection is ready now."));return;}
- if(!append){gifOffset=0;root.replaceChildren(make("p","engagement-muted","Finding GIFs…"));}else{root.querySelector(".expression-load-more")?.remove();}
+ if(!append){gifOffset=0;root.replaceChildren(make("p","engagement-muted","Finding GIFs…"));}else{root.querySelector(".expression-load-more")?.remove();root.querySelector(".giphy-attribution")?.remove();}
  try{
   const contentType=$("giphyExpressionType")?.value||"gifs";
   const mode=query?"search":"trending";
@@ -64,7 +64,7 @@ async function loadGiphy(query,append=false){
   if(!data.data?.length&&!append)root.append(make("p","engagement-muted","No GIFs found. Try a different search."));
   gifOffset+=data.data?.length||0;
   if((data.data||[]).length===30){const more=make("button","expression-load-more","LOAD MORE");more.type="button";more.addEventListener("click",()=>loadGiphy(query,true));root.append(more);}
-  if(!root.querySelector(".giphy-attribution"))root.append(make("p","giphy-attribution","Powered by GIPHY"));
+  if(!root.querySelector(".giphy-attribution"))root.append(make("p","giphy-attribution","Powered By GIPHY"));
  }catch(error){console.error(error);root.replaceChildren(make("p","engagement-muted","GIF search could not connect. The Orlong library is still available."));}
 }
 async function loadLibrary(){
