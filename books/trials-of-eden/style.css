@@ -929,3 +929,7 @@ body.book-only-mode .mobile-focus-toggle{display:none!important}
 .expression-request-history-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;padding:8px;border-radius:7px;background:rgba(20,40,66,.55);font-size:11px}
 .expression-request-history-row span{color:#e0bf7b}
 .expression-request-history-row small{flex-basis:100%;opacity:.75}
+
+.giphy-expression-controls{display:grid;grid-template-columns:1fr 150px;gap:9px}
+.expression-load-more{grid-column:1/-1;justify-self:center;padding:10px 18px;border:1px solid #45678e;border-radius:999px;background:#142943;color:#eaf2ff;cursor:pointer}
+@media(max-width:600px){.giphy-expression-controls{grid-template-columns:1fr}}
