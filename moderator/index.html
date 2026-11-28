@@ -18,6 +18,25 @@
 <label>CHAPTER NUMBER<input id="cardChapterNumber" type="number" min="1" max="999" step="1" placeholder="e.g. 4"></label>
 <label>REQUIRED ACCESS PERMISSION (OPTIONAL)<input id="cardAccessKey" maxlength="80" placeholder="card:CHR-012"><span class="hint">Leave blank for normal chapter-based visibility. Example: card:CHR-012, granted by an access code.</span></label>
 <label>RELEASE LOCK ID <span class="hint">(optional · controls when the card appears publicly)</span><input id="cardChapter" maxlength="80" placeholder="e.g. chapter-04"></label>
+<section class="card-release-settings" aria-labelledby="cardReleaseHeading">
+<h3 id="cardReleaseHeading">RELEASE &amp; SPECIAL EDITION SETTINGS</h3>
+<p class="hint">Choose how this card is released. Special releases do not need a chapter association.</p>
+<div class="field-grid">
+<label>RELEASE TYPE<select id="cardReleaseType"><option value="standard">Standard chapter card</option><option value="special_edition">Special edition</option><option value="event">Event release</option><option value="achievement">Achievement reward</option><option value="promotion">Promotional release</option><option value="limited">Limited edition</option><option value="early_access">Early access</option></select></label>
+<label>RELEASE / EVENT LABEL<input id="cardReleaseLabel" maxlength="120" placeholder="e.g. Founder's Collection 2026"></label>
+</div>
+<div class="field-grid">
+<label>AVAILABLE FROM<input id="cardAvailableFrom" type="datetime-local"></label>
+<label>AVAILABLE UNTIL<input id="cardAvailableUntil" type="datetime-local"></label>
+</div>
+<div class="field-grid">
+<label>MAXIMUM TOTAL COPIES<input id="cardLimitedQuantity" type="number" min="1" max="1000000" step="1" placeholder="Leave blank for unlimited"></label>
+<label>HOW READERS EARN IT<input id="cardAcquisitionSource" maxlength="180" placeholder="e.g. Complete the winter event"></label>
+</div>
+<label>FUTURE GAME ATTRIBUTES <span class="hint">Enter a JSON object. These values are stored as structured data for future card games and simulations.</span>
+<textarea id="cardGameAttributes" rows="5" spellcheck="false" placeholder='{"power": 5, "defence": 3, "speed": 4, "abilities": []}'></textarea></label>
+<p class="hint">Suggested attributes: power, defence, speed, rarity tier, ability tags, element, faction, class, and custom traits. No game balance is imposed yet.</p>
+</section>
 <label>CARD DESCRIPTION<textarea id="cardDescription" maxlength="1200" rows="4" placeholder="The text that appears on the card. Keep it spoiler-safe for its unlock chapter."></textarea></label>
 <div class="upload-field"><label for="cardArtwork">CARD ARTWORK</label><input id="cardArtwork" type="file" accept="image/png,image/jpeg,image/webp"><p class="hint">Portrait artwork works best. You'll be able to reposition and zoom it before saving. Maximum 12 MB.</p><button type="button" class="secondary" id="cropArtworkButton" disabled>ADJUST / CROP ARTWORK</button><span id="uploadStatus" role="status"></span></div>
 <div class="form-actions"><button class="primary" id="saveCardButton" type="submit">SAVE CARD</button><button class="secondary" type="button" id="resetCardButton">CLEAR FORM</button><button class="danger" type="button" id="deleteCardButton" hidden>DELETE CARD</button></div><p id="formMessage" role="status" aria-live="polite"></p>
@@ -224,4 +243,4 @@
 <section id="accessDenied" class="denied" hidden><p class="eyebrow">RESTRICTED AREA</p><h1>MODERATOR ACCESS REQUIRED</h1><p>This workspace is only available to authorised Orlong moderators.</p><a href="../books/trials-of-eden/account.html">RETURN TO YOUR ACCOUNT</a></section>
 <dialog id="cropDialog" class="crop-dialog"><div class="crop-head"><div><p class="eyebrow">ARTWORK PREPARATION</p><h2>POSITION YOUR ARTWORK</h2></div><button type="button" id="closeCrop" class="secondary">CLOSE</button></div><p class="hint">Drag the image to reposition it. Use the zoom slider to frame the subject. The final card image is portrait 2:3.</p><div class="crop-stage" id="cropStage"><canvas id="cropCanvas" width="450" height="675"></canvas></div><label class="zoom-label">ZOOM <input id="cropZoom" type="range" min="1" max="3.5" step=".01" value="1"></label><div class="form-actions"><button type="button" class="primary" id="applyCrop">USE THIS ARTWORK</button></div></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../site-nav.js?v=stage-8d11"></script><script src="moderator.js?v=stage-8d2"></script><script src="chapter-manager.js?v=stage-8c1-access"></script><script src="event-manager.js?v=stage-8c2-preview"></script><script src="category-manager.js?v=stage-8c3"></script><script src="archive-manager.js?v=stage-8d3b"></script><script src="site-content-manager.js?v=stage-8d5b"></script><script src="site-map-manager.js?v=stage-8d11"></script><script src="site-design-manager.js?v=stage-8d5d"></script><script src="book-manager.js?v=stage-8d9"></script><script src="book-chapter-manager.js?v=stage-8d9"></script><script src="access-code-manager.js?v=stage-8c4"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../site-nav.js?v=stage-8d11"></script><script src="moderator.js?v=stage-8d4"></script><script src="chapter-manager.js?v=stage-8c1-access"></script><script src="event-manager.js?v=stage-8c2-preview"></script><script src="category-manager.js?v=stage-8c3"></script><script src="archive-manager.js?v=stage-8d3b"></script><script src="site-content-manager.js?v=stage-8d5b"></script><script src="site-map-manager.js?v=stage-8d11"></script><script src="site-design-manager.js?v=stage-8d5d"></script><script src="book-manager.js?v=stage-8d9"></script><script src="book-chapter-manager.js?v=stage-8d9"></script><script src="access-code-manager.js?v=stage-8c4"></script></body></html>
