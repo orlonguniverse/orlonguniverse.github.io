@@ -91,7 +91,7 @@ begin
  if v_card_count<>cardinality(p_required_card_ids) then raise exception 'One or more selected cards are invalid, inactive or duplicated'; end if;
 
  insert into public.eden_archive_entries(entry_id,title,category,summary,content,content_blocks,unlock_chapter_id,sort_order,is_published,updated_at)
- values(p_entry_id,trim(p_title),p_category,coalesce(nullif(trim(p_summary),''),trim(p_content)),coalesce(trim(p_content),''),v_blocks,
+ values(p_entry_id,trim(p_title),p_category,coalesce(nullif(trim(p_summary),''),trim(p_content)),coalesce(nullif(trim(p_content),''),trim(p_summary)),v_blocks,
   nullif(trim(p_unlock_chapter_id),''),coalesce(p_sort_order,0),coalesce(p_is_published,false),now())
  on conflict(entry_id) do update set title=excluded.title,category=excluded.category,summary=excluded.summary,
   content=excluded.content,content_blocks=excluded.content_blocks,unlock_chapter_id=excluded.unlock_chapter_id,
