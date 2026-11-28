@@ -118,3 +118,15 @@
 .site-map-flow-hidden{padding:2px 5px;background:#593a2b;color:#ffd5b6;font-size:8px;letter-spacing:.6px}
 .site-map-flow-row.is-hidden{opacity:.58}
 @media(max-width:700px){.site-map-flow-row{align-items:flex-start}.site-map-flow-arrow{transform:rotate(90deg)}}
+
+
+/* Stage 8D.3D — plain-language dropdown configuration */
+.site-map-config-group,.site-map-main-settings{border-color:#52718f}
+.site-map-menu-setting{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.8fr);gap:14px;align-items:center;padding:12px 0;border-top:1px solid #2b4057}
+.site-map-menu-setting:first-of-type{border-top:0}
+.site-map-main-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 14px;padding:12px;background:#0c1928;border:1px solid #2b4057}
+.site-map-main-settings>.site-map-field{max-width:420px;margin-bottom:10px}
+.site-map-main-settings>.site-map-enabled{margin:8px 0 12px}
+.site-map-main-options .site-map-enabled{padding:6px 0}
+.site-map-config-group .site-map-enabled,.site-map-main-settings .site-map-enabled{font-size:11px}
+@media(max-width:650px){.site-map-menu-setting{grid-template-columns:1fr}.site-map-main-options{grid-template-columns:1fr}}
