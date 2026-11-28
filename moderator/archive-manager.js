@@ -3,7 +3,7 @@
 const URL_BASE="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,entries=[],cards=[],chapters=[];
+let client=null,entries=[],cards=[],chapters=[],archiveBlocks=[];
 const categoryNames={characters:"Characters",locations:"Locations",creatures:"Creatures",organisations:"Organisations",history:"History",technology:"Technology",events:"Events",other:"Other"};
 const slug=value=>String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,100);
 function message(value,error=false){$("archiveEntryMessage").textContent=value;$("archiveEntryMessage").style.color=error?"#ff9ca9":"#9dc9f5";}
@@ -46,7 +46,7 @@ function renderList(){
 function el(tag,className,value){const node=document.createElement(tag);if(className)node.className=className;if(value!==undefined)node.textContent=value;return node;}
 function resetForm(){
  $("archiveEntryForm").reset();$("archiveEditingId").value="";$("archiveEntryId").disabled=false;$("archiveEntryId").dataset.manual="";
- $("archiveEntryDeleteButton").hidden=true;$("archiveEntrySaveButton").textContent="SAVE ARCHIVE ENTRY";
+ $("archiveEntryDeleteButton").hidden=true;$("archiveEntrySaveButton").textContent="SAVE ARCHIVE ENTRY";archiveBlocks=[];renderBlocks();
  [...$("archiveRequiredCards").options].forEach(o=>o.selected=false);
  $("archiveUnlockChapter").value="";message("Ready to create a new archive entry.");
 }
@@ -55,11 +55,49 @@ function editEntry(entry){
  $("archiveEntryTitle").value=entry.title;$("archiveEntryCategory").value=entry.category;
  $("archiveEntrySummary").value=entry.summary||"";$("archiveEntryContent").value=entry.content||"";
  $("archiveUnlockChapter").value=entry.unlockChapterId||"";
- $("archiveEntrySort").value=entry.sortOrder??0;$("archiveEntryPublished").checked=Boolean(entry.published);
+ $("archiveEntrySort").value=entry.sortOrder??0;$("archiveEntryPublished").checked=Boolean(entry.published);archiveBlocks=Array.isArray(entry.contentBlocks)?JSON.parse(JSON.stringify(entry.contentBlocks)):[];renderBlocks();
  const required=new Set(entry.requiredCardIds||[]);
  [...$("archiveRequiredCards").options].forEach(o=>o.selected=required.has(o.value));
  $("archiveEntryDeleteButton").hidden=false;$("archiveEntrySaveButton").textContent="SAVE CHANGES";
  message("Editing "+entry.title+".");$("archiveEntryForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+const blockLabels={text:"TEXT SECTION",quote:"PULL QUOTE",image:"IMAGE / ILLUSTRATION",callout:"HIGHLIGHTED NOTE",divider:"ORLONG DIVIDER",timeline:"TIMELINE",reveal:"INTERACTIVE REVEAL",facts:"FACT PANEL",gallery:"IMAGE GALLERY"};
+function rowsToText(items,type){return (items||[]).map(item=>type==="timeline"?[item.label,item.body].join(" | "):type==="facts"?[item.label,item.value].join(" | "):[item.url,item.caption].join(" | ")).join("\n");}
+function textToRows(value,type){return value.split("\n").map(line=>line.trim()).filter(Boolean).map(line=>{const parts=line.split("|").map(x=>x.trim());return type==="timeline"?{label:parts[0]||"",body:parts.slice(1).join(" | ")}:type==="facts"?{label:parts[0]||"",value:parts.slice(1).join(" | ")}:{url:parts[0]||"",caption:parts.slice(1).join(" | ")};});}
+function renderBlocks(){
+ const root=$("archiveBlockList");root.replaceChildren();
+ if(!archiveBlocks.length){root.append(el("p","hint","No content blocks yet. Add your first block above."));return;}
+ archiveBlocks.forEach((block,index)=>{
+  const card=el("article","archive-block-card"),head=el("div","archive-block-card-head");
+  head.append(el("strong","",String(index+1).padStart(2,"0")+" · "+(blockLabels[block.type]||"CONTENT BLOCK")));
+  const actions=el("div","archive-block-actions");
+  [["↑","Move up",index>0,()=>{[archiveBlocks[index-1],archiveBlocks[index]]=[archiveBlocks[index],archiveBlocks[index-1]];renderBlocks();}],["↓","Move down",index<archiveBlocks.length-1,()=>{[archiveBlocks[index+1],archiveBlocks[index]]=[archiveBlocks[index],archiveBlocks[index+1]];renderBlocks();}],["REMOVE","Remove block",true,()=>{archiveBlocks.splice(index,1);renderBlocks();}]].forEach(([label,title,enabled,fn])=>{const b=el("button","secondary archive-block-action",label);b.type="button";b.title=title;b.disabled=!enabled;b.addEventListener("click",fn);actions.append(b);});
+  head.append(actions);card.append(head);
+  const fields=el("div","archive-block-fields");
+  const addField=(label,key,value,multiline=false,placeholder="")=>{
+   const wrap=el("label","archive-block-field");wrap.append(el("span","",label));
+   const control=multiline?document.createElement("textarea"):document.createElement("input");
+   if(multiline){control.rows=4;control.value=value||"";}else{control.type="text";control.value=value||"";}
+   control.placeholder=placeholder;control.addEventListener("input",()=>{block[key]=control.value;});
+   wrap.append(control);fields.append(wrap);
+  };
+  if(block.type==="text"||block.type==="callout"){addField("HEADING","heading",block.heading);addField("BODY TEXT","body",block.body,true,"Write this section. Paragraph breaks are preserved.");}
+  else if(block.type==="quote"){addField("QUOTATION","body",block.body,true,"A memorable line, testimony or excerpt.");addField("ATTRIBUTION","attribution",block.attribution);}
+  else if(block.type==="image"){addField("IMAGE URL","url",block.url,false,"https://…");addField("IMAGE DESCRIPTION (ALT TEXT)","alt",block.alt);addField("CAPTION","caption",block.caption);}
+  else if(block.type==="timeline"){addField("TIMELINE HEADING","heading",block.heading);addField("TIMELINE MOMENTS","itemsText",rowsToText(block.items,"timeline"),true,"One moment per line: DATE / PERIOD | What happened");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"timeline");});}
+  else if(block.type==="reveal"){addField("READER-FACING BUTTON LABEL","label",block.label||"REVEAL RECORD");addField("HIDDEN CONTENT","body",block.body,true,"The information revealed when the reader chooses to open it.");}
+  else if(block.type==="facts"){addField("PANEL HEADING","heading",block.heading);addField("FACTS","itemsText",rowsToText(block.items,"facts"),true,"One fact per line: LABEL | VALUE");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"facts");});}
+  else if(block.type==="gallery"){addField("GALLERY HEADING","heading",block.heading);addField("GALLERY IMAGES","itemsText",rowsToText(block.items,"gallery"),true,"One image per line: IMAGE URL | CAPTION");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"gallery");});}
+  else if(block.type==="divider"){fields.append(el("p","hint","A decorative Orlong sigil divider. It creates breathing room between sections."));}
+  card.append(fields);root.append(card);
+ });
+}
+function addBlock(){
+ if(archiveBlocks.length>=40){message("An archive entry can contain up to 40 blocks.",true);return;}
+ const type=$("archiveBlockType").value;
+ const defaults={text:{type,heading:"",body:""},quote:{type,body:"",attribution:""},image:{type,url:"",alt:"",caption:""},callout:{type,heading:"",body:""},divider:{type},timeline:{type,heading:"",items:[]},reveal:{type,label:"REVEAL RECORD",body:""},facts:{type,heading:"",items:[]},gallery:{type,heading:"",items:[]}};
+ archiveBlocks.push(defaults[type]);renderBlocks();
+ const last=$("archiveBlockList").lastElementChild;last?.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 async function saveEntry(event){
  event.preventDefault();
@@ -70,9 +108,10 @@ async function saveEntry(event){
  if(!required.length){message("Select at least one required card.",true);return;}
  const button=$("archiveEntrySaveButton");button.disabled=true;button.textContent="SAVING…";
  try{
-  const {data,error}=await client.rpc("save_moderator_eden_archive_entry",{
+  const {data,error}=await client.rpc("save_moderator_eden_archive_entry_v2",{
    p_entry_id:id,p_title:$("archiveEntryTitle").value.trim(),p_category:$("archiveEntryCategory").value,
-   p_summary:$("archiveEntrySummary").value.trim(),p_content:$("archiveEntryContent").value,
+   p_summary:$("archiveEntrySummary").value.trim(),p_content:$("archiveEntryContent").value.trim()||$("archiveEntrySummary").value.trim(),
+   p_content_blocks:archiveBlocks,
    p_unlock_chapter_id:$("archiveUnlockChapter").value||null,p_required_card_ids:required,
    p_sort_order:Number($("archiveEntrySort").value||0),p_is_published:$("archiveEntryPublished").checked
   });
@@ -96,7 +135,7 @@ async function init(){
  if(roleError||allowed!==true)return;
  $("archiveEntryTitle").addEventListener("input",()=>{if(!$("archiveEditingId").value&&!$("archiveEntryId").dataset.manual)$("archiveEntryId").value=slug($("archiveEntryTitle").value);});
  $("archiveEntryId").addEventListener("input",()=>{$("archiveEntryId").dataset.manual="true";});
- $("archiveEntryForm").addEventListener("submit",saveEntry);
+ $("archiveEntryForm").addEventListener("submit",saveEntry);$("archiveBlockAdd").addEventListener("click",addBlock);renderBlocks();
  $("archiveEntryClearButton").addEventListener("click",resetForm);
  $("archiveNewEntryButton").addEventListener("click",()=>{resetForm();$("archiveEntryForm").scrollIntoView({behavior:"smooth",block:"start"});});
  $("archiveEntryRefresh").addEventListener("click",()=>load().catch(error=>message(error.message,true)));
