@@ -1,10 +1,10 @@
 (()=>{"use strict";
 const URL_BASE="https://kqfwtzrfqsfampqfzoal.supabase.co",KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
-const allowed=new Set(["text","href","src","alt","title","placeholder","value","hidden","aria-label"]);
+const allowed=new Set(["text","href","src","alt","title","placeholder","value","hidden","aria-label","style:background-color","style:color","style:padding","style:max-width","style:border-radius","style:text-align","style:font-size"]);
 const client=()=>window.supabase?.createClient?window.supabase.createClient(URL_BASE,KEY):null;
 const pagePath=()=>location.pathname==="/managed-page.html"&&new URLSearchParams(location.search).get("slug")?"/managed-pages/"+new URLSearchParams(location.search).get("slug"):location.pathname.replace(/\\/g,"/")||"/";
 async function loadBuilder(){if(window.OrlongSiteBuilder)return;await new Promise((resolve,reject)=>{const script=document.createElement("script");script.src="/assets/js/site-builder.js?v=stage-8d16";script.onload=resolve;script.onerror=()=>reject(new Error("The visual page builder could not load."));document.body.append(script)})}
-function apply(records){records.forEach(r=>{if(!allowed.has(r.property))return;let nodes=[];try{nodes=[...document.querySelectorAll(r.selector)]}catch(_){return}nodes.forEach(node=>{if(r.property==="text")node.textContent=r.value;else if(r.property==="value")node.value=r.value;else if(r.property==="hidden")node.hidden=r.value==="true";else if(r.property==="href"||r.property==="src"){if(r.value==="")node.removeAttribute(r.property);else node.setAttribute(r.property,r.value)}else node.setAttribute(r.property,r.value)})})}
+function apply(records){records.forEach(r=>{if(!allowed.has(r.property))return;let nodes=[];try{nodes=[...document.querySelectorAll(r.selector)]}catch(_){return}nodes.forEach(node=>{if(r.property==="text")node.textContent=r.value;else if(r.property==="value")node.value=r.value;else if(r.property==="hidden")node.hidden=r.value==="true";else if(r.property.startsWith("style:"))node.style.setProperty(r.property.slice(6),r.value);else if(r.property==="href"||r.property==="src"){if(r.value==="")node.removeAttribute(r.property);else node.setAttribute(r.property,r.value)}else node.setAttribute(r.property,r.value)})})}
 function selectorFor(node){if(!node||node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))return null;if(node.id)return "#"+CSS.escape(node.id);const parts=[];let current=node;while(current&&current!==document.body&&parts.length<6){let part=current.tagName.toLowerCase();if(current.classList.length)part+="."+[...current.classList].slice(0,2).map(CSS.escape).join(".");const parent=current.parentElement;if(parent){const same=[...parent.children].filter(x=>x.tagName===current.tagName);if(same.length>1)part+=":nth-of-type("+(same.indexOf(current)+1)+")"}parts.unshift(part);current=parent}return "body > "+parts.join(" > ")}
 async function visualEditor(db){
  const {data,error}=await db.auth.getSession();if(error||!data.session)return;
@@ -25,7 +25,7 @@ async function visualEditor(db){
  const selected=document.createElement("p");selected.textContent="Nothing selected yet.";
  const propertyLabel=document.createElement("label");propertyLabel.textContent="WHAT WOULD YOU LIKE TO EDIT?";
  const property=document.createElement("select");
- const propertyLabels={text:"Text / wording",href:"Link destination",src:"Image address",alt:"Image description (alt text)",title:"Tooltip / title",placeholder:"Placeholder text",value:"Input value",hidden:"Show or hide this item", "aria-label":"Accessibility label"};
+ const propertyLabels={text:"Text / wording",href:"Link destination",src:"Image address",alt:"Image description (alt text)",title:"Tooltip / title",placeholder:"Placeholder text",value:"Input value",hidden:"Show or hide this item", "aria-label":"Accessibility label","style:background-color":"Background colour (hex)","style:color":"Text colour (hex)","style:padding":"Inner spacing (px / rem / %)","style:max-width":"Maximum width (px / rem / %)","style:border-radius":"Corner rounding (px / rem / %)","style:text-align":"Text alignment","style:font-size":"Text size (px / rem)"};
  [...allowed].forEach(key=>{const option=document.createElement("option");option.value=key;option.textContent=propertyLabels[key]||key;property.append(option)});
  propertyLabel.append(property);
  const valueLabel=document.createElement("label");valueLabel.textContent="CONTENT";
@@ -34,8 +34,8 @@ async function visualEditor(db){
  const actions=document.createElement("div"),save=document.createElement("button"),cancel=document.createElement("button");save.type=cancel.type="button";save.textContent="SAVE CHANGES";cancel.textContent="CLOSE";
  actions.append(save,cancel);inspector.append(heading,explanation,selected,propertyLabel,valueLabel,actions,status);document.body.append(inspector);
  let chosen=null,chosenSelector=null;
- const currentValue=(node,key)=>key==="text"?node.textContent:key==="hidden"?(node.hidden?"true":"false"):node.getAttribute(key)||"";
- const setValue=(node,key,next)=>{if(key==="text")node.textContent=next;else if(key==="value")node.value=next;else if(key==="hidden")node.hidden=next==="true";else if(next==="")node.removeAttribute(key);else node.setAttribute(key,next)};
+ const currentValue=(node,key)=>key==="text"?node.textContent:key==="hidden"?(node.hidden?"true":"false"):key.startsWith("style:")?node.style.getPropertyValue(key.slice(6)):node.getAttribute(key)||"";
+ const setValue=(node,key,next)=>{if(key==="text")node.textContent=next;else if(key==="value")node.value=next;else if(key==="hidden")node.hidden=next==="true";else if(key.startsWith("style:"))node.style.setProperty(key.slice(6),next);else if(next==="")node.removeAttribute(key);else node.setAttribute(key,next)};
  const updateField=()=>{if(!chosen)return;value.value=currentValue(chosen,property.value);valueLabel.firstChild.textContent=propertyLabels[property.value]||"CONTENT";valueLabel.firstChild.textContent=(propertyLabels[property.value]||"CONTENT").toUpperCase()};
  const openInspector=(node,selector)=>{
   chosen=node;chosenSelector=selector;inspector.style.display="block";
