@@ -117,7 +117,7 @@ async function start(db,path,bar){
   sections=Array.isArray(data)?data:[];refreshPreview();body.replaceChildren();
   body.append($("h2","","SECTIONS ON THIS PAGE"),$("p","","Each card below represents one section of this page. Move sections up or down to change their order. EDIT SECTION changes its position and appearance; EDIT CONTENT changes its words, images and links."));
   const createBar=$("div","builder-row"),createButton=$("button","","＋ ADD A SECTION");createButton.addEventListener("click",addSection);createBar.append(createButton);body.append(createBar);
-  if(!sections.length){body.append($("div","builder-entry","There are no custom sections on this page yet. Select ADD A SECTION to create your first one."));return}
+  if(!sections.length){body.append($("div","builder-entry","There are no custom sections on this page yet. Select ADD A SECTION to create your first one."));renderNativeSections();return}
   sections.forEach((section,index)=>{
   const entry=$("div","builder-entry"),title=$("strong","", "SECTION "+(index+1)+" — "+(section.data?.title||"Untitled section")),meta=$("p","",(section.data?.blocks||[]).length+" content blocks · "+(section.published?"PUBLISHED":"DRAFT"));
   const actions=$("div","builder-row");
