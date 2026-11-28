@@ -152,3 +152,23 @@ grant execute on function public.get_moderator_orlong_homepage_versions() to aut
 grant execute on function public.get_moderator_orlong_homepage_revisions(uuid) to authenticated;
 grant execute on function public.save_moderator_orlong_homepage_version(uuid,text,text,jsonb,text,timestamptz,text) to authenticated;
 grant execute on function public.delete_moderator_orlong_homepage_version(uuid) to authenticated;
+
+-- Seed the current blue Eden homepage as the first live, versioned design.
+insert into public.orlong_homepage_versions(version_name,theme,design,status,publish_at)
+select 'Current homepage — Eden Blue','blue',
+ jsonb_build_object(
+  'heroKicker','A new world. A new beginning. A new nightmare.',
+  'heroTitle','THE TRIALS OF EDEN',
+  'heroSubtitle','EDEN TRILOGY · BOOK ONE',
+  'heroCopy','Twenty contestants enter a competition built to test the limits of human potential. But in a world where every move is watched, the greatest danger may be what lies beyond the Trials.',
+  'primaryLabel','ENTER THE READING ROOM','primaryHref','/books/trials-of-eden/',
+  'secondaryLabel','HOW IT WORKS','secondaryHref','#your-first-visit'
+ ),'published',now()
+where not exists(select 1 from public.orlong_homepage_versions);
+
+insert into public.orlong_homepage_version_revisions(version_id,revision_number,snapshot,revision_note)
+select version_id,1,jsonb_build_object(
+ 'name',version_name,'theme',theme,'design',design,'status',status,'publishAt',publish_at
+),'Initial live homepage snapshot'
+from public.orlong_homepage_versions v
+where not exists(select 1 from public.orlong_homepage_version_revisions r where r.version_id=v.version_id);
