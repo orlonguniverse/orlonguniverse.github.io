@@ -77,12 +77,12 @@ begin
   end loop;
 
   select count(*) into v_menu_count
-  from jsonb_array_elements(p_config->'menus') m
-  where m->>'id'='book';
+  from jsonb_array_elements(p_config->'menus') as x(value)
+  where x.value->>'id'='book';
   if v_menu_count>1 then raise exception 'The Book dropdown can only appear once'; end if;
   select count(*) into v_menu_count
-  from jsonb_array_elements(p_config->'menus') m
-  where m->>'id'='discover';
+  from jsonb_array_elements(p_config->'menus') as x(value)
+  where x.value->>'id'='discover';
   if v_menu_count>1 then raise exception 'The Discover dropdown can only appear once'; end if;
 
   if length(coalesce(p_config->'mainMenu'->>'label','')) not between 1 and 40 then
