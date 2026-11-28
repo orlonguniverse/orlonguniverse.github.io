@@ -88,6 +88,7 @@ if(!document.getElementById("orlongThemeControlStyles")){const controlStyles=doc
   .orlong-book-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.orlong-book-actions a{display:inline-flex;padding:10px 12px;background:var(--book-accent,var(--orlong-accent));color:var(--book-on-accent,var(--orlong-on-accent))!important;border:1px solid var(--book-ice,var(--orlong-ice));font-size:9px;letter-spacing:1px}
   .orlong-book-switcher{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:18px auto 0;padding:12px 16px;max-width:560px;background:color-mix(in srgb,var(--orlong-accent) 10%,var(--orlong-surface));border:1px solid color-mix(in srgb,var(--orlong-accent) 45%,transparent)}
   .orlong-book-switcher label{color:var(--orlong-ice);font-size:10px;letter-spacing:1.5px}.orlong-book-switcher select{min-width:220px;padding:10px;background:var(--orlong-deep);color:var(--orlong-text);border:1px solid var(--orlong-accent)}
+  .orlong-book-card{color:var(--book-text,var(--orlong-text))}.orlong-book-copy h3,.orlong-book-copy p{color:var(--book-text,var(--orlong-text))}.orlong-book-copy p{opacity:.82}.orlong-book-empty{grid-column:1/-1;margin:0;padding:30px;text-align:center;color:var(--orlong-text);background:var(--orlong-surface);border:1px dashed color-mix(in srgb,var(--orlong-accent) 55%,transparent);line-height:1.8}
   @media(max-width:560px){.orlong-book-card{grid-template-columns:1fr}.orlong-book-cover{min-height:145px}}
   `;
   document.head.append(contrast);
@@ -115,10 +116,12 @@ if(!document.getElementById("orlongThemeControlStyles")){const controlStyles=doc
 }
 
 function renderBookCatalogue(books){
- const section=document.querySelector(".book-section");if(!section||!Array.isArray(books)||!books.length)return;
+ const section=document.querySelector(".book-section");if(!section)return;
  section.querySelector(".orlong-book-catalogue")?.remove();
  const root=document.createElement("div");root.className="orlong-book-catalogue";
- books.filter(book=>book.showOnHomepage===true).forEach(book=>{
+ const featured=(Array.isArray(books)?books:[]).filter(book=>book.showOnHomepage===true);
+ if(!featured.length){const empty=document.createElement("p");empty.className="orlong-book-empty";empty.setAttribute("role","status");empty.textContent="New stories will appear here as they are released. Explore the Book Collection to see every available title.";root.append(empty)}
+ featured.forEach(book=>{
   const card=document.createElement("article");card.className="orlong-book-card";card.dataset.bookTheme=book.theme||"blue";
   const bookPalette=palettes[book.theme]||palettes.blue;
   const bookLuminance=hex=>{const h=hex.replace("#","");const rgb=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
@@ -163,7 +166,7 @@ async function init(){
   const {data:booksData,error:booksError}=await db.rpc("get_public_orlong_books");
   const books=(!booksError&&Array.isArray(booksData))?booksData:[];
   window.OrlongBooks=books;
-  if(location.pathname==="/")renderBookCatalogue(books.filter(b=>b.showOnHomepage===true));
+  if(location.pathname==="/")renderBookCatalogue(books);
   renderBookNavigation(books);
   if(location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html"))renderReaderBookSwitcher(books);
   const previewId=new URLSearchParams(location.search).get("design-preview");
