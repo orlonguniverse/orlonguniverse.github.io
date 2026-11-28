@@ -1,6 +1,6 @@
 (()=>{"use strict";
 const $=id=>document.getElementById(id);
-let db,config={pages:[],links:[]},dirty=false,dragged=null;
+let db,config={pages:[],links:[]},managedPages=[],dirty=false,dragged=null;
 const defaults=[
 {id:"home",label:"Homepage",path:"/",kind:"main"},{id:"reading",label:"Reading Room",path:"/books/trials-of-eden/",kind:"book"},{id:"contents",label:"Chapter Contents",path:"/books/trials-of-eden/contents.html",kind:"book"},{id:"account",label:"Reader Account",path:"/books/trials-of-eden/account.html",kind:"account"},{id:"explore",label:"Explore Eden",path:"/explore-eden/",kind:"discover"},{id:"events",label:"Events",path:"/events.html",kind:"discover"},{id:"archive",label:"Eden Archive",path:"/eden-archive/",kind:"discover"},{id:"early",label:"Early Access",path:"/early-access/",kind:"discover"},{id:"founding",label:"Founding Readers",path:"/founding-readers/",kind:"discover"},{id:"guide",label:"Reader Guide",path:"/getting-started.html",kind:"guide"},{id:"moderator",label:"Moderator HQ",path:"/moderator/",kind:"admin"}
 ];
@@ -72,6 +72,19 @@ function render(){
   actions.append(action("REMOVE","danger",()=>{if(!confirm("Remove this page from the directory? This will not delete the actual website page or its menu links."))return;config.pages=config.pages.filter(x=>x.id!==p.id);mark();render()}));
   card.append(top,details,actions);directory.append(card)
  });
+ if(managedPages.length){
+  const heading=node("h3","site-map-managed-heading","CUSTOM PAGES CREATED IN WEBSITE CONTENT");
+  directory.append(heading);
+  managedPages.forEach(page=>{
+   const card=node("article","site-map-page"),top=node("div","site-map-page-main"),details=node("div","site-map-page-details"),actions=node("div","site-map-actions");
+   top.append(node("strong","",page.title||page.slug),node("code","","/managed-page.html?slug="+page.slug));
+   details.append(node("span","site-map-page-kind",page.published?"PUBLISHED CUSTOM PAGE":"DRAFT CUSTOM PAGE"));
+   const href="/managed-page.html?slug="+encodeURIComponent(page.slug);
+   actions.append(action("OPEN PAGE ↗","secondary",()=>window.open(href+(page.published?"":"&preview=1"),"_blank","noopener")));
+   actions.append(action("EDIT PAGE & SECTIONS ↗","primary",()=>window.open(href+"&preview=1&orlong-edit=1&orlong-sections=1","_blank","noopener")));
+   card.append(top,details,actions);directory.append(card);
+  });
+ }
  const addPage=action("＋ ADD A PAGE","primary",()=>{const form=pageForm(null);directory.prepend(form);form.querySelector("input").focus()});directory.append(addPage);
  const groups=[["primary","TOP-LEVEL LINKS","These links appear directly along the top of the website."],["book","BOOK DROPDOWN LINKS","These links appear inside your Book dropdown."],["discover","DISCOVER DROPDOWN LINKS","These links appear inside your Discover dropdown."]];
  groups.forEach(([group,title,description])=>{
@@ -94,7 +107,7 @@ function render(){
  $("siteMapSave").disabled=!dirty;
 }
 function moveLink(id,delta,group){const arr=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));move(arr,id,delta);arr.forEach((x,n)=>x.order=n);render()}
-async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};dirty=false;render();status("Your website map is ready. Edit the menu below, then save when you are happy.");}
+async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
 async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu}};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>status(e.message||"Website map could not load.")));
