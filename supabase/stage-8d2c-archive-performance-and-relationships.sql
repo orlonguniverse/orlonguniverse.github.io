@@ -63,7 +63,7 @@ grant execute on function public.reader_can_access_eden_archive_entry(text) to a
 
 create or replace function public.reader_can_access_eden_archive_block(p_block jsonb)
 returns boolean language sql stable security definer set search_path=public,pg_temp
-as $
+as $$
  select case
   when p_block is null then false
   when not (p_block ? 'requiredCardIds') then true
@@ -74,7 +74,7 @@ as $
    join public.reader_card_copies owned on owned.owner_user_id=auth.uid() and owned.card_id=req.card_id)
    =jsonb_array_length(p_block->'requiredCardIds')
  end;
-$;
+$$;
 revoke all on function public.reader_can_access_eden_archive_block(jsonb) from public,anon,authenticated;
 grant execute on function public.reader_can_access_eden_archive_block(jsonb) to authenticated;
 
