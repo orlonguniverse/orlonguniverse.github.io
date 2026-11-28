@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
  };
  const installSharedContentManager=()=>{if(!document.querySelector("script[data-orlong-site-content]")){const script=document.createElement("script");script.src="/assets/js/site-content.js?v=stage-8d20";script.dataset.orlongSiteContent="true";document.body.appendChild(script);}};
- const installSharedSiteDesign=()=>{if(!document.querySelector("script[data-orlong-site-design]")){const script=document.createElement("script");script.src="/assets/js/site-design.js?v=stage-8d4c";script.dataset.orlongSiteDesign="true";document.body.appendChild(script);}};
+ const installSharedSiteDesign=()=>{if(!document.querySelector("script[data-orlong-site-design]")){const script=document.createElement("script");script.src="/assets/js/site-design.js?v=stage-8d4d";script.dataset.orlongSiteDesign="true";document.body.appendChild(script);}};
  const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();installSharedContentManager();installSharedSiteDesign();window.applyOrlongManagedNavigation?.();};
  if(window.supabase?.createClient)initialiseSharedFeatures();
  else{
