@@ -151,9 +151,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
     if(mainSettings.showStatistics!==false)panel.append(statsLink);
     if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
-    const managedMenus=[];
-    if(bookSettings.enabled!==false)managedMenus.push(dropdown(bookSettings.label||"THE BOOK",bookItems));
-    if(discoverSettings.enabled!==false)managedMenus.push(dropdown(discoverSettings.label||"DISCOVER",discoverItems));
+    const managedMenus=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"THE BOOK":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
     navLinks.replaceChildren(...primary,...managedMenus);
     if(accountButton)navLinks.append(accountButton);
     if(mainSettings.enabled!==false)navLinks.append(main);
