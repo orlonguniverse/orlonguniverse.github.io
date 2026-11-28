@@ -33,18 +33,14 @@ function renderBlock(block,index){
  }
  return el("p","archive-block-note","This archive section is not available.");
 }
-async async function openEntry(entry){
+async function openEntry(entry){
  const dialog=$("archiveReaderDialog");
  $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
  $("archiveReaderTitle").textContent=entry.title;
  $("archiveReaderSummary").textContent="Opening this record…";
- $("archiveReaderCards").replaceChildren();$("archiveReaderBlocks").replaceChildren();
- dialog.showModal();
- try{
-  let detail=detailCache.get(entry.id);
-  if(!detail){const {data,error}=await client.rpc("get_my_eden_archive_entry",{p_entry_id:entry.id});if(error)throw error;if(!data)throw new Error("This record is not currently unlocked.");detail=data;detailCache.set(entry.id,detail);}
-  renderEntryDetail(detail);
- }catch(error){$("archiveReaderSummary").textContent=error.message||"This record could not be opened.";}
+ $("archiveReaderCards").replaceChildren();$("archiveReaderBlocks").replaceChildren();dialog.showModal();
+ try{let detail=detailCache.get(entry.id);if(!detail){const {data,error}=await client.rpc("get_my_eden_archive_entry",{p_entry_id:entry.id});if(error)throw error;if(!data)throw new Error("This record is not currently unlocked.");detail=data;detailCache.set(entry.id,detail);}renderEntryDetail(detail);}
+ catch(error){$("archiveReaderSummary").textContent=error.message||"This record could not be opened.";}
 }
 function renderEntryDetail(entry){
  $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
@@ -52,12 +48,10 @@ function renderEntryDetail(entry){
  const cards=$("archiveReaderCards");cards.replaceChildren();
  (entry.requiredCards||[]).forEach(card=>cards.append(el("span","archive-card-chip",card.number+" · "+card.name)));
  const root=$("archiveReaderBlocks");root.replaceChildren();
- const connections=Array.isArray(entry.connections)?entry.connections:[];
- const byBlock=new Map();connections.forEach(c=>{const key=c.sourceBlockId||"__entry__";if(!byBlock.has(key))byBlock.set(key,[]);byBlock.get(key).push(c);});
+ const byBlock=new Map();(entry.connections||[]).forEach(c=>{const key=c.sourceBlockId||"__entry__";if(!byBlock.has(key))byBlock.set(key,[]);byBlock.get(key).push(c);});
  const blocks=Array.isArray(entry.contentBlocks)?entry.contentBlocks:[];
- if(blocks.length){
-  if(entry.content&&entry.content.trim()&&entry.content.trim()!==String(entry.summary||"").trim())paragraphs(root,entry.content);
-  blocks.forEach(block=>{const node=renderBlock(block,0);if(block.id)node.dataset.archiveBlockId=block.id;root.append(node);appendConnections(node,byBlock.get(block.id)||[]);});
+ if(blocks.length){if(entry.content&&entry.content.trim()&&entry.content.trim()!==String(entry.summary||"").trim())paragraphs(root,entry.content);
+  blocks.forEach(block=>{const node=renderBlock(block,0);if(block.id)node.dataset.archiveBlockId=block.id;root.append(node);if(byBlock.has(block.id))node.append(renderConnections(byBlock.get(block.id)));});
  }else paragraphs(root,entry.content||"");
  if(byBlock.has("__entry__"))root.append(renderConnections(byBlock.get("__entry__")));
  $("archiveReaderDialog").scrollTop=0;
@@ -65,30 +59,26 @@ function renderEntryDetail(entry){
 function renderConnections(connections){
  const section=el("section","archive-connections");section.append(el("h3","archive-block-heading","CONNECTED THREADS"));
  const grid=el("div","archive-connection-grid");
- connections.forEach(connection=>{
-  const button=el("button","archive-connection-card");button.type="button";
-  button.append(el("span","archive-connection-type",(connection.label||connection.relationshipType||"RELATED").replaceAll("_"," ").toUpperCase()),el("strong","",connection.targetTitle||"Connected record"));
-  if(connection.description)button.append(el("small","",connection.description));
-  button.addEventListener("click",()=>openEntry({id:connection.targetEntryId,title:connection.targetTitle,category:connection.targetCategory}));
-  grid.append(button);
+ connections.forEach(c=>{const button=el("button","archive-connection-card");button.type="button";
+  button.append(el("span","archive-connection-type",(c.label||c.relationshipType||"RELATED").replaceAll("_"," ").toUpperCase()),el("strong","",c.targetTitle||"Connected record"));
+  if(c.description)button.append(el("small","",c.description));
+  button.addEventListener("click",()=>openEntry({id:c.targetEntryId,title:c.targetTitle,category:c.targetCategory}));grid.append(button);
  });section.append(grid);return section;
 }
-function appendConnections(node,connections){if(connections.length)node.append(renderConnections(connections));}
 function render(){
  const root=$("archiveEntryGrid"),query=$("archiveSearch").value.trim().toLowerCase();
- const visible=entries.filter(entry=>(activeCategory==="all"||entry.category===activeCategory)&&(!query||(entry.title+" "+entry.summary+" "+entry.category).toLowerCase().includes(query)));
+ const visible=entries.filter(e=>(activeCategory==="all"||e.category===activeCategory)&&(!query||(e.title+" "+e.summary+" "+e.category).toLowerCase().includes(query)));
  const page=visible.slice(0,visibleLimit);root.replaceChildren();
- page.forEach((entry,index)=>{
-  const card=el("article","archive-entry");card.style.setProperty("--entry-index",String(index));
+ page.forEach((entry,index)=>{const card=el("article","archive-entry");card.style.setProperty("--entry-index",String(index));
   const top=el("div","archive-entry-top");top.append(el("span","archive-entry-category",labels[entry.category]||String(entry.category).toUpperCase()),el("span","archive-entry-unlocked","RECORD UNLOCKED"));
   const title=el("h3","",entry.title),summary=el("p","archive-entry-summary",entry.summary||"");
-  const count=entry.requiredCardCount||0,blocks=entry.contentBlockCount||0;
-  const meta=el("div","archive-entry-meta");meta.append(el("span","","✧ "+count+" DISCOVERY KEY"+(count===1?"":"S")),el("span","",blocks+" SECTIONS"));
+  const count=entry.requiredCardCount||0,blocks=entry.contentBlockCount||0,meta=el("div","archive-entry-meta");
+  meta.append(el("span","","✧ "+count+" DISCOVERY KEY"+(count===1?"":"S")),el("span","",blocks+" SECTIONS"));
   const button=el("button","archive-read-button","EXPLORE RECORD ↗");button.type="button";button.addEventListener("click",()=>openEntry(entry));
   card.append(top,title,summary,meta,button);root.append(card);
  });
  $("archiveEmpty").hidden=entries.length!==0;root.hidden=entries.length===0;
- if(entries.length&&visible.length===0){root.hidden=false;root.append(el("p","archive-message","No unlocked records match your search."));}
+ if(entries.length&&!visible.length){root.hidden=false;root.append(el("p","archive-message","No unlocked records match your search."));}
  const more=$("archiveLoadMore");if(more){more.hidden=visible.length<=page.length;more.textContent="LOAD MORE RECORDS · "+(visible.length-page.length)+" REMAINING";}
 }
 function renderFilters(){
