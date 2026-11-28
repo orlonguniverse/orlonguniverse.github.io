@@ -52,3 +52,48 @@
 @media(max-width:760px){
  .nav-main-menu-panel{left:auto!important;right:0!important;max-width:calc(100vw - 14px)!important}
 }
+
+
+/* Stage 8D.3D — Main Menu now shares the same compact dropdown design. */
+.topbar .nav-main-menu-panel{
+ min-width:210px!important;width:290px!important;max-width:min(290px,90vw)!important;
+ padding:6px!important;max-height:min(78vh,680px)!important;overflow-y:auto!important;
+ background:rgba(7,13,24,.98)!important;border:1px solid rgba(141,191,255,.24)!important;
+ border-radius:4px!important;box-shadow:0 14px 38px #0008!important;backdrop-filter:blur(16px);
+ gap:2px!important;
+}
+.topbar .nav-main-menu-panel .nav-menu-section-label{
+ display:block;margin:8px 8px 3px!important;padding:7px 6px 5px!important;
+ color:#91a9c4!important;border-top:1px solid rgba(141,191,255,.16);
+ font:600 9px/1.4 Inter,sans-serif!important;letter-spacing:1.3px!important;
+}
+.topbar .nav-main-menu-panel .nav-menu-action,
+.topbar .nav-main-menu-panel .nav-menu-statistics{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:100%!important;min-height:38px!important;margin:0!important;padding:10px 12px!important;
+ color:#b7c7dc!important;background:transparent!important;border:1px solid transparent!important;
+ border-radius:2px!important;text-align:left!important;text-decoration:none!important;
+ font:500 9px/1.4 Inter,sans-serif!important;letter-spacing:1px!important;cursor:pointer;
+}
+.topbar .nav-main-menu-panel .nav-menu-action:hover,
+.topbar .nav-main-menu-panel .nav-menu-statistics:hover{
+ color:#fff!important;background:#398cff18!important;border-color:#398cff55!important;
+}
+.topbar .nav-main-menu-panel .orlong-menu-music{
+ margin:5px 0 0!important;padding:10px!important;
+ background:#0d1b2b!important;border:1px solid rgba(141,191,255,.18)!important;border-radius:3px!important;
+}
+.topbar .nav-main-menu-panel .orlong-menu-section-label{
+ margin:0 0 8px!important;padding:0!important;border:0!important;
+ color:#91caff!important;font-size:9px!important;letter-spacing:1.3px!important;
+}
+.topbar .nav-main-menu-panel .orlong-menu-music-toggle{
+ min-height:36px!important;padding:8px!important;font-size:9px!important;letter-spacing:1px!important;
+}
+.topbar .nav-main-menu-panel .orlong-menu-volume-label{
+ gap:8px!important;margin:8px 0 0!important;font-size:9px!important;letter-spacing:1px!important;
+}
+.topbar .nav-main-menu-panel .orlong-menu-music-note{margin:8px 0 0!important;font-size:10px!important}
+@media(max-width:760px){
+ .topbar .nav-main-menu-panel{left:auto!important;right:0!important;max-width:min(290px,90vw)!important}
+}
