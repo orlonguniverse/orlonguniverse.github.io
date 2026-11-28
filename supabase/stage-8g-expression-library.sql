@@ -302,7 +302,7 @@ drop trigger if exists chapter_completion_expression_unlock on public.chapter_co
 create trigger chapter_completion_expression_unlock after insert on public.chapter_completions
  for each row execute function public.grant_expression_unlocks_for_progress();
 drop trigger if exists card_copy_expression_unlock on public.reader_card_copies;
-create trigger card_copy_expression_unlock after insert on public.reader_card_copies
+create trigger card_copy_expression_unlock after insert or update on public.reader_card_copies
  for each row execute function public.grant_expression_unlocks_for_progress();
 
 -- Existing chapter discussions remain text-first; readers can attach up to four
