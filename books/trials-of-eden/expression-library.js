@@ -29,7 +29,8 @@ function addSelection(item){
 }
 function makeAssetButton(item,root){
  const button=make("button","expression-picker-item");button.type="button";
- if(item.asset_type==="emoji"&&item.emoji_text)button.append(make("span","expression-picker-emoji",item.emoji_text));
+ if(!item.is_unlocked){button.append(make("span","expression-picker-emoji","🔒"));}
+ else if(item.asset_type==="emoji"&&item.emoji_text)button.append(make("span","expression-picker-emoji",item.emoji_text));
  else{const img=document.createElement("img");img.src=item.preview_url||item.asset_url;img.alt=item.alt_text||item.title;img.loading="lazy";button.append(img);}
  button.append(make("span","expression-picker-title",item.title));
  if(!item.is_unlocked){button.disabled=true;button.classList.add("is-locked");button.append(make("small","","LOCKED — "+(item.unlock_chapter_ids?.length?"COMPLETE A CHAPTER":item.unlock_card_ids?.length?"DISCOVER A CARD":"SPECIAL REWARD")));}
