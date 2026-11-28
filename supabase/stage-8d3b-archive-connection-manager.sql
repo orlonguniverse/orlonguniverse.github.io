@@ -98,7 +98,7 @@ declare v_key text;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if length(trim(coalesce(p_display_name,'')))<2 then raise exception 'Enter a relationship name with at least two characters'; end if;
- v_key:=trim(both '_' from regexp_replace(lower(trim(p_display_name)),'[^a-z0-9]+','_','g'));
+ v_key:=trim(both '_' from left(regexp_replace(lower(trim(p_display_name)),'[^a-z0-9]+','_','g'),64));
  if length(v_key)<2 then raise exception 'Use a more descriptive relationship name'; end if;
  if exists(select 1 from public.eden_archive_relation_types where type_key=v_key) then raise exception 'That relationship option already exists'; end if;
  insert into public.eden_archive_relation_types(type_key,display_name,type_group,description,sort_order,is_system)
