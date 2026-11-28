@@ -6,6 +6,23 @@ const $=id=>document.getElementById(id);
 let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map();
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
+
+async function openCardGameDetails(card){
+ const dialog=$("cardGameDetailDialog"),root=$("cardGameDetailContent");if(!dialog||dialog.open)return;
+ $("cardGameDetailTitle").textContent=card.name||card.card_name||"COLLECTIBLE CARD";
+ $("cardGameDetailSubtitle").textContent=[card.cardNumber||card.card_number,card.rarity,card.release_label||card.releaseLabel].filter(Boolean).join(" · ").toUpperCase();
+ root.replaceChildren(text("p","eden-empty","Loading game abilities and attributes…"));dialog.showModal();
+ const {data,error}=await client.rpc("get_public_card_game_data",{p_card_ids:[card.id||card.card_id]});
+ root.replaceChildren();
+ if(error){root.append(text("p","eden-empty","Game details are temporarily unavailable. Please ensure the Stage 8D.4 migration has been installed."));return;}
+ const record=(data||[])[0];const attrs=record?.game_attributes||{};
+ const abilities=Array.isArray(attrs.abilities)?attrs.abilities:[];delete attrs.abilities;
+ const release=text("div","card-game-detail-release",String(record?.release_label||record?.release_type||"STANDARD").replaceAll("_"," ").toUpperCase());root.append(release);
+ const attributeEntries=Object.entries(attrs);
+ if(attributeEntries.length){const section=text("section","card-game-detail-section","");section.append(text("h3","","CARD ATTRIBUTES"));const grid=text("div","card-game-attribute-grid","");attributeEntries.forEach(([key,value])=>{const item=text("div","card-game-attribute","");item.append(text("span","",key.replaceAll("_"," ").toUpperCase()),text("strong","",typeof value==="object"?JSON.stringify(value):String(value)));grid.append(item)});section.append(grid);root.append(section);}
+ if(abilities.length){const section=text("section","card-game-detail-section","");section.append(text("h3","","GAME ABILITIES"));const list=text("div","card-game-ability-list","");abilities.forEach(ability=>{const item=text("article","card-game-ability","");item.append(text("strong","",ability.name||"Unnamed ability"),text("span","card-game-ability-type",String(ability.type||"SPECIAL").toUpperCase()));if(ability.power!==undefined)item.append(text("span","card-game-ability-power","POWER · "+ability.power));if(ability.description)item.append(text("p","",ability.description));list.append(item)});section.append(list);root.append(section);}
+ if(!attributeEntries.length&&!abilities.length)root.append(text("p","eden-empty","No game attributes or abilities have been assigned to this card yet."));
+}
 function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false){
  const article=document.createElement("article");article.className="eden-card"+(isOwned?" owned":"");
  const front=document.createElement("div");front.className="eden-card-front rarity-"+String(card.rarity||"common").toLowerCase();
@@ -26,7 +43,7 @@ function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false
  details.append(name,description,footer);frame.append(top,details);
  const cardId=card.id||card.card_id||"";
  const releaseType=String(card.releaseType||card.release_type||"standard");if(releaseType!=="standard"||card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition",String(card.releaseLabel||card.release_label||releaseType.replaceAll("_"," ")).toUpperCase()));
- front.append(frame);article.append(front);
+ front.append(frame);article.append(front);if(isOwned){front.classList.add("eden-card-inspectable");front.tabIndex=0;front.setAttribute("role","button");front.setAttribute("aria-label","View "+(card.name||card.card_name)+" card details and game abilities");front.addEventListener("click",()=>openCardGameDetails(card));front.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();openCardGameDetails(card);}})}
  if(isOwned)article.append(text("span","eden-card-count",Number(card.copy_count||1)+" "+(Number(card.copy_count||1)===1?"COPY":"COPIES")));
  if(isOwned&&showSaleControls&&Number(card.copy_count||1)>1){
   const count=Number(card.copy_count||1),unitValue=duplicateSaleValue(card.rarity);
@@ -530,7 +547,7 @@ function setTab(button){
  document.querySelectorAll(".eden-panel").forEach(panel=>{const active=panel.id===button.dataset.panel;panel.hidden=!active;panel.classList.toggle("is-active",active);});
 }
 async function initialise(){
- document.querySelectorAll(".eden-tab").forEach(button=>button.addEventListener("click",()=>setTab(button)));
+ $("closeCardGameDetail")?.addEventListener("click",()=>$("cardGameDetailDialog").close());$("cardGameDetailDialog")?.addEventListener("click",event=>{if(event.target===$("cardGameDetailDialog"))$("cardGameDetailDialog").close()});document.querySelectorAll(".eden-tab").forEach(button=>button.addEventListener("click",()=>setTab(button)));
  document.querySelectorAll("[data-progress-filter]").forEach(button=>button.addEventListener("click",()=>{progressFilter=button.dataset.progressFilter;document.querySelectorAll("[data-progress-filter]").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active));});renderCardProgress();}));
  $("progressViewBinder")?.addEventListener("click",()=>{const tab=document.querySelector('.eden-tab[data-panel="collectionPanel"]');if(tab)setTab(tab);});
  const requestedTab=new URLSearchParams(location.search).get("tab");if(requestedTab==="trading"){const tradingTab=document.querySelector('.eden-tab[data-panel="tradingPanel"]');if(tradingTab)setTab(tradingTab);}
