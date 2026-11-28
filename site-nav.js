@@ -10,6 +10,7 @@ window.updateOrlongAccountLabel=function(user){
 window.updateOrlongModeratorLink=async function(user,client){
  const nav=document.querySelector(".topbar-right, .top-actions");
  if(!nav)return;
+ const menu=nav.querySelector(".nav-main-menu-panel");
  const existing=nav.querySelector(".nav-moderator-link");
  if(!user){existing?.remove();return;}
  try{
@@ -17,7 +18,7 @@ window.updateOrlongModeratorLink=async function(user,client){
   if(error||data!==true){existing?.remove();return;}
   if(!nav.querySelector(".nav-moderator-link")){
    const link=document.createElement("a");link.href="/moderator/";link.textContent="MODERATOR HQ";link.className="nav-moderator-link";
-   nav.append(link);
+   (menu||nav).append(link);
   }
  }catch(error){existing?.remove();console.warn("Moderator navigation is unavailable:",error);}
 };
@@ -92,13 +93,6 @@ document.addEventListener("DOMContentLoaded",()=>{
   panel.append(guideLink,settingsLabel,theme,bookOnly,statsLink,musicSlot);
   main.append(mainSummary,panel);
   mainSummary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==main)openMenu.removeAttribute("open");}));
-  const bookOnlyEntry=document.createElement("button");
-  bookOnlyEntry.type="button";
-  bookOnlyEntry.id="navBookOnlyModeButton";
-  bookOnlyEntry.className="nav-book-only-entry";
-  bookOnlyEntry.textContent="BOOK-ONLY MODE";
-  bookOnlyEntry.setAttribute("aria-label","Enter Book-Only Mode");
-  bookOnlyEntry.addEventListener("click",window.enterBookOnlyMode);
   const instagram=document.createElement("a");instagram.className="nav-social-link";instagram.href="https://www.instagram.com/orlong_official/";instagram.target="_blank";instagram.rel="noopener noreferrer";instagram.setAttribute("aria-label","Orlong on Instagram");instagram.title="Instagram";instagram.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
   if(bookOnlyEnabled&&isReadingRoom){
    const exitBookOnly=document.createElement("button");
@@ -118,7 +112,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   }else{
    navLinks.replaceChildren(startReading,exploreEden,community);
    if(accountButton)navLinks.append(accountButton);
-   navLinks.append(main,bookOnlyEntry,instagram);
+   navLinks.append(main,instagram);
   }
   navLinks.dataset.orlongGrouped="true";
   // Load moderator-managed navigation when the Website Map migration is installed.
@@ -149,11 +143,10 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
     if(mainSettings.showStatistics!==false)panel.append(statsLink);
     if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
-    const managedMenus=menuSettings.filter(item=>item.id!=="book"&&item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"THE BOOK":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
+    const managedMenus=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"READING":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
     navLinks.replaceChildren(...primary,...managedMenus);
     if(accountButton)navLinks.append(accountButton);
     if(mainSettings.enabled!==false)navLinks.append(main);
-    if(mainSettings.showBookOnly!==false)navLinks.append(bookOnlyEntry);
     navLinks.append(instagram);
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
@@ -203,7 +196,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
  };
  const installSharedContentManager=()=>{if(!document.querySelector("script[data-orlong-site-content]")){const script=document.createElement("script");script.src="/assets/js/site-content.js?v=stage-8d5c";script.dataset.orlongSiteContent="true";document.body.appendChild(script);}};
- const installSharedSiteDesign=()=>{if(!document.querySelector("script[data-orlong-site-design]")){const script=document.createElement("script");script.src="/assets/js/site-design.js?v=stage-8d9";script.dataset.orlongSiteDesign="true";document.body.appendChild(script);}};
+ const installSharedSiteDesign=()=>{if(!document.querySelector("script[data-orlong-site-design],script[src*=\"/assets/js/site-design.js\"]")){const script=document.createElement("script");script.src="/assets/js/site-design.js?v=stage-8d10";script.dataset.orlongSiteDesign="true";document.body.appendChild(script);}};
  const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();installSharedContentManager();installSharedSiteDesign();window.applyOrlongManagedNavigation?.();};
  if(window.supabase?.createClient)initialiseSharedFeatures();
  else{
