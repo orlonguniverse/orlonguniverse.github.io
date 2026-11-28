@@ -11,8 +11,9 @@ const palettes={
 function apply(record){
  const globalTheme=record?.theme||"blue";
  const readerThemes={"/books/trials-of-eden/":"blue","/books/trials-of-eden/index.html":"blue","/books/arcanet/":"red","/books/bitsy/":"orange","/books/varex/":"purple","/books/evalon/":"yellow"};
- const isReader=location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html");
- const registeredBook=(window.OrlongBooks||[]).find(b=>(b.readerUrl&&(location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl))||(b.contentsUrl&&location.pathname===b.contentsUrl));
+ const universalBookKey=new URLSearchParams(location.search).get("book");
+ const isReader=(location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html"))||location.pathname.startsWith("/reading-room/");
+ const registeredBook=(window.OrlongBooks||[]).find(b=>(universalBookKey&&b.id===universalBookKey)||(b.readerUrl&&(location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\\.html$/,"")===b.readerUrl))||(b.contentsUrl&&location.pathname===b.contentsUrl));
  const activeTheme=isReader?(registeredBook?.theme||readerThemes[location.pathname]||document.body?.dataset.seriesTheme||"blue"):globalTheme;
  const base=palettes[activeTheme]||palettes.blue,custom=isReader?{}:(record?.design?.colors||{});
  const theme={accent:custom.accent||base.accent,ice:custom.highlight||base.ice,glow:custom.accent||base.glow,deep:custom.background||base.deep,surface:custom.surface||base.surface,text:custom.text||"#f1f5fb"};
