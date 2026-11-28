@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     navLinks.append(main,bookOnlyEntry,instagram);
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
-  loadManagedNavigation();
+  window.applyOrlongManagedNavigation=loadManagedNavigation;
   document.addEventListener("click",event=>{if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
   document.addEventListener("keydown",event=>{if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
  }
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   }
  };
  const installSharedContentManager=()=>{if(!document.querySelector("script[data-orlong-site-content]")){const script=document.createElement("script");script.src="/assets/js/site-content.js?v=stage-8d4";script.dataset.orlongSiteContent="true";document.body.appendChild(script);}};
- const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();installSharedContentManager();};
+ const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();installSharedContentManager();window.applyOrlongManagedNavigation?.();};
  if(window.supabase?.createClient)initialiseSharedFeatures();
  else{
   if(!window.__orlongSupabaseLoad){
