@@ -146,12 +146,13 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
     if(mainSettings.showStatistics!==false)panel.append(statsLink);
     if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
-    const managedMenus=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"READING":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
+    const enabledMenuSettings=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0));
+    const managedMenus=enabledMenuSettings.map(item=>dropdown(item.label||(item.id==="book"?"READING":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
     const topLevel=new Map([["book-collection",primary[0]]]);
     if(mainSettings.enabled!==false)topLevel.set("main-menu",main);
     primary.slice(1).forEach(link=>topLevel.set("link:"+link.dataset.navigationId,link));
-    menuSettings.forEach((item,index)=>{const menu=managedMenus.find((_,i)=>menuSettings.filter(x=>x.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0))[i]?.id===item.id);if(menu)topLevel.set("menu:"+item.id,menu);});
-    const fallbackOrder=["main-menu","book-collection",...primary.slice(1).map(link=>"link:"+link.dataset.navigationId),...menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>"menu:"+item.id)];
+    enabledMenuSettings.forEach((item,index)=>topLevel.set("menu:"+item.id,managedMenus[index]));
+    const fallbackOrder=["main-menu","book-collection",...primary.slice(1).map(link=>"link:"+link.dataset.navigationId),...enabledMenuSettings.map(item=>"menu:"+item.id)];
     const savedOrder=Array.isArray(data.navigationOrder)?data.navigationOrder:[];
     const orderedIds=[...savedOrder.filter(id=>topLevel.has(id)),...fallbackOrder.filter(id=>!savedOrder.includes(id)&&topLevel.has(id))];
     const orderedElements=orderedIds.map(id=>topLevel.get(id)).filter(Boolean);
