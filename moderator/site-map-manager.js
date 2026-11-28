@@ -117,8 +117,32 @@ function renderMenuControls(host){
  mainSection.append(customList,action("＋ ADD A MAIN MENU LINK","secondary",()=>{mainMenu.links.push({label:"New link",href:"/"});mark();render()}));
  host.append(section,mainSection);
 }
+function subsectionNames(){return [...new Set(config.links.filter(x=>x.group==="discover"&&String(x.section||"").trim()).map(x=>String(x.section).trim()))].sort((a,b)=>a.localeCompare(b));}
+function renderSubsectionManager(host){
+ const sections=subsectionNames(),panel=node("section","site-map-route-group site-map-subsection-manager");
+ panel.append(node("h3","","DISCOVERY SUBSECTIONS"),node("p","site-map-hint","Create, rename, reorder or remove Discovery groups. Removing a group keeps its links and moves them into OTHER."));
+ const list=node("div","site-map-subsection-list");
+ sections.forEach((name,index)=>{
+  const row=node("article","site-map-subsection-row"),title=node("div","site-map-subsection-title"),controls=node("div","site-map-actions");
+  title.append(node("strong","",name.toUpperCase()),node("small","",config.links.filter(x=>x.group==="discover"&&String(x.section||"").trim()===name).length+" links"));
+  controls.append(action("RENAME","secondary",()=>{const next=prompt("Rename subsection:",name);if(next===null)return;const value=next.trim();if(!value){status("Enter a subsection name.");return}if(sections.some(x=>x.toLowerCase()===value.toLowerCase()&&x!==name)){status("That subsection already exists.");return}config.links.filter(x=>x.group==="discover"&&String(x.section||"").trim()===name).forEach(x=>x.section=value);mark();render()}));
+  controls.append(action("MOVE UP","secondary",()=>moveSubsection(name,-1)),action("MOVE DOWN","secondary",()=>moveSubsection(name,1)));
+  controls.append(action("REMOVE","danger",()=>{if(!confirm("Remove this subsection? Its links will be kept under OTHER."))return;config.links.filter(x=>x.group==="discover"&&String(x.section||"").trim()===name).forEach(x=>x.section="OTHER");mark();render()}));
+  controls.children[1].disabled=index===0;controls.children[2].disabled=index===sections.length-1;row.append(title,controls);list.append(row);
+ });
+ const create=action("＋ CREATE SUBSECTION","secondary",()=>{const raw=prompt("Name your new Discovery subsection:");if(raw===null)return;const name=raw.trim();if(!name){status("Enter a subsection name.");return}if(sections.some(x=>x.toLowerCase()===name.toLowerCase())){status("That subsection already exists.");return}config.links.push({id:"nav-"+Math.random().toString(36).slice(2,9),label:"New link",href:"/",group:"discover",section:name,order:config.links.filter(x=>x.group==="discover").length,enabled:true});mark();render()});
+ panel.append(list,create);host.append(panel);
+}
+function moveSubsection(name,delta){
+ const names=subsectionNames(),i=names.indexOf(name),j=i+delta;if(j<0||j>=names.length)return;
+ [names[i],names[j]]=[names[j],names[i]];
+ const ordered=[];names.forEach(section=>config.links.filter(x=>x.group==="discover"&&String(x.section||"").trim()===section).forEach(x=>ordered.push(x)));
+ config.links.filter(x=>x.group==="discover"&&!String(x.section||"").trim()).forEach(x=>ordered.push(x));
+ ordered.forEach((x,index)=>x.order=index);mark();render();
+}
+
 function render(){
- const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();renderMenuControls(routes);renderTopLevelOrder(routes);
+ const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();renderMenuControls(routes);renderTopLevelOrder(routes);renderSubsectionManager(routes);
  const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));
  pages.forEach((p,i)=>{
   const card=node("article","site-map-page"),top=node("div","site-map-page-main"),details=node("div","site-map-page-details");
