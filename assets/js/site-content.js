@@ -9,15 +9,68 @@ function selectorFor(node){if(!node||node.closest("#orlongVisualEditor,#orlongBu
 async function visualEditor(db){
  const {data,error}=await db.auth.getSession();if(error||!data.session)return;
  const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;
- const bar=document.createElement("div");bar.id="orlongVisualEditor";bar.dataset.orlongEditorUi="true";bar.setAttribute("aria-label","Orlong visual editor toolbar");bar.innerHTML='<strong>ORLONG VISUAL EDITOR</strong><span>Choose an item on this page to edit its text, link or image.</span><button type="button" id="orlongEditorExit">EXIT EDITOR</button>';
+ const bar=document.createElement("div");bar.id="orlongVisualEditor";bar.dataset.orlongEditorUi="true";bar.setAttribute("aria-label","Orlong visual editor toolbar");
+ const brand=document.createElement("strong");brand.textContent="ORLONG VISUAL EDITOR";
+ const hint=document.createElement("span");hint.textContent="Select any text, heading, image or link on the page to edit it.";
+ const exit=document.createElement("button");exit.type="button";exit.id="orlongEditorExit";exit.textContent="EXIT EDITOR";
+ bar.append(brand,hint,exit);
  Object.assign(bar.style,{position:"fixed",isolation:"isolate",contain:"layout style",pointerEvents:"auto",zIndex:"2147483647",top:"0",left:"0",right:"0",padding:"12px 16px",background:"#10243b",color:"#fff",display:"flex",gap:"14px",alignItems:"center",font:"12px Arial",boxShadow:"0 3px 16px #0008"});
- const exit=bar.querySelector("button");Object.assign(exit.style,{marginLeft:"auto",padding:"8px 12px",cursor:"pointer"});document.body.append(bar);document.body.style.paddingTop="58px";
- let chosen=null;
- const outline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))return;e.target.dataset.orlongOldOutline=e.target.style.outline;e.target.style.outline="2px solid #42a5ff"};
- const unoutline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))return;e.target.style.outline=e.target.dataset.orlongOldOutline||""};
- document.addEventListener("pointerover",outline,true);document.addEventListener("pointerout",unoutline,true);
- document.addEventListener("click",async e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))return;const node=e.target.closest("a,img,button,h1,h2,h3,h4,p,span,small,strong,li,label,input,textarea,select");if(!node)return;const selector=selectorFor(node);if(!selector)return;e.preventDefault();e.stopPropagation();chosen=node;let property="text";if(node.tagName==="A")property="href";else if(node.tagName==="IMG")property="src";const choice=prompt("Choose what to edit: text, href, src, alt, title, placeholder, value, hidden or aria-label.",property);if(choice===null)return;property=choice.trim().toLowerCase();if(!allowed.has(property)){alert("Choose a supported content property.");return}const current=property==="text"?node.textContent:node.getAttribute(property)||"";const next=prompt("Edit "+property+" for "+selector+"\n\nCurrent value:",current);if(next===null)return;try{const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:pagePath(),p_selector:selector,p_property:property,p_content_value:next,p_is_published:true});if(error)throw error;if(property==="text")node.textContent=next;else if(property==="value")node.value=next;else if(property==="hidden")node.hidden=next==="true";else if(next==="")node.removeAttribute(property);else node.setAttribute(property,next);alert("Website content saved. This change is now stored in Supabase.");}catch(err){alert(err.message||"Could not save this change.");}},true);
- exit.addEventListener("click",()=>{document.removeEventListener("pointerover",outline,true);document.removeEventListener("pointerout",unoutline,true);bar.remove();document.body.style.paddingTop="";location.href=location.pathname+location.search.replace(/([?&])orlong-edit=1(&|$)/,"$1").replace(/[?&]$/,"")+location.hash});
+ Object.assign(exit.style,{marginLeft:"auto",padding:"8px 12px",cursor:"pointer"});
+ document.body.append(bar);document.body.style.paddingTop="58px";
+ const inspector=document.createElement("aside");inspector.id="orlongElementInspector";inspector.dataset.orlongEditorUi="true";
+ Object.assign(inspector.style,{position:"fixed",zIndex:"2147483645",top:"58px",right:"0",bottom:"0",width:"min(360px,calc(100vw - 24px))",overflow:"auto",padding:"22px",background:"#101d2d",color:"#f4f7fb",borderLeft:"1px solid #496886",boxShadow:"-12px 0 36px #0005",font:"13px Inter,Arial,sans-serif",display:"none"});
+ const style=document.createElement("style");style.textContent="#orlongElementInspector h2{font:600 17px Cinzel,Georgia,serif;margin:0 0 12px}#orlongElementInspector p{font-size:11px;color:#afc1d4;line-height:1.6}#orlongElementInspector label{display:grid;gap:6px;margin:14px 0;color:#c7d8e8;font-size:10px;letter-spacing:.5px}#orlongElementInspector input,#orlongElementInspector textarea,#orlongElementInspector select{width:100%;box-sizing:border-box;padding:10px;background:#101f31;color:#fff;border:1px solid #405a76;font:12px Inter,Arial,sans-serif}#orlongElementInspector textarea{min-height:150px}#orlongElementInspector button{padding:9px 12px;background:#183553;color:#fff;border:1px solid #496886;cursor:pointer;margin:4px 5px 4px 0}#orlongElementInspector .inspector-status{color:#a9d4ff;min-height:18px}";document.head.append(style);
+ const heading=document.createElement("h2");heading.textContent="EDIT PAGE ELEMENT";
+ const explanation=document.createElement("p");explanation.textContent="Choose what to change for the selected item. Your changes are saved to the website and reused when readers visit.";
+ const selected=document.createElement("p");selected.textContent="Nothing selected yet.";
+ const propertyLabel=document.createElement("label");propertyLabel.textContent="WHAT WOULD YOU LIKE TO EDIT?";
+ const property=document.createElement("select");
+ const propertyLabels={text:"Text / wording",href:"Link destination",src:"Image address",alt:"Image description (alt text)",title:"Tooltip / title",placeholder:"Placeholder text",value:"Input value",hidden:"Show or hide this item", "aria-label":"Accessibility label"};
+ [...allowed].forEach(key=>{const option=document.createElement("option");option.value=key;option.textContent=propertyLabels[key]||key;property.append(option)});
+ propertyLabel.append(property);
+ const valueLabel=document.createElement("label");valueLabel.textContent="CONTENT";
+ const value=document.createElement("textarea");valueLabel.append(value);
+ const status=document.createElement("p");status.className="inspector-status";status.setAttribute("role","status");
+ const actions=document.createElement("div"),save=document.createElement("button"),cancel=document.createElement("button");save.type=cancel.type="button";save.textContent="SAVE CHANGES";cancel.textContent="CLOSE";
+ actions.append(save,cancel);inspector.append(heading,explanation,selected,propertyLabel,valueLabel,actions,status);document.body.append(inspector);
+ let chosen=null,chosenSelector=null;
+ const currentValue=(node,key)=>key==="text"?node.textContent:key==="hidden"?(node.hidden?"true":"false"):node.getAttribute(key)||"";
+ const setValue=(node,key,next)=>{if(key==="text")node.textContent=next;else if(key==="value")node.value=next;else if(key==="hidden")node.hidden=next==="true";else if(next==="")node.removeAttribute(key);else node.setAttribute(key,next)};
+ const updateField=()=>{if(!chosen)return;value.value=currentValue(chosen,property.value);valueLabel.firstChild.textContent=propertyLabels[property.value]||"CONTENT";valueLabel.firstChild.textContent=(propertyLabels[property.value]||"CONTENT").toUpperCase()};
+ const openInspector=(node,selector)=>{
+  chosen=node;chosenSelector=selector;inspector.style.display="block";
+  selected.textContent="Selected: "+node.tagName.toLowerCase()+(node.id?" #"+node.id:"")+(node.classList.length?" · "+[...node.classList].slice(0,2).join(" / "):"");
+  property.value=node.tagName==="A"?"href":node.tagName==="IMG"?"src":"text";
+  updateField();status.textContent="";node.style.outline="2px solid #7fc0ff";
+ };
+ const outline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;e.target.dataset.orlongOldOutline=e.target.style.outline;e.target.style.outline="2px solid #42a5ff"};
+ const unoutline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;if(e.target!==chosen)e.target.style.outline=e.target.dataset.orlongOldOutline||""};
+ const clickHandler=e=>{
+  if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;
+  const node=e.target.closest("a,img,button,h1,h2,h3,h4,p,span,small,strong,li,label,input,textarea,select");
+  if(!node)return;
+  const selector=selectorFor(node);if(!selector)return;
+  e.preventDefault();e.stopPropagation();openInspector(node,selector);
+ };
+ property.addEventListener("change",updateField);
+ save.addEventListener("click",async()=>{
+  if(!chosen||!chosenSelector)return;
+  const key=property.value,next=value.value;
+  if((key==="href"||key==="src")&&next&&!/^(https?:\/\/|\/|#)/i.test(next)){status.textContent="Use a web address beginning with http:// or https://, or a site path beginning with /.";return}
+  save.disabled=true;status.textContent="Saving…";
+  try{
+   const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:pagePath(),p_selector:chosenSelector,p_property:key,p_content_value:next,p_is_published:true});
+   if(error)throw error;setValue(chosen,key,next);status.textContent="Saved. This change is now stored in the website.";
+  }catch(err){status.textContent=err.message||"Could not save this change."}finally{save.disabled=false}
+ });
+ cancel.addEventListener("click",()=>{inspector.style.display="none";if(chosen)chosen.style.outline=chosen.dataset.orlongOldOutline||"";chosen=null;chosenSelector=null});
+ document.addEventListener("pointerover",outline,true);document.addEventListener("pointerout",unoutline,true);document.addEventListener("click",clickHandler,true);
+ exit.addEventListener("click",()=>{
+  document.removeEventListener("pointerover",outline,true);document.removeEventListener("pointerout",unoutline,true);document.removeEventListener("click",clickHandler,true);
+  inspector.remove();style.remove();bar.remove();document.body.style.paddingTop="";
+  document.querySelectorAll("[data-orlongOldOutline]").forEach(node=>node.style.outline=node.dataset.orlongOldOutline||"");
+  location.href=location.pathname+location.search.replace(/([?&])orlong-edit=1(&|$)/,"$1").replace(/[?&]$/,"")+location.hash;
+ });
 }
 async function init(){const db=client();if(!db)return;try{const {data,error}=await db.rpc("get_public_orlong_site_content",{p_page_path:pagePath()});if(!error&&Array.isArray(data))apply(data);await loadBuilder();if(window.OrlongSiteBuilder)await window.OrlongSiteBuilder.render(db,pagePath());if(new URLSearchParams(location.search).get("orlong-edit")==="1"){await visualEditor(db);if(window.OrlongSiteBuilder)await window.OrlongSiteBuilder.start(db,pagePath(),document.getElementById("orlongVisualEditor"))}}catch(err){console.warn("Orlong content manager:",err)}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
