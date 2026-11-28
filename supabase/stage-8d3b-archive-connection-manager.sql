@@ -98,7 +98,7 @@ declare v_key text;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
  if length(trim(coalesce(p_display_name,'')))<2 then raise exception 'Enter a relationship name with at least two characters'; end if;
- v_key:=trim(both '_' from regexp_replace(lower(unaccent(trim(p_display_name))),'[^a-z0-9]+','_','g'));
+ v_key:=trim(both '_' from regexp_replace(lower(trim(p_display_name)),'[^a-z0-9]+','_','g'));
  if length(v_key)<2 then raise exception 'Use a more descriptive relationship name'; end if;
  if exists(select 1 from public.eden_archive_relation_types where type_key=v_key) then raise exception 'That relationship option already exists'; end if;
  insert into public.eden_archive_relation_types(type_key,display_name,type_group,description,sort_order,is_system)
@@ -148,12 +148,12 @@ begin
  if p_relation_id is null then
   insert into public.eden_archive_relations(source_entry_id,source_block_id,target_entry_id,target_block_id,relationship_type,label,description,sort_order,is_bidirectional)
   values(p_source_entry_id,nullif(p_source_block_id,''),p_target_entry_id,nullif(p_target_block_id,''),p_relationship_type,
-   left(coalesce(p_label,''),120),left(coalesce(p_description,''),500),coalesce(p_sort_order,0),coalesce(p_is_bidirectional,false))
+   left(coalesce(nullif(trim(p_label),''),(select display_name from public.eden_archive_relation_types where type_key=p_relationship_type)),120),left(coalesce(p_description,''),500),coalesce(p_sort_order,0),coalesce(p_is_bidirectional,false))
   returning relation_id into v_id;
  else
   update public.eden_archive_relations set source_entry_id=p_source_entry_id,source_block_id=nullif(p_source_block_id,''),
    target_entry_id=p_target_entry_id,target_block_id=nullif(p_target_block_id,''),relationship_type=p_relationship_type,
-   label=left(coalesce(p_label,''),120),description=left(coalesce(p_description,''),500),
+   label=left(coalesce(nullif(trim(p_label),''),(select display_name from public.eden_archive_relation_types where type_key=p_relationship_type)),120),description=left(coalesce(p_description,''),500),
    sort_order=coalesce(p_sort_order,0),is_bidirectional=coalesce(p_is_bidirectional,false)
   where relation_id=p_relation_id returning relation_id into v_id;
   if v_id is null then raise exception 'Archive connection not found'; end if;
