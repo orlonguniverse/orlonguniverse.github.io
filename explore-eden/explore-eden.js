@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map();
+let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map(),progressRefreshInFlight=null;
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 
@@ -105,7 +105,7 @@ async function sellDuplicateCopies(cardId,quantity,button){
   if(error)throw error;
   const result=await client.rpc("get_my_card_collection");
   if(result.error)throw result.error;
-  owned=result.data||[];renderCollection();
+  owned=result.data||[];renderCollection();await refreshCardProgress();
   await Promise.all([loadMarketplace(),loadXanthTransactions()]);
   $("duplicateSettingsStatus").textContent="Sold "+data.copies_sold+" duplicate "+(data.card_name||"card")+(data.copies_sold===1?"":"s")+" for "+formatXanth(data.total_value_cents)+".";
  }catch(error){console.error(error);button.disabled=false;button.textContent="TRY AGAIN";$("duplicateSettingsStatus").textContent=error.message||"The duplicate sale could not be completed.";}
@@ -139,10 +139,21 @@ function undiscoveredProgressSlot(slot){
  article.setAttribute("aria-label","Undiscovered card. "+rarity+" rarity. "+(slot.chapter_number?"Found in chapter "+slot.chapter_number+".":"Chapter not specified."));
  return article;
 }
-async function refreshCardProgress(){
- const {data,error}=await client.rpc("get_my_card_progress");
- if(error){console.error("Card progress refresh failed:",error);return;}
- cardProgress=data||[];renderCardProgress();
+async function refreshCardProgress(options={}){
+ if(!client)return;
+ if(progressRefreshInFlight)return progressRefreshInFlight;
+ const button=$("refreshCardProgress"),status=$("progressRefreshStatus");
+ if(button){button.disabled=true;button.textContent="REFRESHING…";}
+ if(status&&!options.silent)status.textContent="Updating your discovery record…";
+ progressRefreshInFlight=(async()=>{
+  const {data,error}=await client.rpc("get_my_card_progress");
+  if(error){console.error("Card progress refresh failed:",error);if(status)status.textContent="Could not refresh just now. Your previous progress is still shown.";return false;}
+  cardProgress=data||[];renderCardProgress();
+  if(status)status.textContent="UPDATED "+new Date().toLocaleTimeString("en-AU",{hour:"2-digit",minute:"2-digit"});
+  return true;
+ })();
+ try{return await progressRefreshInFlight;}
+ finally{progressRefreshInFlight=null;if(button){button.disabled=false;button.textContent="REFRESH PROGRESS";}}
 }
 function renderCardProgress(){
  const root=$("cardProgressGrid");root.replaceChildren();
@@ -213,7 +224,7 @@ async function purchaseShopCard(slotNumber,button){
  button.textContent="PURCHASED";
  $("shopPurchaseStatus").textContent="Purchase successful! "+(data.card_number||"Your card")+" has been added to your collection. Your card reveal is ready.";
  const collectionResult=await client.rpc("get_my_card_collection");
- if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();await refreshCardProgress();}
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
 }
 
@@ -550,6 +561,7 @@ async function initialise(){
  $("closeCardGameDetail")?.addEventListener("click",()=>$("cardGameDetailDialog").close());$("cardGameDetailDialog")?.addEventListener("click",event=>{if(event.target===$("cardGameDetailDialog"))$("cardGameDetailDialog").close()});document.querySelectorAll(".eden-tab").forEach(button=>button.addEventListener("click",()=>setTab(button)));
  document.querySelectorAll("[data-progress-filter]").forEach(button=>button.addEventListener("click",()=>{progressFilter=button.dataset.progressFilter;document.querySelectorAll("[data-progress-filter]").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active));});renderCardProgress();}));
  $("progressViewBinder")?.addEventListener("click",()=>{const tab=document.querySelector('.eden-tab[data-panel="collectionPanel"]');if(tab)setTab(tab);});
+ $("refreshCardProgress")?.addEventListener("click",()=>refreshCardProgress());
  const requestedTab=new URLSearchParams(location.search).get("tab");if(requestedTab==="trading"){const tradingTab=document.querySelector('.eden-tab[data-panel="tradingPanel"]');if(tradingTab)setTab(tradingTab);}
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
@@ -560,14 +572,15 @@ async function initialise(){
   await loadDuplicateSaleSettings();
   const [collectionResult,readerResult,progressResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections"),client.rpc("get_my_card_progress")]);
   if(collectionResult.error){$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection is temporarily unavailable. Please check that the Stage 3 binder migration has been installed."));$("collectionSummary").textContent="COLLECTION UNAVAILABLE";}
-  else{owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
+  else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
   if(progressResult.error){console.error(progressResult.error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","Card progress is unavailable. Please run the Stage 8D.1 progress tracker migration in Supabase."));$("progressSummary").textContent="PROGRESS UNAVAILABLE";$("progressOverviewTitle").textContent="Progress is temporarily unavailable";}
   else{cardProgress=progressResult.data||[];renderCardProgress();}
   await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility(),loadWantedBoard()]);await syncReaderNotifications();
- window.setInterval(()=>{if(document.visibilityState==="visible")loadNotifications();},60000);
- document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadNotifications();});
+ window.setInterval(()=>{if(document.visibilityState==="visible"){refreshCardProgress({silent:true});loadNotifications();}},45000);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){refreshCardProgress({silent:true});loadNotifications();}});
+ window.addEventListener("focus",()=>refreshCardProgress({silent:true}));
  }
 }
 document.addEventListener("DOMContentLoaded",async()=>{
