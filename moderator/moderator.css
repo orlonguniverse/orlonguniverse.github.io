@@ -249,3 +249,14 @@
 .archive-relation-type-create label:nth-child(3){grid-column:1/-1}
 .archive-relation-type-create button{justify-self:start}
 @media(max-width:700px){.archive-relation-type-create{grid-template-columns:1fr}.archive-relation-type-create label:nth-child(3){grid-column:auto}.archive-relation-type-create button{width:100%}}
+
+
+/* Stage 8D.4 — release controls and future game-data fields */
+.card-release-settings{display:grid;gap:14px;margin:18px 0;padding:18px;background:linear-gradient(145deg,#101f32,#091321);border:1px solid rgba(201,170,107,.3);border-radius:10px}
+.card-release-settings h3{margin:0;color:#e7d5ad;font:500 15px Cinzel,serif;letter-spacing:1px}
+.card-release-settings>p{margin:0}
+.card-release-settings .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card-release-settings label{display:grid;gap:7px;color:#c7d7e8;font-size:9px;font-weight:700;letter-spacing:.7px}
+.card-release-settings input,.card-release-settings select,.card-release-settings textarea{width:100%;min-width:0;padding:10px;background:#071321;border:1px solid #38516e;color:#e8eef7;font:11px/1.5 Inter,sans-serif}
+.card-release-settings textarea{resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+@media(max-width:650px){.card-release-settings .field-grid{grid-template-columns:1fr}}
