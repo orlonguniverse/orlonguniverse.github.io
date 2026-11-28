@@ -72,3 +72,34 @@
 .site-map-page.dragging,.site-map-route.dragging{opacity:.45;border-color:#8cc8ff}
 @media(max-width:950px){.site-map-layout{grid-template-columns:1fr}}
 @media(max-width:600px){.site-map-route{grid-template-columns:18px minmax(0,1fr)}.site-map-route-fields{grid-template-columns:1fr}.site-map-route>.site-map-actions{grid-column:2}.site-map-page{grid-template-columns:18px minmax(0,1fr)}.site-map-page>.site-map-actions{grid-column:2}.site-map-toolbar{width:100%}}
+
+
+/* Simplified Website Map controls */
+.site-map-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.site-map-steps>div{display:grid;gap:6px;padding:15px;background:#14283d;border:1px solid #38536d;border-radius:4px}
+.site-map-steps strong{font:600 11px Inter,Arial,sans-serif;letter-spacing:.8px;color:#b8dcff}
+.site-map-steps span,.site-map-help{font-size:11px;line-height:1.7;color:#b5c4d5}
+.site-map-help{margin:4px 0 14px}
+.site-map-page{grid-template-columns:minmax(0,1fr);gap:8px;cursor:default}
+.site-map-page-main{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.site-map-page-main strong{font:600 13px Inter,Arial,sans-serif;color:#f0f5fb}
+.site-map-page-main code{color:#9bc7f1;font-size:10px;overflow-wrap:anywhere}
+.site-map-page-details{display:flex;align-items:center;gap:10px}
+.site-map-page-kind{font-size:9px;letter-spacing:1px;color:#91a9c1}
+.site-map-actions{margin-top:3px}
+.site-map-actions button,.site-map-route .site-map-actions button{font-size:10px;padding:7px 10px}
+.site-map-inline-form{display:grid;gap:10px;padding:16px;margin:10px 0;background:#14283d;border:1px solid #6b9ac5}
+.site-map-inline-form .site-map-actions{display:flex;gap:8px}
+.site-map-route-group{padding:16px}
+.site-map-route-heading h3{margin:0 0 4px}
+.site-map-route-heading .site-map-hint{margin:0 0 12px}
+.site-map-route{grid-template-columns:minmax(0,1fr);cursor:default}
+.site-map-route-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.site-map-route .site-map-actions{margin-top:5px}
+.site-map-field{font-size:10px;letter-spacing:.3px}
+.site-map-field input{font-size:12px}
+.site-map-enabled{font-size:11px}
+.site-map-note{margin-top:18px;padding:16px 18px;background:#101e2d;border-left:3px solid #6b9ac5}
+.site-map-note strong{font-size:12px;color:#e7f2ff}
+.site-map-note p{margin:6px 0 0;font-size:11px;line-height:1.7;color:#b5c4d5}
+@media(max-width:700px){.site-map-steps{grid-template-columns:1fr}.site-map-route-fields{grid-template-columns:1fr}.site-map-page-main{display:grid}}
