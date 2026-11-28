@@ -123,7 +123,8 @@ async function loadRequests(){
   const use=text("button","secondary","CREATE FROM REQUEST");use.type="button";use.addEventListener("click",()=>{$("expressionTitle").value=item.title;$("expressionType").value=item.requested_type;$("expressionAlt").value=item.description;$("expressionKey").value=slug(item.title);say("Request loaded into the editor. Add an image or emoji, then save it.");$("expressionAssetForm").scrollIntoView({behavior:"smooth"});});
   const approve=text("button","secondary","APPROVE");approve.type="button";approve.addEventListener("click",()=>reviewRequest(item.id,"approved"));
   const decline=text("button","danger","DECLINE");decline.type="button";decline.addEventListener("click",()=>reviewRequest(item.id,"declined"));
-  actions.append(use,approve,decline);row.append(actions);root.append(row);
+  const added=text("button","secondary","MARK ADDED");added.type="button";added.addEventListener("click",()=>reviewRequest(item.id,"added"));
+  actions.append(use,approve,decline,added);row.append(actions);root.append(row);
  });
  if(!data?.length)root.textContent="No reader requests yet.";
 }
