@@ -91,10 +91,10 @@ async function start(db,path,bar){
  const {data,error}=await db.auth.getSession();if(error||!data.session)return;
  const {data:allowed}=await db.rpc("is_reader_moderator");if(allowed!==true)return;
  style();
- const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS"),pagesButton=$("button","","MANAGE PAGES");
+ const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS"),pagesButton=$("button","","MANAGE CUSTOM PAGES"),mapButton=$("button","","ALL WEBSITE PAGES");
  Object.assign(add.style,{padding:"8px 11px",background:"#236caa",color:"#fff",border:"1px solid #6faee4",cursor:"pointer"});
- Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});Object.assign(pagesButton.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
- bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));bar.insertBefore(pagesButton,bar.querySelector("#orlongEditorExit"));
+ Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});Object.assign(pagesButton.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});Object.assign(mapButton.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
+ bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));bar.insertBefore(pagesButton,bar.querySelector("#orlongEditorExit"));bar.insertBefore(mapButton,bar.querySelector("#orlongEditorExit"));
  const panel=$("aside","orlong-builder-panel");panel.id="orlongBuilderPanel";panel.dataset.orlongEditorUi="true";panel.setAttribute("aria-label","Website design editor");panel.hidden=true;document.body.append(panel);
  const status=$("p","builder-status","Your page preview remains visible beside this sidebar. Select a section below or create a new one.");
  const head=$("h2","","PAGE DESIGN & CONTENT");const close=$("button","builder-close","CLOSE");close.type="button";close.addEventListener("click",()=>panel.hidden=true);
@@ -255,7 +255,7 @@ async function start(db,path,bar){
   if(error)throw error;page.id=data.page_id;page.slug=data.slug;return page;
  };
  const openPages=async()=>{
-  body.replaceChildren($("h2","","YOUR WEBSITE PAGES"),$("p","","Create new pages, keep unfinished ideas as drafts, and publish them whenever you're ready. Each page gets its own shareable address."));
+  body.replaceChildren($("h2","","CUSTOM PAGES"),$("p","","Create new pages, keep unfinished ideas as drafts, and publish them whenever you're ready. Each page gets its own shareable address."));
   const toolbar=$("div","builder-row"),create=$("button","","＋ CREATE NEW PAGE"),refresh=$("button","","REFRESH LIST");
   create.addEventListener("click",()=>editManagedPage(null));refresh.addEventListener("click",()=>openPages());toolbar.append(create,refresh);body.append(toolbar);
   const {data,error}=await db.rpc("get_moderator_orlong_managed_pages");if(error)throw error;
@@ -328,7 +328,8 @@ async function start(db,path,bar){
  };
  add.addEventListener("click",()=>{panel.hidden=false;addSection()});
  manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message("Could not open section manager: "+e.message))});
- pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load page manager: "+e.message))});
+ pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load custom page manager: "+e.message))});
+ mapButton.addEventListener("click",()=>window.open("/moderator/#tab-sitemap","_blank","noopener"));
  try{await reload()}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
 }
 window.OrlongSiteBuilder={render,start};
