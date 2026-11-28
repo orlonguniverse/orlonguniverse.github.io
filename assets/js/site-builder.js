@@ -119,7 +119,10 @@ async function start(db,path,bar){
  const message=t=>status.textContent=t;
  const refreshPreview=()=>{
   document.querySelectorAll("[data-orlong-section-id]").forEach(node=>node.remove());
-  const placed=new Map();[...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>placeSection(renderSection(record),record,placed));
+  const placed=new Map(),fallback=document.querySelector("main")||document.querySelector("#pageBody")||document.body;
+  [...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>{
+   const node=renderSection(record);placeSection(node,record,placed);if(!node.isConnected)fallback.append(node);
+  });
  };
  const save=async(section)=>{
   const {data:result,error:saveError}=await db.rpc("save_moderator_orlong_site_section",{p_section_id:section.id||null,p_page_path:path,p_anchor_selector:section.anchorSelector||"main",p_sort_order:section.sortOrder||0,p_section_data:section.data,p_is_published:section.published!==false});
