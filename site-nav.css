@@ -145,3 +145,13 @@ body.book-only-mode .nav-book-only-entry{display:none!important}
 .topbar .nav-moderator-icon svg{display:block;width:19px;height:19px}
 .topbar .nav-moderator-icon:hover{color:var(--orlong-on-accent,#fff)!important;background:var(--orlong-accent,#398cff)!important;border-color:var(--orlong-ice,#b8d8ff)!important}
 .topbar .nav-moderator-icon:focus-visible{outline:2px solid var(--orlong-ice,#8bbdff);outline-offset:3px}
+
+
+/* Stage 8E.1 — calm, readable section labels inside Discovery. */
+.topbar .nav-dropdown-section-label{display:block;padding:11px 12px 5px;margin-top:4px;color:var(--orlong-ice,#a8ceff);font:700 8px/1.3 Inter,sans-serif;letter-spacing:1.7px;text-transform:uppercase;opacity:.88}
+.topbar .nav-dropdown-section-label:first-child{margin-top:2px}
+.topbar .nav-dropdown-section-label:not(:first-child){border-top:1px solid color-mix(in srgb,var(--orlong-accent,#398cff) 22%,transparent)}
+.topbar .nav-dropdown-menu{min-width:218px!important;padding:8px!important}
+.topbar .nav-dropdown-menu a{min-height:38px!important;padding:10px 12px!important}
+.topbar .nav-book-collection{color:var(--orlong-text,#f1f5fb)!important}
+@media(max-width:760px){.topbar .nav-dropdown-menu{max-width:min(290px,92vw)!important}.topbar .nav-dropdown-section-label{padding-left:10px}}
