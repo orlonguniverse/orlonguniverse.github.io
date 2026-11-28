@@ -89,7 +89,7 @@ async function start(db,path,bar){
  style();
  const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS"),pagesButton=$("button","","MANAGE PAGES");
  Object.assign(add.style,{padding:"8px 11px",background:"#236caa",color:"#fff",border:"1px solid #6faee4",cursor:"pointer"});
- Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
+ Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});Object.assign(pagesButton.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
  bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));bar.insertBefore(pagesButton,bar.querySelector("#orlongEditorExit"));
  const panel=$("aside","orlong-builder-panel");panel.id="orlongBuilderPanel";panel.dataset.orlongEditorUi="true";panel.setAttribute("aria-label","Website design editor");panel.hidden=true;document.body.append(panel);
  const status=$("p","builder-status","Your page preview remains visible beside this sidebar. Select a section below or create a new one.");
