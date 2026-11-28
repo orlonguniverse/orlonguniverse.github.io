@@ -7,7 +7,7 @@ const client=window.supabase.createClient(URL_BASE,KEY);
 const $=id=>document.getElementById(id);
 const say=(value)=>{const el=$("expressionAdminStatus");if(el)el.textContent=value;};
 const slug=value=>String(value||"expression").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);
-let activeId=null;
+let activeId=null,activeRequestId=null;
 async function ensureModerator(){
  const {data:{session}}=await client.auth.getSession();
  if(!session)return false;
@@ -60,7 +60,7 @@ function buildPanel(){
  loadAssets();loadRequests();loadGiphySettings();loadCardChoices();
 }
 function resetForm(){
- activeId=null;$("expressionAssetForm").reset();$("expressionCategory").value="Orlong";$("expressionSort").value="100";$("expressionPublic").checked=true;$("saveExpressionAsset").textContent="SAVE TO LIBRARY";say("Ready to create a new library item.");
+ activeId=null;activeRequestId=null;$("expressionAssetForm").reset();$("expressionCategory").value="Orlong";$("expressionSort").value="100";$("expressionPublic").checked=true;$("saveExpressionAsset").textContent="SAVE TO LIBRARY";say("Ready to create a new library item.");
 }
 function parseList(id){const el=$(id);if(el.multiple)return [...el.selectedOptions].map(option=>option.value);return el.value.split(",").map(x=>x.trim()).filter(Boolean);}
 async function loadCardChoices(){const select=$("expressionUnlockCards");if(!select)return;const {data,error}=await client.rpc("get_moderator_card_studio");if(error){select.append(new Option("Card catalogue unavailable",""));return;}select.replaceChildren();(data?.cards||[]).forEach(card=>select.append(new Option(card.number+" · "+card.name,card.id)));}
@@ -86,6 +86,7 @@ async function saveAsset(event){
   };
   const {data,error}=await client.rpc("moderator_save_expression_asset",args);if(error)throw error;
   activeId=data;say("Saved! This item is now in the Orlong Expression Library.");
+  if(activeRequestId){await client.rpc("moderator_review_expression_request",{p_request_id:activeRequestId,p_status:"added",p_note:"Added to the Orlong Expression Library."});activeRequestId=null;}
   await loadAssets();await loadRequests();
  }catch(error){console.error(error);say(error.message||"Could not save this expression item.");}
  finally{button.disabled=false;button.textContent=activeId?"UPDATE LIBRARY ITEM":"SAVE TO LIBRARY";}
@@ -122,7 +123,7 @@ async function loadRequests(){
   const row=document.createElement("article");row.className="expression-request-row";
   row.append(text("strong","",item.title+" · "+item.requested_type.toUpperCase()),text("p","",item.description),text("small","",item.status.toUpperCase()+" · "+new Date(item.created_at).toLocaleDateString()));
   const actions=document.createElement("div");
-  const use=text("button","secondary","CREATE FROM REQUEST");use.type="button";use.addEventListener("click",()=>{$("expressionTitle").value=item.title;$("expressionType").value=item.requested_type;$("expressionAlt").value=item.description;$("expressionKey").value=slug(item.title);say("Request loaded into the editor. Add an image or emoji, then save it.");$("expressionAssetForm").scrollIntoView({behavior:"smooth"});});
+  const use=text("button","secondary","CREATE FROM REQUEST");use.type="button";use.addEventListener("click",()=>{activeRequestId=item.id;$("expressionTitle").value=item.title;$("expressionType").value=item.requested_type;$("expressionAlt").value=item.description;$("expressionKey").value=slug(item.title);say("Request loaded into the editor. Add an image or emoji, then save it.");$("expressionAssetForm").scrollIntoView({behavior:"smooth"});});
   const approve=text("button","secondary","APPROVE");approve.type="button";approve.addEventListener("click",()=>reviewRequest(item.id,"approved"));
   const decline=text("button","danger","DECLINE");decline.type="button";decline.addEventListener("click",()=>reviewRequest(item.id,"declined"));
   const added=text("button","secondary","MARK ADDED");added.type="button";added.addEventListener("click",()=>reviewRequest(item.id,"added"));
