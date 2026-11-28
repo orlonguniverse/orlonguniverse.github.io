@@ -95,12 +95,14 @@ async function start(db,path,bar){
   const actions=$("div","builder-row");
   const edit=$("button","","EDIT SECTION");edit.addEventListener("click",()=>editSection(section));
   const block=$("button","","＋ ADD CONTENT");block.addEventListener("click",()=>addBlock(section));
-  const manage=$("button","","MANAGE CONTENT");manage.addEventListener("click",()=>manageBlocks(section));
+  const manage=$("button","","EDIT CONTENT");manage.addEventListener("click",()=>manageBlocks(section));
+  const visibility=$("button","",section.published===false?"PUBLISH":"HIDE");visibility.addEventListener("click",async()=>{section.published=section.published===false;try{await save(section);await reload();message(section.published?"Section published.":"Section hidden from readers.")}catch(e){message(e.message)}});
   const up=$("button","","↑");up.title="Move section up";up.disabled=index===0;up.addEventListener("click",()=>moveSection(section,-1));
   const down=$("button","","↓");down.title="Move section down";down.disabled=index===sections.length-1;down.addEventListener("click",()=>moveSection(section,1));
   const duplicate=$("button","","DUPLICATE");duplicate.addEventListener("click",async()=>{const copy={pagePath:path,anchorSelector:section.anchorSelector||"main",sortOrder:sections.length?Math.max(...sections.map(item=>item.sortOrder||0))+1:0,published:section.published!==false,data:JSON.parse(JSON.stringify(section.data||{}))};copy.data.title="Copy of "+(copy.data.title||"Untitled section");try{await save(copy);await reload();message("Section duplicated.")}catch(e){message(e.message||"Could not duplicate this section.")}});
   const del=$("button","danger","DELETE");del.addEventListener("click",()=>deleteSection(section));
-  actions.append(edit,block,manage,up,down,duplicate,del);entry.append(title,meta,actions);body.append(entry);
+  const placement=$("p","",placementDescription(section));
+  actions.append(edit,block,manage,visibility,up,down,duplicate,del);entry.append(title,meta,placement,actions);body.append(entry);
  });
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
@@ -113,15 +115,19 @@ async function start(db,path,bar){
   saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await reload();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
   actions.append(saveBtn,cancel);body.append(actions);return renderFields;
  };
+ const placementDescription=section=>{
+  const option=placementOptions().find(item=>item.value===((section.anchorSelector||"main")+"|"+(section.data?.placement||"end")));
+  return "POSITION: "+(option?.label||"At the bottom of the page");
+ };
  const editSection=section=>{
-  const title=input("SECTION TITLE",section.data.title||""),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],section.data.theme||"default"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],section.data.width||"standard"),align=choose("ALIGNMENT",[["left","Left"],["center","Centred"]],section.data.align||"left"),anchor=input("INSERT AFTER CSS SELECTOR",section.anchorSelector||"main");
+  const title=input("SECTION TITLE",section.data.title||""),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],section.data.theme||"default"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],section.data.width||"standard"),align=choose("ALIGNMENT",[["left","Left"],["center","Centred"]],section.data.align||"left"),placement=choose("WHERE SHOULD THIS SECTION APPEAR?",placementOptions().map(x=>[x.value,x.label]),(section.anchorSelector||"main")+"|"+(section.data.placement||"end"));
   const publishedWrap=$("label","","PUBLISH THIS SECTION"),publishedField=$("input");publishedField.type="checkbox";publishedField.checked=section.published!==false;publishedWrap.append(publishedField);
-  dialog("EDIT SECTION",[title.wrap,theme.wrap,width.wrap,align.wrap,anchor.wrap,publishedWrap],async()=>{section.data={...section.data,title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:align.field.value};section.anchorSelector=anchor.field.value.trim()||"main";section.published=publishedField.checked;await save(section)});
+  dialog("EDIT SECTION",[title.wrap,theme.wrap,width.wrap,align.wrap,placement.wrap,publishedWrap],async()=>{const [selector,position]=placement.field.value.split("|");section.data={...section.data,title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:align.field.value,placement:position||"end"};section.anchorSelector=selector||"main";section.published=publishedField.checked;await save(section)});
  };
  const addSection=async()=>{
-  const title=input("SECTION TITLE","New section"),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],"panel"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],"standard"),anchor=input("INSERT AFTER CSS SELECTOR","main");
+  const title=input("SECTION TITLE","New section"),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],"panel"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],"standard"),placement=choose("WHERE SHOULD THIS SECTION APPEAR?",placementOptions().map(x=>[x.value,x.label]),"main|end");
   const publishedWrap=$("label","","PUBLISH THIS SECTION");const publishedField=$("input");publishedField.type="checkbox";publishedField.checked=true;publishedWrap.append(publishedField);
-  dialog("CREATE SECTION",[title.wrap,theme.wrap,width.wrap,anchor.wrap,publishedWrap],async()=>{const section={pagePath:path,anchorSelector:anchor.field.value.trim()||"main",sortOrder:sections.length?Math.max(...sections.map(s=>s.sortOrder||0))+1:0,published:publishedField.checked,data:{title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:"left",blocks:[]}};await save(section)});
+  dialog("CREATE SECTION",[title.wrap,theme.wrap,width.wrap,placement.wrap,publishedWrap],async()=>{const [selector,position]=placement.field.value.split("|");const section={pagePath:path,anchorSelector:selector||"main",sortOrder:sections.length?Math.max(...sections.map(s=>s.sortOrder||0))+1:0,published:publishedField.checked,data:{title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:"left",placement:position||"end",blocks:[]}};await save(section)});
  };
  const addBlock=section=>{
   const type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text box / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],"text");
@@ -177,7 +183,8 @@ async function start(db,path,bar){
  const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
  const deleteSection=async section=>{if(!confirm("Delete this custom section and all its content?"))return;const {error:delError}=await db.rpc("delete_moderator_orlong_site_section",{p_section_id:section.id});if(delError){message(delError.message);return}await reload();message("Section deleted.")};
  add.addEventListener("click",()=>{panel.hidden=false;addSection()});
- manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message(e.message))});
+ manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message("Could not open section manager: "+e.message))});
+ pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load page manager: "+e.message))});
  try{await reload()}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
 }
 window.OrlongSiteBuilder={render,start};
