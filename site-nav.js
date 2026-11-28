@@ -10,16 +10,19 @@ window.updateOrlongAccountLabel=function(user){
 window.updateOrlongModeratorLink=async function(user,client){
  const nav=document.querySelector(".topbar-right, .top-actions");
  if(!nav)return;
- const menu=nav.querySelector(".nav-main-menu-panel");
- const existing=nav.querySelector(".nav-moderator-link");
+ const existing=nav.querySelector(".nav-moderator-icon");
  if(!user){existing?.remove();return;}
  try{
   const {data,error}=await client.rpc("is_reader_moderator");
   if(error||data!==true){existing?.remove();return;}
-  if(!nav.querySelector(".nav-moderator-link")){
-   const link=document.createElement("a");link.href="/moderator/";link.textContent="MODERATOR HQ";link.className="nav-moderator-link";
-   (menu||nav).append(link);
+  let link=nav.querySelector(".nav-moderator-icon");
+  if(!link){
+   link=document.createElement("a");link.href="/moderator/";link.className="nav-moderator-icon";
+   link.setAttribute("aria-label","Moderator Headquarters");link.title="Moderator HQ";
+   link.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 5-3.2 8.3-7 10-3.8-1.7-7-5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>';
   }
+  const instagram=nav.querySelector(".nav-social-link");
+  if(instagram)nav.insertBefore(link,instagram);else nav.append(link);
  }catch(error){existing?.remove();console.warn("Moderator navigation is unavailable:",error);}
 };
 window.enterBookOnlyMode=function(){
@@ -110,9 +113,9 @@ document.addEventListener("DOMContentLoaded",()=>{
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(exitBookOnly,instagram);
   }else{
-   navLinks.replaceChildren(startReading,exploreEden,community);
+   navLinks.replaceChildren(main,startReading,exploreEden,community);
    if(accountButton)navLinks.append(accountButton);
-   navLinks.append(main,instagram);
+   navLinks.append(instagram);
   }
   navLinks.dataset.orlongGrouped="true";
   // Load moderator-managed navigation when the Website Map migration is installed.
@@ -144,10 +147,17 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(mainSettings.showStatistics!==false)panel.append(statsLink);
     if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
     const managedMenus=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"READING":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
-    navLinks.replaceChildren(...primary,...managedMenus);
-    if(accountButton)navLinks.append(accountButton);
-    if(mainSettings.enabled!==false)navLinks.append(main);
-    navLinks.append(instagram);
+    const topLevel=new Map([["main-menu",main],["book-collection",primary[0]]]);
+    primary.slice(1).forEach(link=>topLevel.set("link:"+link.dataset.navigationId,link));
+    menuSettings.forEach((item,index)=>{const menu=managedMenus.find((_,i)=>menuSettings.filter(x=>x.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0))[i]?.id===item.id);if(menu)topLevel.set("menu:"+item.id,menu);});
+    const fallbackOrder=["main-menu","book-collection",...primary.slice(1).map(link=>"link:"+link.dataset.navigationId),...menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>"menu:"+item.id)];
+    const savedOrder=Array.isArray(data.navigationOrder)?data.navigationOrder:[];
+    const orderedIds=[...savedOrder.filter(id=>topLevel.has(id)),...fallbackOrder.filter(id=>!savedOrder.includes(id)&&topLevel.has(id))];
+    const orderedElements=orderedIds.map(id=>topLevel.get(id)).filter(Boolean);
+    if(accountButton)orderedElements.push(accountButton);
+    orderedElements.push(instagram);
+    navLinks.replaceChildren(...orderedElements);
+    navClient.auth.getSession().then(({data})=>window.updateOrlongModeratorLink?.(data?.session?.user||null,navClient)).catch(()=>{});
     navClient.auth.getSession().then(({data})=>window.updateOrlongModeratorLink?.(data?.session?.user||null,navClient)).catch(()=>{});
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
