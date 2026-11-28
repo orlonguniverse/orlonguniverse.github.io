@@ -40,7 +40,7 @@ function placeSection(section,record,placed=new Map()){
  const placement=record.data?.placement||"after",key=selector+"|"+placement,previous=placed.get(key);
  if(placement==="before"&&anchor!==document.body){anchor.parentNode?.insertBefore(section,anchor);return}
  if(placement==="inside"){
-  if(previous&&previous.parentNode===anchor)anchor.insertBefore(section,previous);else anchor.prepend(section);
+  if(previous&&previous.parentNode===anchor)previous.insertAdjacentElement("afterend",section);else anchor.prepend(section);
   placed.set(key,section);return
  }
  if(placement==="end"||anchor===document.body||anchor.tagName?.toLowerCase()==="main"){anchor.append(section);return}
