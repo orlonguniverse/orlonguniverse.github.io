@@ -6,7 +6,7 @@ const style=()=>{if(document.getElementById("orlongBuilderStyles"))return;const 
 .orlong-custom-section.width-narrow{max-width:760px}.orlong-custom-section.width-standard{max-width:1040px}.orlong-custom-section.width-wide{max-width:1280px}.orlong-custom-section.width-full{max-width:none;width:100%;border-radius:0}
 .orlong-custom-section.theme-default{background:transparent}.orlong-custom-section.theme-panel{background:rgba(14,29,47,.78)}.orlong-custom-section.theme-blue{background:linear-gradient(135deg,#102e4e,#0a1728);border-color:#315b85}.orlong-custom-section.theme-light{background:#edf2f8;color:#17283b;border-color:#cbd7e5}
 .orlong-custom-section.align-center{text-align:center}.orlong-custom-section h2{font-family:Cinzel,Georgia,serif;font-size:clamp(20px,3vw,30px);letter-spacing:1px;margin:0 0 16px}.orlong-custom-section h3{font-family:Cinzel,Georgia,serif;font-size:19px;margin:22px 0 9px}.orlong-custom-section p{font-size:14px;line-height:1.9;white-space:pre-wrap}.orlong-builder-callout{padding:18px 20px;border-left:3px solid #5ba7ec;background:rgba(80,145,205,.12);margin:18px 0}.theme-light .orlong-builder-callout{background:#dce8f5}.orlong-builder-image{display:block;max-width:100%;height:auto;margin:18px auto;border-radius:4px}.orlong-builder-caption{font-size:12px;opacity:.75;text-align:center;margin-top:-10px}.orlong-builder-button{display:inline-block;margin:14px 8px 8px 0;padding:12px 20px;background:#2f77b9;color:#fff!important;text-decoration:none!important;border-radius:3px;font-weight:700;font-size:12px;letter-spacing:.8px}.orlong-builder-divider{border:0;border-top:1px solid currentColor;opacity:.2;margin:26px 0}.orlong-custom-section details{padding:14px 0;border-bottom:1px solid rgba(130,160,190,.25)}.orlong-custom-section summary{cursor:pointer;font-weight:700}.orlong-custom-section .orlong-builder-block{margin:12px 0}
-.orlong-builder-panel{position:fixed;z-index:2147483646;left:0;top:58px;bottom:0;width:min(390px,calc(100vw - 24px));max-height:none;overflow:auto;padding:22px 20px 36px;background:#101d2d;color:#f4f7fb;border:0;border-right:1px solid #496886;box-shadow:12px 0 36px #0005;font:13px Inter,Arial,sans-serif}.orlong-builder-panel:before{content:"SITE DESIGN STUDIO";display:block;margin:-22px -20px 18px;padding:18px 20px;background:#172b42;border-bottom:1px solid #385674;color:#a9d4ff;font:700 11px Inter,Arial,sans-serif;letter-spacing:2px}.orlong-builder-panel h2{font-size:18px}.orlong-builder-panel .builder-entry{background:#14263a;border-radius:5px}.orlong-builder-panel .builder-row button{border-radius:3px}.orlong-builder-panel .builder-row button:focus-visible,.orlong-builder-panel button:focus-visible{outline:2px solid #8cc8ff;outline-offset:2px}.orlong-builder-panel h2{font:600 17px Cinzel,Georgia,serif;margin:0 0 12px}.orlong-builder-panel p{font-size:11px;line-height:1.6;color:#afc1d4}.orlong-builder-panel button,.orlong-builder-panel select,.orlong-builder-panel input,.orlong-builder-panel textarea{font:12px Inter,Arial,sans-serif}.orlong-builder-panel button{padding:8px 10px;border:1px solid #496886;background:#183553;color:#fff;cursor:pointer}.orlong-builder-panel button.danger{background:#512d36;border-color:#87505b}.orlong-builder-panel .builder-row{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}.orlong-builder-panel .builder-entry{padding:11px;border:1px solid #30465e;margin:8px 0}.orlong-builder-panel .builder-entry strong{display:block;margin-bottom:7px}.orlong-builder-panel label{display:grid;gap:5px;margin:10px 0;color:#c7d8e8;font-size:10px;letter-spacing:.5px}.orlong-builder-panel input,.orlong-builder-panel textarea,.orlong-builder-panel select{width:100%;box-sizing:border-box;padding:9px;background:#101f31;color:#fff;border:1px solid #405a76}.orlong-builder-panel textarea{min-height:90px}.orlong-builder-panel .builder-close{float:right}.orlong-builder-panel .builder-status{color:#a9d4ff;min-height:18px}
+.orlong-builder-panel{position:fixed;isolation:isolate;contain:layout style;pointer-events:auto;z-index:2147483646;left:0;top:58px;bottom:0;width:min(390px,calc(100vw - 24px));max-height:none;overflow:auto;padding:22px 20px 36px;background:#101d2d;color:#f4f7fb;border:0;border-right:1px solid #496886;box-shadow:12px 0 36px #0005;font:13px Inter,Arial,sans-serif}.orlong-builder-panel:before{content:"SITE DESIGN STUDIO";display:block;margin:-22px -20px 18px;padding:18px 20px;background:#172b42;border-bottom:1px solid #385674;color:#a9d4ff;font:700 11px Inter,Arial,sans-serif;letter-spacing:2px}.orlong-builder-panel h2{font-size:18px}.orlong-builder-panel .builder-entry{background:#14263a;border-radius:5px}.orlong-builder-panel .builder-row button{border-radius:3px}.orlong-builder-panel .builder-row button:focus-visible,.orlong-builder-panel button:focus-visible{outline:2px solid #8cc8ff;outline-offset:2px}.orlong-builder-panel h2{font:600 17px Cinzel,Georgia,serif;margin:0 0 12px}.orlong-builder-panel p{font-size:11px;line-height:1.6;color:#afc1d4}.orlong-builder-panel button,.orlong-builder-panel select,.orlong-builder-panel input,.orlong-builder-panel textarea{font:12px Inter,Arial,sans-serif}.orlong-builder-panel button{padding:8px 10px;border:1px solid #496886;background:#183553;color:#fff;cursor:pointer}.orlong-builder-panel button.danger{background:#512d36;border-color:#87505b}.orlong-builder-panel .builder-row{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}.orlong-builder-panel .builder-entry{padding:11px;border:1px solid #30465e;margin:8px 0}.orlong-builder-panel .builder-entry strong{display:block;margin-bottom:7px}.orlong-builder-panel label{display:grid;gap:5px;margin:10px 0;color:#c7d8e8;font-size:10px;letter-spacing:.5px}.orlong-builder-panel input,.orlong-builder-panel textarea,.orlong-builder-panel select{width:100%;box-sizing:border-box;padding:9px;background:#101f31;color:#fff;border:1px solid #405a76}.orlong-builder-panel textarea{min-height:90px}.orlong-builder-panel .builder-close{float:right}.orlong-builder-panel .builder-status{color:#a9d4ff;min-height:18px}
 @media(max-width:600px){.orlong-custom-section{padding:22px 17px;margin:22px 10px}.orlong-builder-panel{top:58px;left:0;right:auto;bottom:0;width:min(390px,calc(100vw - 24px));max-height:none}}
 `;document.head.append(s)};
 function makeBlock(block){
@@ -17,7 +17,7 @@ function makeBlock(block){
  if(block.type==="divider"){wrap.append($("hr","orlong-builder-divider"));return wrap}
  if(block.type==="image"){const url=safeUrl(block.url||"");if(!url)return wrap;const img=$("img","orlong-builder-image");img.src=url;img.alt=block.alt||"";if(block.width)img.style.width=block.width;wrap.append(img);if(block.caption)wrap.append($("div","orlong-builder-caption",block.caption));return wrap}
  if(block.type==="button"){const url=safeUrl(block.url||"");if(!url)return wrap;const a=$("a","orlong-builder-button",block.text||"LEARN MORE");a.href=url;if(/^https?:/.test(url))a.rel="noopener noreferrer";wrap.append(a);return wrap}
- if(block.type==="accordion"){(block.items||[]).forEach(item=>{const d=$("details"),s=$("summary","",item.title||"More information"),p=$("p","",item.text||"");d.append(s,p);wrap.append(d)});return wrap}
+ if(block.type==="accordion"){if(block.title)wrap.append($("h3","",block.title));(block.items||[]).forEach(item=>{const d=$("details"),s=$("summary","",item.title||"More information"),p=$("p","",item.text||"");d.append(s,p);wrap.append(d)});return wrap}
  return wrap
 }
 function renderSection(record){
@@ -49,7 +49,7 @@ async function start(db,path,bar){
  Object.assign(add.style,{padding:"8px 11px",background:"#236caa",color:"#fff",border:"1px solid #6faee4",cursor:"pointer"});
  Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
  bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));
- const panel=$("aside","orlong-builder-panel");panel.hidden=true;document.body.append(panel);
+ const panel=$("aside","orlong-builder-panel");panel.id="orlongBuilderPanel";panel.dataset.orlongEditorUi="true";panel.setAttribute("aria-label","Website design editor");panel.hidden=true;document.body.append(panel);
  const status=$("p","builder-status","Your page preview remains visible beside this sidebar. Select a section below or create a new one.");
  const head=$("h2","","PAGE DESIGN & CONTENT");const close=$("button","builder-close","CLOSE");close.type="button";close.addEventListener("click",()=>panel.hidden=true);
  const body=$("div");panel.append(close,head,$("p","","This sidebar controls the page preview behind it. Add sections, organise content, and adjust each section. Changes are saved to Supabase."),$("div","builder-entry","PAGE: "+path),status,body);
@@ -74,12 +74,13 @@ async function start(db,path,bar){
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
  const choose=(label,values,value)=>{const wrap=$("label","",label),field=$("select");values.forEach(v=>{const o=$("option","",v[1]);o.value=v[0];field.append(o)});field.value=value;wrap.append(field);return {wrap,field}};
- const dialog=async(title,fields,onSave)=>{
-  body.replaceChildren();const h=$("h2","",title);body.append(h);
-  fields.forEach(f=>body.append(f?.wrap||f));
+ const dialog=(title,fields,onSave)=>{
+  body.replaceChildren();const h=$("h2","",title),fieldHost=$("div","builder-dialog-fields");body.append(h,fieldHost);
+  const renderFields=()=>{const list=typeof fields==="function"?fields():fields;fieldHost.replaceChildren();list.forEach(f=>fieldHost.append(f?.wrap||f));};
+  renderFields();
   const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",reload);
   saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await reload();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
-  actions.append(saveBtn,cancel);body.append(actions);
+  actions.append(saveBtn,cancel);body.append(actions);return renderFields;
  };
  const editSection=section=>{
   const title=input("SECTION TITLE",section.data.title||""),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],section.data.theme||"default"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],section.data.width||"standard"),align=choose("ALIGNMENT",[["left","Left"],["center","Centred"]],section.data.align||"left"),anchor=input("INSERT AFTER CSS SELECTOR",section.anchorSelector||"main");
@@ -91,14 +92,13 @@ async function start(db,path,bar){
  };
  const addBlock=section=>{
   const type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text box / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],"text");
-  const fields=[type];const dynamic=()=>{fields.slice(1).forEach(f=>f.wrap.remove());fields.splice(1);const t=type.field.value;
+  const fields=[type];const dynamic=()=>{fields.splice(1);const t=type.field.value;
    if(t==="heading"||t==="text"||t==="callout"){fields.push(input(t==="heading"?"HEADING TEXT":"TEXT CONTENT","",true))}
    if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS (one per line: title | content)","First item | Enter the content here",true))}
    if(t==="image"){fields.push(input("IMAGE URL (or upload below)",""));fields.push(input("IMAGE ALT TEXT",""));fields.push(input("IMAGE CAPTION",""));const fileWrap=$("label","","UPLOAD IMAGE");const file=$("input");file.type="file";file.accept="image/png,image/jpeg,image/webp,image/gif";fileWrap.append(file);fields.push({wrap:fileWrap,field:file})}
    if(t==="button"){fields.push(input("BUTTON TEXT","Learn more"));fields.push(input("DESTINATION URL","/"))}
   };
-  type.field.addEventListener("change",dynamic);dynamic();
-  dialog("ADD CONTENT BLOCK",fields.map(f=>f.wrap),async()=>{
+  const refreshFields=dialog("ADD CONTENT BLOCK",()=>fields,async()=>{
    const t=type.field.value,v=fields.slice(1).map(f=>f.field.value);
    let block={type:t};
    if(t==="heading"||t==="text"||t==="callout")block.text=v[0];
@@ -107,6 +107,7 @@ async function start(db,path,bar){
    if(t==="button"){block.text=v[0];block.url=v[1];if(!safeUrl(block.url))throw new Error("Enter a valid button destination.");}
    section.data.blocks=[...(section.data.blocks||[]),block];await save(section);
   });
+  type.field.addEventListener("change",()=>{dynamic();refreshFields()});dynamic();refreshFields();
  };
  const manageBlocks=section=>{
   body.replaceChildren($("h2","","MANAGE SECTION CONTENT"));
