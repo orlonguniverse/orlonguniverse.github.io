@@ -116,32 +116,38 @@ as $$
  where c.is_active=true and (p_card_ids is null or c.card_id=any(p_card_ids));
 $$;
 
--- Enforce the total print-run limit at the ownership table, regardless of which
--- reward, purchase, trade or moderator workflow grants the card.
+-- reader_card_copies stores one row per physical card (copy_id), not a
+-- quantity column. Count rows so purchases, rewards and trades all respect
+-- the global print-run limit.
 create or replace function public.enforce_eden_card_limited_quantity()
 returns trigger language plpgsql security definer set search_path=public,pg_temp
-as $$
-declare v_limit integer; v_existing bigint; v_new_count integer; v_type text;
+as $
+declare v_limit integer; v_existing bigint; v_type text;
 begin
  select limited_quantity,release_type
  into v_limit,v_type
  from public.eden_card_release_metadata
  where card_id=new.card_id;
- if v_type<>'limited' or v_limit is null then return new; end if;
- v_new_count:=greatest(coalesce(new.copy_count,1),0);
- select coalesce(sum(copy_count),0) into v_existing
- from public.reader_card_copies
- where card_id=new.card_id and owner_user_id<>new.owner_user_id;
- if v_existing+v_new_count>v_limit then
+
+ if v_type is distinct from 'limited' or v_limit is null then
+  return new;
+ end if;
+
+ select count(*) into v_existing
+ from public.reader_card_copies existing_copy
+ where existing_copy.card_id=new.card_id
+   and (tg_op='INSERT' or existing_copy.copy_id<>new.copy_id);
+
+ if v_existing+1>v_limit then
   raise exception 'This limited edition has reached its total release quantity (% copies)',v_limit;
  end if;
  return new;
 end;
-$$;
+$;
 
 drop trigger if exists enforce_eden_card_limited_quantity on public.reader_card_copies;
 create trigger enforce_eden_card_limited_quantity
-before insert or update of copy_count,card_id,owner_user_id on public.reader_card_copies
+before insert or update of card_id on public.reader_card_copies
 for each row execute function public.enforce_eden_card_limited_quantity();
 
 revoke all on function public.get_moderator_card_release_metadata() from public,anon;
