@@ -70,7 +70,7 @@ function placementOptions(){
  const candidates=[...main.querySelectorAll("header,section,article,h1,h2,h3") ].filter(node=>!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]")&&!node.hasAttribute("data-orlongSectionId"));
  candidates.forEach((node,index)=>{
   const heading=node.matches("h1,h2,h3")?node:node.querySelector("h1,h2,h3");
-  const label=(node.matches("h1,h2,h3")?"Heading — ":"Section — ")+(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\\s+/g," ").slice(0,52);
+  const label=(node.matches("h1,h2,h3")?"Heading — ":"Section — ")+(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\s+/g," ").slice(0,52);
   const selector=selectorForPlacement(node);
   options.push({value:selector+"|after",label:"After: "+label});
   options.push({value:selector+"|before",label:"Before: "+label});
