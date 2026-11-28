@@ -138,7 +138,13 @@ as $$
     'name',version_name,
     'theme',theme,
     'design',design,
-    'publishedAt',coalesce(publish_at,updated_at)
+    'publishedAt',coalesce(publish_at,updated_at),
+    'nextPublishAt',(
+      select min(next_version.publish_at)
+      from public.orlong_homepage_versions next_version
+      where next_version.status='scheduled'
+        and next_version.publish_at>now()
+    )
   )
   from public.orlong_homepage_versions
   where status='published'
