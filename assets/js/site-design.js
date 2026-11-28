@@ -46,6 +46,10 @@ async function init(){
   const {data,error}=await db.rpc("get_public_orlong_homepage_design");
   if(error){console.warn("Orlong series theme:",error.message);apply(null);return}
   apply(data||null);
+  if(data?.nextPublishAt){
+   const wait=Math.max(1000,new Date(data.nextPublishAt).getTime()-Date.now()+1200);
+   window.setTimeout(()=>init(),Math.min(wait,2147483647));
+  }
  }catch(e){console.warn("Orlong series theme could not load:",e);apply(null)}
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
