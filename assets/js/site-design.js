@@ -19,6 +19,10 @@ function apply(record){
  document.documentElement.dataset.orlongSeriesTheme=activeTheme;
  document.documentElement.dataset.orlongGlobalTheme=globalTheme;if(document.body)document.body.classList.toggle("orlong-reading-room",isReader);
  const luminance=hex=>{const h=String(hex||"#000").replace("#","");const full=h.length===3?h.split("").map(x=>x+x).join(""):h;const rgb=[0,2,4].map(i=>parseInt(full.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
+ const contrast=(a,b)=>{const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ const safeLight="#f7f9fc",safeDark="#111722";
+ const safeText=contrast(theme.text,theme.deep)>=4.5&&contrast(theme.text,theme.surface)>=4.5?theme.text:(Math.min(contrast(safeLight,theme.deep),contrast(safeLight,theme.surface))>=Math.min(contrast(safeDark,theme.deep),contrast(safeDark,theme.surface))?safeLight:safeDark);
+ theme.text=safeText;
  const onAccent=luminance(theme.accent)>.179?"#111722":"#ffffff";
  const onIce=luminance(theme.ice)>.48?"#111722":"#ffffff";
  const themeVars={"--blue":theme.accent,"--blue-light":theme.ice,"--ice":theme.ice,"--orlong-accent":theme.accent,"--orlong-ice":theme.ice,"--orlong-glow":theme.glow,"--orlong-deep":theme.deep,"--orlong-surface":theme.surface,"--bg":theme.deep,"--surface":theme.surface,"--text":theme.text,"--orlong-text":theme.text,"--orlong-on-accent":onAccent,"--orlong-on-ice":onIce,"--orlong-muted":theme.ice};
@@ -61,10 +65,10 @@ if(!document.getElementById("orlongThemeContrastStyles")){
   button:not(.secondary):not(.danger):not(.discussion-chip):not(.mod-tab),input[type=submit]{accent-color:var(--orlong-accent)}
   button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--orlong-ice)!important;outline-offset:3px}
   .orlong-book-catalogue{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:24px;margin-top:28px}
-  .orlong-book-card{display:grid;grid-template-columns:minmax(105px,.65fr) minmax(0,1.35fr);gap:20px;align-items:center;padding:20px;background:linear-gradient(145deg,var(--orlong-surface),var(--orlong-deep));border:1px solid color-mix(in srgb,var(--orlong-accent) 42%,transparent);border-radius:5px}
-  .orlong-book-cover{min-height:190px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;background:radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--orlong-accent) 78%,transparent),transparent 68%),linear-gradient(145deg,var(--orlong-deep),#080b10);border:1px solid var(--orlong-ice);color:var(--orlong-text);font-family:Cinzel,Georgia,serif;letter-spacing:1.5px}
+  .orlong-book-card{display:grid;grid-template-columns:minmax(105px,.65fr) minmax(0,1.35fr);gap:20px;align-items:center;padding:20px;background:linear-gradient(145deg,var(--book-surface,var(--orlong-surface)),var(--book-deep,var(--orlong-deep)));border:1px solid color-mix(in srgb,var(--book-accent,var(--orlong-accent)) 48%,transparent);border-radius:5px}
+  .orlong-book-cover{min-height:190px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;background:radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--book-accent,var(--orlong-accent)) 78%,transparent),transparent 68%),linear-gradient(145deg,var(--book-deep,var(--orlong-deep)),#080b10);border:1px solid var(--book-ice,var(--orlong-ice));color:var(--orlong-text);font-family:Cinzel,Georgia,serif;letter-spacing:1.5px}
   .orlong-book-cover strong{font-size:15px;line-height:1.5}.orlong-book-copy h3{margin:7px 0 10px;font-family:Cinzel,Georgia,serif}.orlong-book-copy p{color:var(--orlong-text);opacity:.82;font-size:12px;line-height:1.8}
-  .orlong-book-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.orlong-book-actions a{display:inline-flex;padding:10px 12px;background:var(--orlong-accent);color:var(--orlong-on-accent)!important;border:1px solid var(--orlong-ice);font-size:9px;letter-spacing:1px}
+  .orlong-book-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.orlong-book-actions a{display:inline-flex;padding:10px 12px;background:var(--book-accent,var(--orlong-accent));color:var(--orlong-on-accent)!important;border:1px solid var(--book-ice,var(--orlong-ice));font-size:9px;letter-spacing:1px}
   .orlong-book-switcher{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:18px auto 0;padding:12px 16px;max-width:560px;background:color-mix(in srgb,var(--orlong-accent) 10%,var(--orlong-surface));border:1px solid color-mix(in srgb,var(--orlong-accent) 45%,transparent)}
   .orlong-book-switcher label{color:var(--orlong-ice);font-size:10px;letter-spacing:1.5px}.orlong-book-switcher select{min-width:220px;padding:10px;background:var(--orlong-deep);color:var(--orlong-text);border:1px solid var(--orlong-accent)}
   @media(max-width:560px){.orlong-book-card{grid-template-columns:1fr}.orlong-book-cover{min-height:145px}}
@@ -95,9 +99,12 @@ if(!document.getElementById("orlongThemeContrastStyles")){
 
 function renderBookCatalogue(books){
  const section=document.querySelector(".book-section");if(!section||!Array.isArray(books)||!books.length)return;
+ section.querySelector(".orlong-book-catalogue")?.remove();
  const root=document.createElement("div");root.className="orlong-book-catalogue";
  books.forEach(book=>{
   const card=document.createElement("article");card.className="orlong-book-card";card.dataset.bookTheme=book.theme||"blue";
+  const bookPalette=palettes[book.theme]||palettes.blue;
+  card.style.setProperty("--book-accent",bookPalette.accent);card.style.setProperty("--book-ice",bookPalette.ice);card.style.setProperty("--book-glow",bookPalette.glow);card.style.setProperty("--book-deep",bookPalette.deep);card.style.setProperty("--book-surface",bookPalette.surface);
   const cover=document.createElement("div");cover.className="orlong-book-cover";const coverText=document.createElement("strong");coverText.textContent=book.title;cover.append(coverText);
   const copy=document.createElement("div");copy.className="orlong-book-copy";const eyebrow=document.createElement("p");eyebrow.className="eyebrow";eyebrow.textContent=book.bookLabel||book.seriesName||"ORLONG UNIVERSE";
   const title=document.createElement("h3");title.textContent=book.title;const desc=document.createElement("p");desc.textContent=book.description||"Discover this story in the Orlong Universe.";
@@ -110,14 +117,15 @@ function renderBookCatalogue(books){
 function renderBookNavigation(books){
  const menu=[...document.querySelectorAll(".nav-dropdown")].find(d=>[...d.querySelectorAll(".nav-dropdown-menu a")].some(a=>(a.getAttribute("href")||"").includes("/books/trials-of-eden/")));
  const panel=menu?.querySelector(".nav-dropdown-menu");if(!panel)return;
- books.filter(b=>b.id!=="trials-of-eden").forEach(book=>{
-  if(panel.querySelector('[data-orlong-book-link="'+CSS.escape(book.id)+'"]'))return;
+ panel.querySelectorAll("[data-orlong-book-link]").forEach(link=>link.remove());
+ books.filter(b=>b.id!=="trials-of-eden"&&b.published!==false&&b.readerUrl).forEach(book=>{
   const a=document.createElement("a");a.href=book.readerUrl;a.textContent=book.title;a.dataset.orlongBookLink=book.id;panel.append(a);
  });
 }
 function renderReaderBookSwitcher(books){
  const header=document.querySelector(".book-header");if(!header)return;
- const choices=books.filter(b=>b.showInReaderSwitcher&&b.readerUrl);
+ header.querySelector(".orlong-book-switcher")?.remove();
+ const choices=books.filter(b=>b.published!==false&&b.showInReaderSwitcher&&b.readerUrl);
  const current=choices.find(b=>location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl);
  if(choices.length<2||!current)return;
  const wrap=document.createElement("div");wrap.className="orlong-book-switcher";const label=document.createElement("label");label.textContent="EXPLORE ANOTHER BOOK";
