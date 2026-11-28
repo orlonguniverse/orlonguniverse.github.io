@@ -24,6 +24,12 @@ function apply(record){
  const themeVars={"--blue":theme.accent,"--blue-light":theme.ice,"--ice":theme.ice,"--orlong-accent":theme.accent,"--orlong-ice":theme.ice,"--orlong-glow":theme.glow,"--orlong-deep":theme.deep,"--orlong-surface":theme.surface,"--bg":theme.deep,"--surface":theme.surface,"--text":theme.text,"--orlong-text":theme.text,"--orlong-on-accent":onAccent,"--orlong-on-ice":onIce,"--orlong-muted":theme.ice};
  Object.entries(themeVars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
  if(document.body){Object.entries(themeVars).forEach(([k,v])=>document.body.style.setProperty(k,v));if(!isReader){document.body.style.setProperty("--background",theme.deep);document.body.style.setProperty("--surface-2",theme.surface);document.body.style.setProperty("--muted",theme.ice);}}
+ if(isReader&&registeredBook){
+  const heading=document.querySelector(".book-header h1"),label=document.querySelector(".book-header .book-label"),subtitle=document.querySelector(".book-header>p");
+  if(heading)heading.textContent=registeredBook.title;
+  if(label&&registeredBook.house)label.textContent=registeredBook.house;
+  if(subtitle&&registeredBook.bookLabel)subtitle.textContent=registeredBook.bookLabel;
+ }
  if(!document.getElementById("orlongThemeContrastStyles")){
   const contrast=document.createElement("style");contrast.id="orlongThemeContrastStyles";
   contrast.textContent=`
@@ -97,6 +103,14 @@ function renderBookCatalogue(books){
  });
  const feature=section.querySelector(".book-feature");if(feature)feature.replaceWith(root);else section.append(root);
 }
+function renderBookNavigation(books){
+ const menu=[...document.querySelectorAll(".nav-dropdown")].find(d=>[...d.querySelectorAll(".nav-dropdown-menu a")].some(a=>(a.getAttribute("href")||"").includes("/books/trials-of-eden/")));
+ const panel=menu?.querySelector(".nav-dropdown-menu");if(!panel)return;
+ books.filter(b=>b.id!=="trials-of-eden").forEach(book=>{
+  if(panel.querySelector('[data-orlong-book-link="'+CSS.escape(book.id)+'"]'))return;
+  const a=document.createElement("a");a.href=book.readerUrl;a.textContent=book.title;a.dataset.orlongBookLink=book.id;panel.append(a);
+ });
+}
 function renderReaderBookSwitcher(books){
  const header=document.querySelector(".book-header");if(!header)return;
  const choices=books.filter(b=>b.showInReaderSwitcher&&b.readerUrl);
@@ -116,6 +130,7 @@ async function init(){
   const books=(!booksError&&Array.isArray(booksData))?booksData:[];
   window.OrlongBooks=books;
   if(location.pathname==="/")renderBookCatalogue(books);
+  renderBookNavigation(books);
   if(location.pathname.startsWith("/books/")&&!location.pathname.includes("contents.html")&&!location.pathname.includes("account.html"))renderReaderBookSwitcher(books);
   const previewId=new URLSearchParams(location.search).get("design-preview");
   if(previewId){
