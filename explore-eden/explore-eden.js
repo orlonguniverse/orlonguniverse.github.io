@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",mysteryPacks=[];
+let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[];
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false){
@@ -118,30 +118,47 @@ function undiscoveredProgressSlot(slot){
  footer.append(text("span","eden-card-category","UNKNOWN"),text("span","eden-card-chapter","—"),text("span","eden-card-book","THE TRIALS OF EDEN"));
  details.append(footer);frame.append(top,details);front.append(shadow,frame);article.append(front);return article;
 }
+async function refreshCardProgress(){
+ const {data,error}=await client.rpc("get_my_card_progress");
+ if(error){console.error("Card progress refresh failed:",error);return;}
+ cardProgress=data||[];renderCardProgress();
+}
 function renderCardProgress(){
  const root=$("cardProgressGrid");root.replaceChildren();
- if(!cardProgress.length){root.append(text("div","eden-empty","No active card slots are available yet."));$("progressSummary").textContent="NO CARDS AVAILABLE";return;}
  const groups=new Map();
  cardProgress.forEach(slot=>{if(!groups.has(slot.category_id))groups.set(slot.category_id,{label:slot.category_label,sort:slot.category_sort_order,slots:[]});groups.get(slot.category_id).slots.push(slot);});
- let total=0,discovered=0;
- [...groups.values()].sort((a,b)=>a.sort-b.sort).forEach(group=>{
+ const ordered=[...groups.values()].sort((a,b)=>a.sort-b.sort);
+ const total=cardProgress.length,discovered=cardProgress.filter(slot=>slot.is_owned).length,remaining=Math.max(0,total-discovered),percent=total?Math.round(discovered/total*100):0;
+ $("progressSummary").textContent=discovered+" / "+total+" UNIQUE CARDS DISCOVERED";
+ $("progressPercent").textContent=percent+"%";
+ $("progressOverviewRing").style.setProperty("--completion",percent+"%");
+ $("progressOverviewRing").setAttribute("aria-label","Collection completion: "+percent+" percent");
+ $("progressDiscovered").textContent=discovered.toLocaleString("en-AU");
+ $("progressRemaining").textContent=remaining.toLocaleString("en-AU");
+ $("progressCategories").textContent=ordered.length.toLocaleString("en-AU");
+ $("progressOverviewTitle").textContent=percent===100&&total?"The archive is yours.":"A world waiting to be uncovered";
+ $("progressOverviewText").textContent=total?(percent===100?"Every active card has been discovered. Your collection is complete — until the next chapter of the archive opens.":discovered?remaining+" undiscovered "+(remaining===1?"card remains":"cards remain")+". Keep exploring to reveal what lies behind each sealed slot.":"Your first discovery is waiting. Earn cards through reading activities, rewards and the Xantheon Exchange."):"The archive is being prepared. Check back when the first cards are available.";
+ if(!total){root.append(text("div","eden-empty","No active card slots are available yet. Your progress will appear here when the archive opens."));return;}
+ ordered.forEach(group=>{
+  const ownedCount=group.slots.filter(slot=>slot.is_owned).length,categoryTotal=Number(group.slots[0]?.category_total||group.slots.length);
+  const visible=group.slots.filter(slot=>progressFilter==="all"||(progressFilter==="discovered"?slot.is_owned:!slot.is_owned));
+  if(!visible.length)return;
   const section=document.createElement("section");section.className="progress-category";
   const heading=document.createElement("div");heading.className="progress-category-heading";
-  const title=text("h3","",group.label);
-  const ownedCount=group.slots.filter(slot=>slot.is_owned).length,categoryTotal=Number(group.slots[0]?.category_total||group.slots.length);
-  total+=categoryTotal;discovered+=ownedCount;
-  const count=text("span","progress-category-count",ownedCount+" / "+categoryTotal+" DISCOVERED");
-  heading.append(title,count);
+  const title=text("h3","","");title.append(text("span","progress-category-sigil","✧"),document.createTextNode(group.label));
+  const count=text("span","progress-category-count",ownedCount+" / "+categoryTotal+" DISCOVERED");heading.append(title,count);
   const track=document.createElement("div");track.className="progress-meter";track.setAttribute("role","progressbar");track.setAttribute("aria-label",group.label+" discovery progress");track.setAttribute("aria-valuemin","0");track.setAttribute("aria-valuemax",String(categoryTotal));track.setAttribute("aria-valuenow",String(ownedCount));
   const fill=document.createElement("span");fill.style.width=(categoryTotal?Math.min(100,ownedCount/categoryTotal*100):0)+"%";track.append(fill);
   const grid=document.createElement("div");grid.className="eden-card-grid progress-slot-grid";
-  group.slots.forEach(slot=>{
+  visible.forEach(slot=>{
    if(slot.is_owned)grid.append(cardElement({id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,card_number:slot.card_number,name:slot.card_name,card_name:slot.card_name,rarity:slot.rarity,categoryLabel:group.label,category_label:group.label,spoilerSafeDescription:slot.spoiler_safe_description,artworkUrl:slot.artwork_url,artwork_url:slot.artwork_url,copy_count:slot.copy_count},true,false));
    else grid.append(undiscoveredProgressSlot(slot));
   });
-  section.append(heading,track,grid);root.append(section);
+  const left=categoryTotal-ownedCount;
+  const footer=text("p","progress-category-footnote",left===0?"✦ CATEGORY COMPLETE":"✧ "+left+" "+(left===1?"DISCOVERY":"DISCOVERIES")+" STILL HIDDEN");
+  section.append(heading,track,grid,footer);root.append(section);
  });
- $("progressSummary").textContent=discovered+" / "+total+" UNIQUE CARDS DISCOVERED";
+ if(!root.children.length)root.append(text("div","eden-empty",progressFilter==="discovered"?"No cards discovered yet. Your first reveal will appear here.":"Every card slot in the archive has been discovered."));
 }
 function formatXanth(cents){return "XƵ"+(Number(cents||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2});}
 async function loadXanthTransactions(){
@@ -175,7 +192,7 @@ async function purchaseShopCard(slotNumber,button){
  button.textContent="PURCHASED";
  $("shopPurchaseStatus").textContent="Purchase successful! "+(data.card_number||"Your card")+" has been added to your collection. Your card reveal is ready.";
  const collectionResult=await client.rpc("get_my_card_collection");
- if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
 }
 
@@ -510,11 +527,13 @@ function setTab(button){
 }
 async function initialise(){
  document.querySelectorAll(".eden-tab").forEach(button=>button.addEventListener("click",()=>setTab(button)));
+ document.querySelectorAll("[data-progress-filter]").forEach(button=>button.addEventListener("click",()=>{progressFilter=button.dataset.progressFilter;document.querySelectorAll("[data-progress-filter]").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active));});renderCardProgress();}));
+ $("progressViewBinder")?.addEventListener("click",()=>{const tab=document.querySelector('.eden-tab[data-panel="collectionPanel"]');if(tab)setTab(tab);});
  const requestedTab=new URLSearchParams(location.search).get("tab");if(requestedTab==="trading"){const tradingTab=document.querySelector('.eden-tab[data-panel="tradingPanel"]');if(tradingTab)setTab(tradingTab);}
  document.querySelector(".eden-tabs").addEventListener("keydown",event=>{if(!["ArrowLeft","ArrowRight"].includes(event.key))return;const tabs=[...document.querySelectorAll(".eden-tab")],index=tabs.indexOf(document.activeElement),next=tabs[(index+(event.key==="ArrowRight"?1:-1)+tabs.length)%tabs.length];next.focus();setTab(next);});
  const {data,error}=await client.auth.getSession();
  const session=data?.session;
- if(!session){$("notificationBell").disabled=true;$("createWantedPost").disabled=true;$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("progressSummary").textContent="SIGN IN REQUIRED";$("cardProgressGrid").replaceChildren(text("div","eden-empty","Sign in to see your numbered card slots."));$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
+ if(!session){$("notificationBell").disabled=true;$("createWantedPost").disabled=true;$("marketCreateListing").disabled=true;$("marketVisibilityToggle").disabled=true;$("marketVisibilityStatus").textContent="Sign in to manage your public binder.";$("myMarketListings").replaceChildren(text("div","eden-empty","Sign in to list and manage cards."));$("readerMarketListings").replaceChildren(text("div","eden-empty","Sign in to browse reader listings."));$("myReaderMarketOffers").replaceChildren(text("div","eden-empty","Sign in to view your offers."));$("sessionMessage").textContent="Sign in to view your personal collection and browse the Trading Post.";const sign=text("a","eden-primary-link","SIGN IN TO EXPLORE");sign.href="../books/trials-of-eden/account.html";$("sessionMessage").append(" ",sign);$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection will appear here once you sign in."));$("collectionSummary").textContent="SIGN IN REQUIRED";$("progressSummary").textContent="SIGN IN REQUIRED";$("progressPercent").textContent="—";$("progressOverviewTitle").textContent="Sign in to begin your collection";$("progressOverviewText").textContent="Your discoveries and sealed slots will be kept here, ready whenever you return.";$("cardProgressGrid").replaceChildren(text("div","eden-empty","Sign in to view your collection progress."));$("readerDirectory").replaceChildren(text("div","eden-empty","Sign in to browse public reader collections."));$("dailyShopGrid").replaceChildren(text("div","eden-empty","Sign in to view today’s Xanth exchange."));$("xanthBalance").textContent="SIGN IN REQUIRED";}
  else{
   $("sessionMessage").textContent="Welcome to your archive. Your collection and reader directory are ready.";
   await loadDuplicateSaleSettings();
@@ -523,7 +542,7 @@ async function initialise(){
   else{owned=collectionResult.data||[];renderCollection();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
-  if(progressResult.error){console.error(progressResult.error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","Card progress is unavailable. Please run the Stage 8D.1 progress tracker migration in Supabase."));$("progressSummary").textContent="PROGRESS UNAVAILABLE";}
+  if(progressResult.error){console.error(progressResult.error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","Card progress is unavailable. Please run the Stage 8D.1 progress tracker migration in Supabase."));$("progressSummary").textContent="PROGRESS UNAVAILABLE";$("progressOverviewTitle").textContent="Progress is temporarily unavailable";}
   else{cardProgress=progressResult.data||[];renderCardProgress();}
   await Promise.all([loadMarketplace(),loadTradingMarket(),loadMarketVisibility(),loadWantedBoard()]);await syncReaderNotifications();
  window.setInterval(()=>{if(document.visibilityState==="visible")loadNotifications();},60000);
