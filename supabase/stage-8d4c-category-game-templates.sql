@@ -27,7 +27,7 @@ as $$
 declare v_count integer;
 begin
  if not public.is_reader_moderator() then raise exception 'Moderator access required'; end if;
- if p_category_id is null or not exists(select 1 from public.card_catalogue where category_id=p_category_id) then raise exception 'Choose a valid card category'; end if;
+ if p_category_id is null or length(trim(p_category_id))=0 then raise exception 'Choose a category before saving its game template'; end if;
  if p_game_attributes is null or jsonb_typeof(p_game_attributes)<>'object' then raise exception 'Category game template must be a JSON object'; end if;
  if (select count(*) from jsonb_object_keys(p_game_attributes))>60 then raise exception 'A category template may contain up to 60 attributes'; end if;
  insert into public.eden_card_category_game_templates(category_id,game_attributes,updated_at,updated_by)
