@@ -40,6 +40,14 @@ set config = jsonb_set(
                   jsonb_set(value,'{section}','"ACCESS"'::jsonb),
                   '{order}','4'::jsonb
                 )
+              when value->>'group'='book' then
+                jsonb_set(
+                  jsonb_set(
+                    jsonb_set(value,'{group}','"discover"'::jsonb),
+                    '{section}','"READING RESOURCES"'::jsonb
+                  ),
+                  '{order}',to_jsonb(5 + coalesce((value->>'order')::integer,0))
+                )
               else value
             end
             order by case value->>'id'
