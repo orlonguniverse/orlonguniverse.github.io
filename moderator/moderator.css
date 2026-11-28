@@ -103,3 +103,18 @@
 .site-map-note strong{font-size:12px;color:#e7f2ff}
 .site-map-note p{margin:6px 0 0;font-size:11px;line-height:1.7;color:#b5c4d5}
 @media(max-width:700px){.site-map-steps{grid-template-columns:1fr}.site-map-route-fields{grid-template-columns:1fr}.site-map-page-main{display:grid}}
+
+
+.site-map-flow-panel{margin:16px 0;padding:18px;background:#101e2d;border:1px solid #38536d}
+.site-map-flow-panel h3{margin:3px 0 5px;font:500 15px Cinzel,Georgia,serif;letter-spacing:.6px}
+.site-map-flow{display:grid;gap:12px;margin-top:14px}
+.site-map-flow-group{display:grid;gap:7px}
+.site-map-flow-group h4{margin:0;color:#9bb9d7;font:700 9px Inter,Arial,sans-serif;letter-spacing:1px}
+.site-map-flow-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px;background:#0b1725;border:1px solid #2d455e}
+.site-map-flow-node{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:7px 10px;background:#182f48;border:1px solid #3d5e7e;color:#e5f0fc;font-size:10px;font-weight:600}
+.site-map-flow-source{color:#b6d8f7;background:#14273a}
+.site-map-flow-target{background:#183c37;border-color:#397a6d}
+.site-map-flow-arrow{color:#8dbce9;font-size:17px;font-weight:700}
+.site-map-flow-hidden{padding:2px 5px;background:#593a2b;color:#ffd5b6;font-size:8px;letter-spacing:.6px}
+.site-map-flow-row.is-hidden{opacity:.58}
+@media(max-width:700px){.site-map-flow-row{align-items:flex-start}.site-map-flow-arrow{transform:rotate(90deg)}}
