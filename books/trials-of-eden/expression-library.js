@@ -4,6 +4,12 @@
 const $=id=>document.getElementById(id);
 const make=(tag,cls,label)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(label!==undefined)el.textContent=label;return el;};
 let cachedItems=[],giphyKey="",gifTimer=null;
+function renderExpressionPreview(){
+ const preview=$("commentExpressionPreview");if(!preview||preview.hidden)return;preview.replaceChildren();
+ const body=$("commentBody")?.value||"";preview.append(make("p","",body||"Media-only comment"));
+ selectedExpressionAssets.forEach(item=>{if(item.emoji){preview.append(make("span","comment-expression-emoji",item.emoji));return;}if(item.preview||item.url){const img=document.createElement("img");img.src=item.preview||item.url;img.alt=item.alt||item.title;img.loading="lazy";preview.append(img);}});
+ if($("commentSpoiler")?.checked)preview.prepend(make("strong","","SPOILER WARNING"));
+}
 function renderSelectedExpressions(){
  const root=$("selectedExpressionItems");if(!root)return;root.replaceChildren();
  selectedExpressionAssets.forEach((item,index)=>{
@@ -14,7 +20,7 @@ function renderSelectedExpressions(){
   const remove=make("button","expression-remove","×");remove.type="button";remove.setAttribute("aria-label","Remove "+item.title);
   remove.addEventListener("click",()=>{selectedExpressionAssets.splice(index,1);renderSelectedExpressions();});chip.append(remove);root.append(chip);
  });
- const status=$("expressionSelectionStatus");if(status)status.textContent=selectedExpressionAssets.length+"/4 selected";
+ const status=$("expressionSelectionStatus");if(status)status.textContent=selectedExpressionAssets.length+"/4 selected";renderExpressionPreview();
 }
 function addSelection(item){
  if(selectedExpressionAssets.length>=4){setMessage("commentMessage","You can add up to four expression items to one comment.");return;}
@@ -105,7 +111,11 @@ function initialise(){
  add.addEventListener("click",()=>{if(!$("expressionPickerDialog"))buildPicker();$("expressionPickerDialog").showModal();loadLibrary();});
  const selected=make("div","expression-selected-items");selected.id="selectedExpressionItems";
  const status=make("span","expression-selection-status","0/4 selected");status.id="expressionSelectionStatus";
- tools.append(add,status,selected);body.insertAdjacentElement("afterend",tools);
+ const previewButton=make("button","expression-preview-button","PREVIEW COMMENT");previewButton.type="button";
+ const preview=make("div","expression-comment-preview");preview.id="commentExpressionPreview";preview.hidden=true;
+ previewButton.addEventListener("click",()=>{preview.hidden=!preview.hidden;previewButton.textContent=preview.hidden?"PREVIEW COMMENT":"HIDE PREVIEW";renderExpressionPreview();});
+ body.addEventListener("input",renderExpressionPreview);$("commentSpoiler")?.addEventListener("change",renderExpressionPreview);
+ tools.append(add,previewButton,status,selected,preview);body.insertAdjacentElement("afterend",tools);
 }
 document.addEventListener("DOMContentLoaded",initialise);
 window.renderSelectedExpressions=renderSelectedExpressions;
