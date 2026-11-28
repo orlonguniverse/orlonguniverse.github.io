@@ -33,9 +33,15 @@
 <label>MAXIMUM TOTAL COPIES<input id="cardLimitedQuantity" type="number" min="1" max="1000000" step="1" placeholder="Leave blank for unlimited"></label>
 <label>HOW READERS EARN IT<input id="cardAcquisitionSource" maxlength="180" placeholder="e.g. Complete the winter event"></label>
 </div>
-<label>FUTURE GAME ATTRIBUTES <span class="hint">Enter a JSON object. These values are stored as structured data for future card games and simulations.</span>
-<textarea id="cardGameAttributes" rows="5" spellcheck="false" placeholder='{"power": 5, "defence": 3, "speed": 4, "abilities": []}'></textarea></label>
-<p class="hint">Suggested attributes: power, defence, speed, rarity tier, ability tags, element, faction, class, and custom traits. No game balance is imposed yet.</p>
+<section class="card-game-builder" aria-labelledby="gameBuilderTitle">
+<h3 id="gameBuilderTitle">GAME ABILITIES &amp; ATTRIBUTES</h3>
+<p class="hint">Create named attributes and abilities for this card. These are saved as structured game data for future Orlong games and simulations.</p>
+<div class="game-builder-subhead"><strong>CARD ATTRIBUTES</strong><button type="button" class="secondary small" id="addGameAttribute">＋ ADD ATTRIBUTE</button></div>
+<div id="gameAttributeRows" class="game-attribute-rows"></div>
+<div class="game-builder-subhead"><strong>GAME ABILITIES</strong><button type="button" class="secondary small" id="addGameAbility">＋ ADD ABILITY</button></div>
+<div id="gameAbilityRows" class="game-ability-rows"></div>
+<p class="hint">Examples: Energy Harnessing, Harmonic Resonance, Flight, Defence, Healing, Tactical Insight. Each ability can have a name, description, type and optional power value.</p>
+</section>
 </section>
 <label>CARD DESCRIPTION<textarea id="cardDescription" maxlength="1200" rows="4" placeholder="The text that appears on the card. Keep it spoiler-safe for its unlock chapter."></textarea></label>
 <div class="upload-field"><label for="cardArtwork">CARD ARTWORK</label><input id="cardArtwork" type="file" accept="image/png,image/jpeg,image/webp"><p class="hint">Portrait artwork works best. You'll be able to reposition and zoom it before saving. Maximum 12 MB.</p><button type="button" class="secondary" id="cropArtworkButton" disabled>ADJUST / CROP ARTWORK</button><span id="uploadStatus" role="status"></span></div>
