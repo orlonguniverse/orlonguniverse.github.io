@@ -117,7 +117,7 @@ if(!document.getElementById("orlongThemeControlStyles")){const controlStyles=doc
 
 function renderBookCatalogue(books){
  const section=document.querySelector(".book-section");if(!section)return;
- if(!Array.isArray(books)||!books.some(book=>Object.prototype.hasOwnProperty.call(book,"showOnHomepage")))return;
+ if(!Array.isArray(books))return;
  section.querySelector(".orlong-book-catalogue")?.remove();
  const root=document.createElement("div");root.className="orlong-book-catalogue";
  const featured=(Array.isArray(books)?books:[]).filter(book=>book.showOnHomepage===true);
@@ -134,8 +134,9 @@ function renderBookCatalogue(books){
   const cover=document.createElement("div");cover.className="orlong-book-cover";const coverText=document.createElement("strong");coverText.textContent=book.title;cover.append(coverText);
   const copy=document.createElement("div");copy.className="orlong-book-copy";const eyebrow=document.createElement("p");eyebrow.className="eyebrow";eyebrow.textContent=book.bookLabel||book.seriesName||"ORLONG UNIVERSE";
   const title=document.createElement("h3");title.textContent=book.title;const desc=document.createElement("p");desc.textContent=book.description||"Discover this story in the Orlong Universe.";
-  const actions=document.createElement("div");actions.className="orlong-book-actions";const read=document.createElement("a");read.href=book.readerUrl;read.textContent="ENTER READING ROOM";actions.append(read);
-  if(book.contentsUrl){const contents=document.createElement("a");contents.href=book.contentsUrl;contents.textContent="BOOK CONTENTS";actions.append(contents)}
+  const actions=document.createElement("div");actions.className="orlong-book-actions";
+  if(book.isPublished===false){const coming=document.createElement("span");coming.className="orlong-book-coming-soon";coming.textContent="COMING SOON";actions.append(coming)}
+  else{const read=document.createElement("a");read.href=book.readerUrl;read.textContent="ENTER READING ROOM";actions.append(read);if(book.contentsUrl){const contents=document.createElement("a");contents.href=book.contentsUrl;contents.textContent="BOOK CONTENTS";actions.append(contents)}}
   copy.append(eyebrow,title,desc,actions);card.append(cover,copy);root.append(card);
  });
  const feature=section.querySelector(".book-feature");if(feature)feature.replaceWith(root);else section.append(root);
@@ -180,7 +181,11 @@ async function init(){
   const {data:booksData,error:booksError}=await db.rpc("get_public_orlong_books");
   const books=(!booksError&&Array.isArray(booksData))?booksData:[];
   window.OrlongBooks=books;
-  if(location.pathname==="/")renderBookCatalogue(books);
+  if(location.pathname==="/"||location.pathname==="/index.html"){
+   const {data:featuredBooks,error:featuredError}=await db.rpc("get_public_orlong_homepage_books");
+   if(featuredError)console.warn("Orlong homepage featured books could not load:",featuredError.message);
+   else renderBookCatalogue(Array.isArray(featuredBooks)?featuredBooks:[]);
+  }
   renderBookNavigation(books);
   if(location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html"))renderReaderBookSwitcher(books);
   const previewId=new URLSearchParams(location.search).get("design-preview");
