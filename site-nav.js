@@ -68,21 +68,25 @@ document.addEventListener("DOMContentLoaded",()=>{
    const details=document.createElement("details");details.className="nav-dropdown";
    const summary=document.createElement("summary");summary.textContent=label;summary.setAttribute("aria-haspopup","true");
    const panel=document.createElement("div");panel.className="nav-dropdown-menu";
-   items.forEach(item=>panel.append(makeLink(item[0],item[1],item[2])));
+   let lastSection="";
+   items.forEach(item=>{
+    if(Array.isArray(item)){panel.append(makeLink(item[0],item[1],item[2]));return;}
+    const section=String(item.section||"").trim();
+    if(section&&section!==lastSection){const heading=document.createElement("span");heading.className="nav-dropdown-section-label";heading.textContent=section.toUpperCase();panel.append(heading);}
+    lastSection=section;panel.append(makeLink(item.label,item.href,item.current));
+   });
    details.append(summary,panel);
    summary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");}));
    return details;
   };
-  const startReading=makeLink("BOOK COLLECTION","/book-collection/",location.pathname.startsWith("/book-collection/"));
-  startReading.classList.add("nav-start-reading");
-  const read=null;
-  const exploreEden=makeLink("EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden"));
-  exploreEden.classList.add("nav-explore-eden");
+  const bookCollection=makeLink("BOOK COLLECTION","/book-collection/",location.pathname.startsWith("/book-collection/"));
+  bookCollection.classList.add("nav-book-collection");
   const community=dropdown("DISCOVER",[
-   ["EVENTS","/events.html",location.pathname.endsWith("/events.html")],
-   ["EDEN ARCHIVE","/eden-archive/",location.pathname.startsWith("/eden-archive")],
-   ["EARLY ACCESS","/early-access/",location.pathname.startsWith("/early-access")],
-   ["FOUNDING READERS","/founding-readers/",location.pathname.startsWith("/founding-readers")]
+   {label:"EXPLORE EDEN",href:"/explore-eden/",current:location.pathname.startsWith("/explore-eden"),section:"EXPLORE"},
+   {label:"EDEN ARCHIVE",href:"/eden-archive/",current:location.pathname.startsWith("/eden-archive"),section:"EXPLORE"},
+   {label:"EVENTS",href:"/events.html",current:location.pathname.endsWith("/events.html"),section:"COMMUNITY"},
+   {label:"FOUNDING READERS",href:"/founding-readers/",current:location.pathname.startsWith("/founding-readers"),section:"COMMUNITY"},
+   {label:"EARLY ACCESS",href:"/early-access/",current:location.pathname.startsWith("/early-access"),section:"ACCESS"}
   ]);
   const main=document.createElement("details");main.className="nav-dropdown nav-main-menu";
   const mainSummary=document.createElement("summary");mainSummary.textContent="MAIN MENU";mainSummary.setAttribute("aria-haspopup","true");
@@ -113,7 +117,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(exitBookOnly,instagram);
   }else{
-   navLinks.replaceChildren(main,startReading,exploreEden,community);
+   navLinks.replaceChildren(main,bookCollection,community);
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(instagram);
   }
@@ -130,10 +134,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     const makeManagedLink=item=>{const a=makeLink(item.label,item.href,location.pathname===item.href||location.pathname===item.href.replace(/index\\.html$/,""));a.dataset.navigationId=item.id;return a;};
     const primary=[makeManagedLink({id:"book-collection",label:"BOOK COLLECTION",href:"/book-collection/"}),...items.filter(item=>item.group==="primary"&&item.href!=="/book-collection/").map(makeManagedLink)];
     const bookItems=items.filter(item=>item.group==="book").map(item=>[item.label,item.href,location.pathname===item.href]);
-    const discoverItems=items.filter(item=>item.group==="discover").map(item=>[item.label,item.href,location.pathname===item.href]);
-    const menuSettings=Array.isArray(data.menus)?data.menus:[{id:"book",label:"THE BOOK",enabled:true},{id:"discover",label:"DISCOVER",enabled:true}];
-    const bookSettings=menuSettings.find(item=>item.id==="book")||{label:"THE BOOK",enabled:true};
-    const discoverSettings=menuSettings.find(item=>item.id==="discover")||{label:"DISCOVER",enabled:true};
+    const discoverItems=items.filter(item=>item.group==="discover").map(item=>({label:item.label,href:item.href,current:location.pathname===item.href,section:item.section||""}));
+    const menuSettings=Array.isArray(data.menus)?data.menus:[{id:"discover",label:"DISCOVER",enabled:true}];
     const mainSettings=data.mainMenu||{};
     mainSummary.textContent=mainSettings.label||"MAIN MENU";
     panel.replaceChildren();
