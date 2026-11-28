@@ -27,6 +27,7 @@ function renderBlock(block,index){
   const section=el("section","archive-block-facts");if(block.heading)section.append(el("h3","archive-block-heading",block.heading));
   const grid=el("dl","");(block.items||[]).forEach(item=>{const wrap=el("div","archive-fact");wrap.append(el("dt","",item.label||""),el("dd","",item.value||""));grid.append(wrap);});section.append(grid);return section;
  }
+ if(type==="relationship_map"){const section=el("section","archive-block-relationship-map");if(block.heading)section.append(el("h3","archive-block-heading",block.heading));paragraphs(section,block.body);return section;}
  if(type==="gallery"){
   const section=el("section","archive-block-gallery");if(block.heading)section.append(el("h3","archive-block-heading",block.heading));
   const grid=el("div","archive-gallery-grid");(block.items||[]).forEach(item=>{const url=safeUrl(item.url);if(!url)return;const figure=el("figure","");const img=document.createElement("img");img.src=url;img.alt=item.caption||"Archive gallery image";img.loading="lazy";img.onerror=()=>figure.remove();figure.append(img);if(item.caption)figure.append(el("figcaption","",item.caption));grid.append(figure);});section.append(grid);return section;
