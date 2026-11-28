@@ -91,3 +91,11 @@ body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17345a 0,transpare
 .archive-reader-end p{color:#8196ae;font:8px Inter,sans-serif;letter-spacing:2px}
 @media(max-width:600px){.archive-reader-shell{padding:18px}.archive-block-facts dl,.archive-gallery-grid{grid-template-columns:1fr}.archive-block-quote{padding:16px;font-size:15px}}
 @media(prefers-reduced-motion:reduce){.archive-entry,.archive-read-button{transition:none}.archive-entry:hover,.archive-read-button:hover{transform:none}}
+
+/* Gentle motion: archive cards arrive like filed records; reduced-motion remains respected. */
+@keyframes archive-record-arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.archive-entry{animation:archive-record-arrive .48s both;animation-delay:calc(min(var(--entry-index,0),8)*45ms)}
+.archive-reader-shell{scroll-behavior:smooth}
+.archive-reader-blocks>*{animation:archive-record-arrive .45s both}
+.archive-reader-blocks>*:nth-child(2){animation-delay:45ms}.archive-reader-blocks>*:nth-child(3){animation-delay:90ms}.archive-reader-blocks>*:nth-child(4){animation-delay:135ms}
+@media(prefers-reduced-motion:reduce){.archive-entry,.archive-reader-blocks>*{animation:none!important}.archive-reader-shell{scroll-behavior:auto}}
