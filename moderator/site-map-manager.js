@@ -41,7 +41,7 @@ function render(){
   items.forEach((item,i)=>{
    const row=node("article","site-map-route"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href);
    const enabled=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=item.enabled!==false;enabled.append(check,node("span","","Show this link in the menu"));
-   label.el.addEventListener("change",()=>{item.label=label.el.value.trim();mark()});href.el.addEventListener("change",()=>{item.href=href.el.value.trim();mark()});check.addEventListener("change",()=>{item.enabled=check.checked;mark()});
+   label.el.addEventListener("change",()=>{item.label=label.el.value.trim();mark();renderFlow()});href.el.addEventListener("change",()=>{item.href=href.el.value.trim();mark();renderFlow()});check.addEventListener("change",()=>{item.enabled=check.checked;mark()});
    fields.append(label.wrap,href.wrap,enabled);
    const actions=node("div","site-map-actions");actions.append(action("MOVE UP","secondary",()=>moveLink(item.id,-1,group)),action("MOVE DOWN","secondary",()=>moveLink(item.id,1,group)),action("REMOVE","danger",()=>{if(!confirm("Remove this link from the website menu?"))return;config.links=config.links.filter(x=>x.id!==item.id);mark();render()}));
    actions.children[0].disabled=i===0;actions.children[1].disabled=i===items.length-1;
