@@ -18,8 +18,33 @@ function pageForm(page){
  form.append(action("SAVE PAGE","primary",()=>{const label=name.el.value.trim(),href=path.el.value.trim();if(!label||!href.startsWith("/")){status("Please enter a page name and an address beginning with /.");return}if(page){page.label=label;page.path=href}else config.pages.push({id:"page-"+Date.now(),label,path:href,kind:"custom",order:config.pages.length});mark();render()}),action("CANCEL","secondary",render));
  return form
 }
+function renderMenuControls(host){
+ const menus=config.menus||[],mainMenu=config.mainMenu||(config.mainMenu={label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true});
+ const section=node("section","site-map-route-group site-map-config-group");
+ section.append(node("h3","","DROPDOWN MENU SETTINGS"),node("p","site-map-hint","Rename or hide a dropdown. Hiding it removes the dropdown from the website menu without deleting its links."));
+ menus.forEach(menu=>{
+  const row=node("div","site-map-menu-setting"),name=field(menu.id==="book"?"BOOK DROPDOWN NAME":"DISCOVER DROPDOWN NAME",menu.label);
+  const visible=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=menu.enabled!==false;visible.append(check,node("span","","Show this dropdown on the website"));
+  name.el.addEventListener("change",()=>{menu.label=name.el.value.trim();mark()});
+  check.addEventListener("change",()=>{menu.enabled=check.checked;mark();renderFlow()});
+  row.append(name.wrap,visible);section.append(row);
+ });
+ const mainSection=node("section","site-map-route-group site-map-main-settings");
+ mainSection.append(node("h3","","MAIN MENU SETTINGS"),node("p","site-map-hint","Change the Main Menu button and choose which tools appear inside it."));
+ const mainName=field("MAIN MENU BUTTON NAME",mainMenu.label||"MAIN MENU","e.g. SETTINGS");
+ mainName.el.addEventListener("change",()=>{mainMenu.label=mainName.el.value.trim();mark()});
+ const mainVisible=node("label","site-map-enabled"),mainCheck=node("input");mainCheck.type="checkbox";mainCheck.checked=mainMenu.enabled!==false;mainVisible.append(mainCheck,node("span","","Show the Main Menu button"));
+ mainCheck.addEventListener("change",()=>{mainMenu.enabled=mainCheck.checked;mark()});
+ mainSection.append(mainName.wrap,mainVisible);
+ const options=node("div","site-map-main-options");
+ [["showGuide","Reader Guide"],["showTheme","Light / Dark Theme"],["showBookOnly","Book-Only Mode"],["showStatistics","My Statistics"],["showSoundtrack","Website Soundtrack"]].forEach(([key,label])=>{
+  const wrap=node("label","site-map-enabled"),box=node("input");box.type="checkbox";box.checked=mainMenu[key]!==false;wrap.append(box,node("span","",label));box.addEventListener("change",()=>{mainMenu[key]=box.checked;mark()});options.append(wrap);
+ });
+ mainSection.append(node("p","site-map-hint","Choose which built-in features readers can access from the Main Menu."),options);
+ host.append(section,mainSection);
+}
 function render(){
- const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();
+ const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();renderMenuControls(routes);
  const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));
  pages.forEach((p,i)=>{
   const card=node("article","site-map-page"),top=node("div","site-map-page-main"),details=node("div","site-map-page-details");
@@ -32,7 +57,7 @@ function render(){
   card.append(top,details,actions);directory.append(card)
  });
  const addPage=action("＋ ADD A PAGE","primary",()=>{const form=pageForm(null);directory.prepend(form);form.querySelector("input").focus()});directory.append(addPage);
- const groups=[["primary","MAIN MENU","These links appear along the top of the website."],["book","THE BOOK MENU","These links appear inside the Book dropdown."],["discover","DISCOVER MENU","These links appear inside the Discover dropdown."]];
+ const groups=[["primary","TOP-LEVEL LINKS","These links appear directly along the top of the website."],["book","BOOK DROPDOWN LINKS","These links appear inside your Book dropdown."],["discover","DISCOVER DROPDOWN LINKS","These links appear inside your Discover dropdown."]];
  groups.forEach(([group,title,description])=>{
   const items=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));
   const section=node("section","site-map-route-group"),heading=node("div","site-map-route-heading");
@@ -53,8 +78,8 @@ function render(){
  $("siteMapSave").disabled=!dirty;
 }
 function moveLink(id,delta,group){const arr=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));move(arr,id,delta);arr.forEach((x,n)=>x.order=n);render()}
-async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));dirty=false;render();status("Your website map is ready. Edit the menu below, then save when you are happy.");}
-async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x}))};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
+async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true};dirty=false;render();status("Your website map is ready. Edit the menu below, then save when you are happy.");}
+async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu}};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>status(e.message||"Website map could not load.")));
 })();
