@@ -49,6 +49,7 @@ async function history(v){
 async function save(statusOverride){
  const status=statusOverride||val("designStatus"),dateVal=val("designPublishAt");let publishAt=null;
  if(status==="scheduled"){if(!dateVal){say("Choose the date and time for publication.");return}const d=new Date(dateVal);if(Number.isNaN(d.getTime())||d.getTime()<=Date.now()){say("The scheduled publication time must be in the future.");return}publishAt=d.toISOString()}
+ const image=val("designHeroBackgroundImage").trim();if(image&&!/^https?:\\/\\//i.test(image)){say("The hero background image must use a full https:// or http:// address.");return}
  const name=val("designVersionName").trim();if(!name){say("Give this version a name.");return}
  const button=$("designSave");button.disabled=true;say("Saving homepage version…");
  try{
