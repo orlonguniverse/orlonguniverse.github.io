@@ -19,6 +19,48 @@ function pageForm(page){
  return form
 }
 function moveMenu(id,delta){const menus=[...config.menus].sort((a,b)=>(a.order??0)-(b.order??0));const i=menus.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=menus.length)return;[menus[i],menus[j]]=[menus[j],menus[i]];menus.forEach((x,n)=>x.order=n);config.menus=menus;mark();render()}
+function topLevelItems(){
+ const main=config.mainMenu||{};
+ return [
+  {id:"main-menu",label:main.label||"MAIN MENU",kind:"Main Menu"},
+  {id:"book-collection",label:"BOOK COLLECTION",kind:"Featured link"},
+  ...config.links.filter(x=>x.group==="primary").map(x=>({id:"link:"+x.id,label:x.label||"Untitled link",kind:"Top-level link"})),
+  ...config.menus.map(x=>({id:"menu:"+x.id,label:x.label||x.id,kind:"Dropdown menu"}))
+ ];
+}
+function normaliseTopLevelOrder(){
+ const valid=topLevelItems().map(x=>x.id),saved=Array.isArray(config.navigationOrder)?config.navigationOrder:[];
+ config.navigationOrder=[...saved.filter((id,i)=>valid.includes(id)&&saved.indexOf(id)===i),...valid.filter(id=>!saved.includes(id))];
+}
+function renderTopLevelOrder(host){
+ normaliseTopLevelOrder();
+ const section=node("section","site-map-route-group site-map-top-order");
+ section.append(node("h3","","TOP-LEVEL NAVIGATION ORDER"),node("p","site-map-hint","Drag MAIN MENU, BOOK COLLECTION, your top-level links and dropdown menus into the order you want them to appear. The first item sits closest to the Orlong logo. Account, the moderator shortcut and Instagram stay at the right-hand end."));
+ const list=node("div","site-map-top-order-list");
+ const items=topLevelItems(),byId=new Map(items.map(x=>[x.id,x]));
+ const moveTop=(sourceId,targetId)=>{
+  if(sourceId===targetId)return;
+  const order=[...config.navigationOrder],from=order.indexOf(sourceId),to=order.indexOf(targetId);
+  if(from<0||to<0)return;
+  order.splice(from,1);order.splice(to,0,sourceId);config.navigationOrder=order;mark();render();
+ };
+ config.navigationOrder.forEach((id,index)=>{
+  const item=byId.get(id);if(!item)return;
+  const row=node("article","site-map-menu-setting site-map-top-order-item"),grip=node("span","site-map-drag-handle","⠿"),label=node("div","site-map-top-order-label");
+  label.append(node("strong","",item.label),node("small","",item.kind));
+  row.draggable=true;row.setAttribute("aria-label","Drag "+item.label+" to change its position in the top navigation");
+  row.addEventListener("dragstart",event=>{dragged={topId:id};row.classList.add("dragging");event.dataTransfer?.setData("text/plain","top:"+id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});
+  row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging");document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"))});
+  row.addEventListener("dragover",event=>{if(dragged?.topId){event.preventDefault();row.classList.add("drag-over");if(event.dataTransfer)event.dataTransfer.dropEffect="move"}});
+  row.addEventListener("dragleave",()=>row.classList.remove("drag-over"));
+  row.addEventListener("drop",event=>{if(!dragged?.topId)return;event.preventDefault();event.stopPropagation();row.classList.remove("drag-over");moveTop(dragged.topId,id)});
+  const controls=node("div","site-map-actions");
+  controls.append(action("MOVE UP","secondary",()=>{if(index>0)moveTop(id,config.navigationOrder[index-1])}),action("MOVE DOWN","secondary",()=>{if(index<config.navigationOrder.length-1)moveTop(id,config.navigationOrder[index+1])}));
+  controls.children[0].disabled=index===0;controls.children[1].disabled=index===config.navigationOrder.length-1;
+  row.append(grip,label,controls);list.append(row);
+ });
+ section.append(list);host.append(section);
+}
 function renderMenuControls(host){
  const menus=config.menus||[],mainMenu=config.mainMenu||(config.mainMenu={label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true});
  const section=node("section","site-map-route-group site-map-config-group");
@@ -60,7 +102,7 @@ function renderMenuControls(host){
  host.append(section,mainSection);
 }
 function render(){
- const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();renderMenuControls(routes);
+ const directory=$("siteMapDirectory"),routes=$("siteMapRoutes");directory.replaceChildren();routes.replaceChildren();renderMenuControls(routes);renderTopLevelOrder(routes);
  const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));
  pages.forEach((p,i)=>{
   const card=node("article","site-map-page"),top=node("div","site-map-page-main"),details=node("div","site-map-page-details");
@@ -133,8 +175,8 @@ function wireDropTarget(element,group,targetId=null){
  element.addEventListener("dragleave",()=>element.classList.remove("drag-over"));
  element.addEventListener("drop",event=>{event.preventDefault();event.stopPropagation();element.classList.remove("drag-over");const id=event.dataTransfer?.getData("text/plain")||dragged?.id;if(id)moveLinkByDrop(id,targetId,group,!targetId)});
 }
-async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
-async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu}};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
+async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};normaliseTopLevelOrder();const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
+async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu},navigationOrder:[...config.navigationOrder]};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>status(e.message||"Website map could not load.")));
 })();
