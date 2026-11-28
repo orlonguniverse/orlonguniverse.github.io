@@ -67,6 +67,7 @@ async function saveAsset(event){
  event.preventDefault();const button=$("saveExpressionAsset");button.disabled=true;button.textContent="SAVING…";
  try{
   let url=$("expressionUrl").value.trim(),source=url?"external":"orlong";
+  if(url&&!url.startsWith("https://"))throw new Error("Expression media URLs must use secure HTTPS.");
   const file=$("expressionFile").files[0];
   if(file){
    if(file.size>12*1024*1024)throw new Error("Choose an image or GIF smaller than 12 MB.");
