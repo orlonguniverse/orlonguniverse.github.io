@@ -98,7 +98,7 @@ alter table public.chapter_comments add constraint chapter_comments_body_or_expr
 
 create or replace function public.validate_comment_expression_attachments()
 returns trigger language plpgsql set search_path=public
-as $
+as $$
 declare v_item jsonb; v_url text;
 begin
  if jsonb_typeof(new.expression_attachments)<>'array' or jsonb_array_length(new.expression_attachments)>4 then
@@ -115,7 +115,7 @@ begin
  end loop;
  return new;
 end;
-$;
+$$;
 drop trigger if exists chapter_comment_expression_attachment_validation on public.chapter_comments;
 create trigger chapter_comment_expression_attachment_validation
  before insert or update of expression_attachments on public.chapter_comments
