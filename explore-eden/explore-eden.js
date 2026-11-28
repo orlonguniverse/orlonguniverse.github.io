@@ -89,8 +89,7 @@ async function saveDuplicateSaleSettings(){
   if(data.auto_sell_duplicates){
    const sold=Number(data.existing_copies_sold||0);
    $("duplicateSettingsStatus").textContent="Saved. Your collection has been brought down to your limit of "+data.keep_copies+" wherever copies were available to sell. "+(sold? sold+" existing duplicate cop"+(sold===1?"y was":"ies were")+" sold for 50% of rarity value.":"No existing excess copies needed selling.")+" Future acquisitions will also be checked automatically.";
-   const result=await client.rpc("get_my_card_collection");
-   if(!result.error){owned=result.data||[];renderCollection();}
+   await refreshCollectionState({silent:true});
    await Promise.all([loadMarketplace(),loadXanthTransactions(),loadTradingMarket()]);
   }else{
    $("duplicateSettingsStatus").textContent="Saved. Automatic selling is OFF; you can still sell duplicates manually.";
@@ -312,8 +311,7 @@ async function purchaseMysteryPack(pack,button){
  }
  button.textContent="PACK OPENED";
  $("mysteryPackStatus").textContent=pack.title+" opened — "+data.card_count+" card"+(data.card_count===1?"":"s")+" added to your collection. Your discoveries are being revealed.";
- const collectionResult=await client.rpc("get_my_card_collection");
- if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCollectionState({silent:true});}
+ await refreshCollectionState({silent:true});
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
  // The reveal watcher groups all cards from this pack into one simultaneous reveal.
  window.OrlongCardRevealWatcher?.poll?.();
@@ -509,7 +507,7 @@ async function createMarketListing(){
  const result=await client.rpc("create_market_card_listing",{p_copy_id:copyId,p_price_cents:price});
  status.textContent=result.error?.message||"Your card is now listed for sale.";
  button.textContent="LIST CARD FOR SALE";button.disabled=false;
- if(!result.error){$("marketListPrice").value="";await loadTradingMarket();const collection=await client.rpc("get_my_card_collection");if(!collection.error){owned=collection.data||[];renderCollection();}}
+ if(!result.error){$("marketListPrice").value="";await Promise.all([loadTradingMarket(),refreshCollectionState({silent:true})]);}
 }
 async function loadNotifications(){
  const root=$("notificationList"),count=$("notificationCount");if(!root||!count||!client)return;
