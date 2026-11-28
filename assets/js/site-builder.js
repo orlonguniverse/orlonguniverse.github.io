@@ -36,19 +36,26 @@ function resolvePlacementAnchor(selector){
 function placeSection(section,record,placed=new Map()){
  const selector=record.anchorSelector||"main";
  let anchor=resolvePlacementAnchor(selector);
- if(!anchor||anchor.closest?.("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))anchor=document.querySelector("main")||document.body;
- const placement=record.data?.placement||"after",key=selector+"|"+placement,previous=placed.get(key);
- if(placement==="before"&&anchor!==document.body){anchor.parentNode?.insertBefore(section,anchor);return}
- if(placement==="inside"){
-  if(previous&&previous.parentNode===anchor)previous.insertAdjacentElement("afterend",section);else anchor.prepend(section);
-  placed.set(key,section);return
+ const fallback=document.querySelector("main")||document.querySelector("#pageBody")||document.body;
+ if(!anchor||anchor.closest?.("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))anchor=fallback;
+ const placement=record.data?.placement||"end",key=selector+"|"+placement,previous=placed.get(key);
+ try{
+  if(placement==="before"&&anchor!==document.body&&anchor.parentNode){anchor.parentNode.insertBefore(section,anchor);return}
+  if(placement==="inside"){
+   if(previous&&previous.parentNode===anchor)previous.insertAdjacentElement("afterend",section);else anchor.prepend(section);
+   placed.set(key,section);return
+  }
+  if(placement==="after"&&anchor!==document.body&&anchor!==fallback&&anchor.parentNode){
+   if(previous&&previous.parentNode===anchor.parentNode)previous.insertAdjacentElement("afterend",section);else anchor.insertAdjacentElement("afterend",section);
+   placed.set(key,section);return
+  }
+  // "end" always means the end of the main content, never an invisible/detached anchor.
+  (anchor===document.body?fallback:anchor).append(section);
+  if(!section.isConnected)fallback.append(section);
+ }catch(error){
+  console.warn("Orlong section placement fallback:",error);
+  fallback.append(section);
  }
- if(placement==="end"||anchor===document.body||anchor.tagName?.toLowerCase()==="main"){anchor.append(section);return}
- if(placement==="after"){
-  if(previous&&previous.parentNode===anchor.parentNode)previous.insertAdjacentElement("afterend",section);else anchor.insertAdjacentElement("afterend",section);
-  placed.set(key,section);return
- }
- anchor.insertAdjacentElement("afterend",section);
 }
 function selectorForPlacement(node){
  if(!node)return "main";
@@ -80,11 +87,20 @@ function placementOptions(){
 }
 async function render(db,path){
  style();
+ // The shared editor is injected dynamically; wait one paint so the page's own
+ // content and main landmark are present before resolving saved placement points.
+ await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
  const {data,error}=await db.rpc("get_public_orlong_site_sections",{p_page_path:path});
  if(error){console.warn("Orlong page sections:",error.message);return {error:error.message,count:0}}
- const records=Array.isArray(data)?data:[];
- const placed=new Map();
- records.forEach(record=>{try{placeSection(renderSection(record),record,placed)}catch(e){console.warn("Could not place saved Orlong section:",record?.id,e)}});
+ const records=Array.isArray(data)?data:Array.isArray(data?.sections)?data.sections:[];
+ const placed=new Map(),fallback=document.querySelector("main")||document.querySelector("#pageBody")||document.body;
+ records.forEach(record=>{
+  try{
+   const section=renderSection(record);
+   placeSection(section,record,placed);
+   if(!section.isConnected)fallback.append(section);
+  }catch(e){console.warn("Could not place saved Orlong section:",record?.id,e);try{fallback.append(renderSection(record))}catch(_){}}
+ });
  return {count:records.length};
 }
 async function start(db,path,bar){
@@ -134,6 +150,26 @@ async function start(db,path,bar){
  });
   renderNativeSections();
  };
+ const editNativeDesign=(node)=>{
+  const selector=contentSelectorFor(node),title=node.querySelector("h1,h2,h3,h4")?.textContent?.trim()||node.getAttribute("aria-label")||"Page section";
+  const colour=(label,value)=>{const wrap=$("label","",label),field=$("input");field.type="color";field.value=/^#[0-9a-f]{6}$/i.test(value||"")?value:"#101a29";wrap.append(field);return {wrap,field}};
+  const size=(label,value)=>{const f=input(label,value||"");return f};
+  const bg=colour("BACKGROUND COLOUR",getComputedStyle(node).backgroundColor.startsWith("rgb")?"#101a29":getComputedStyle(node).backgroundColor);
+  const fg=colour("TEXT COLOUR","#f1f5fb");
+  const pad=size("INNER SPACING (e.g. 24px or 2rem)",node.style.padding||"");
+  const max=size("MAXIMUM WIDTH (e.g. 1100px or 90%)",node.style.maxWidth||"");
+  const radius=size("CORNER ROUNDING (e.g. 8px)",node.style.borderRadius||"");
+  const align=choose("TEXT ALIGNMENT",[["left","Left"],["center","Centred"],["right","Right"]],node.style.textAlign||"left");
+  dialog("EDIT EXISTING SECTION DESIGN — "+title,[bg.wrap,fg.wrap,pad.wrap,max.wrap,radius.wrap,align.wrap],async()=>{
+   const values=[["style:background-color",bg.field.value],["style:color",fg.field.value],["style:padding",pad.field.value],["style:max-width",max.field.value],["style:border-radius",radius.field.value],["style:text-align",align.field.value]];
+   for(const [property,value] of values){
+    if(value&&["style:padding","style:max-width","style:border-radius"].includes(property)&&!/^(0|[0-9]{1,4}(px|rem|%))$/.test(value))throw new Error("Use px, rem or % for spacing and sizing values.");
+    const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:path,p_selector:selector,p_property:property,p_content_value:value,p_is_published:true});
+    if(error)throw error;
+    node.style.setProperty(property.slice(6),value,"important");
+   }
+  },reload,reload);
+ };
  const renderNativeSections=()=>{
   body.querySelectorAll(".native-section-inventory").forEach(el=>el.remove());
   const main=document.querySelector("main");if(!main)return;
@@ -158,7 +194,8 @@ async function start(db,path,bar){
    const title=node.querySelector("h1,h2,h3,h4")?.textContent?.trim()||node.getAttribute("aria-label")||node.className?.toString().split(" ")[0]||node.tagName.toLowerCase();
    const entry=$("div","builder-entry"),name=$("strong","",(index+1)+". "+title.slice(0,90));
    const meta=$("p","",node.hidden?"HIDDEN FROM READERS":"BUILT-IN PAGE SECTION");
-   const actions=$("div","builder-row"),locate=$("button","","LOCATE SECTION"),toggle=$("button","",node.hidden?"RESTORE SECTION":"HIDE SECTION");
+   const actions=$("div","builder-row"),locate=$("button","","LOCATE SECTION"),design=$("button","","EDIT SECTION DESIGN"),toggle=$("button","",node.hidden?"RESTORE SECTION":"HIDE SECTION");
+   design.addEventListener("click",()=>editNativeDesign(node));
    locate.addEventListener("click",()=>{node.scrollIntoView({behavior:"smooth",block:"center"});node.style.outline="3px solid #78baff";window.setTimeout(()=>{node.style.outline=""},1800);message("Section located. Click an individual heading, paragraph, image or link on the page to edit it.")});
    toggle.addEventListener("click",async()=>{
     toggle.disabled=true;const next=!node.hidden,selector=contentSelectorFor(node);
@@ -167,7 +204,7 @@ async function start(db,path,bar){
      if(error)throw error;node.hidden=next;message(next?"Existing section hidden. You can restore it here at any time.":"Existing section restored.");renderNativeSections();
     }catch(e){message(e.message||"Could not change this section.")}finally{toggle.disabled=false}
    });
-   actions.append(locate,toggle);entry.append(name,meta,actions);host.append(entry);
+   actions.append(locate,design,toggle);entry.append(name,meta,actions);host.append(entry);
   });
  };
  const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
