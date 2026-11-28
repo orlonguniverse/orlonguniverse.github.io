@@ -76,7 +76,7 @@ async function start(db,path,bar){
  const choose=(label,values,value)=>{const wrap=$("label","",label),field=$("select");values.forEach(v=>{const o=$("option","",v[1]);o.value=v[0];field.append(o)});field.value=value;wrap.append(field);return {wrap,field}};
  const dialog=async(title,fields,onSave)=>{
   body.replaceChildren();const h=$("h2","",title);body.append(h);
-  fields.forEach(f=>body.append(f.wrap));
+  fields.forEach(f=>body.append(f?.wrap||f));
   const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",reload);
   saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await reload();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
   actions.append(saveBtn,cancel);body.append(actions);
