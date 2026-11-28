@@ -2,6 +2,9 @@
 begin;
 alter table public.orlong_books add column if not exists show_on_homepage boolean not null default false;
 update public.orlong_books set show_on_homepage=true where book_key='trials-of-eden';
+-- The Promise of Arcanet is still in preparation, not a released public title.
+update public.orlong_books set is_published=false,show_on_homepage=false
+where lower(title)=lower('The Promise of Arcanet');
 create or replace function public.get_public_orlong_books()
 returns jsonb language sql stable security definer set search_path=public,pg_temp
 as $$
