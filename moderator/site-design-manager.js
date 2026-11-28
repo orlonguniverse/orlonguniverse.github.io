@@ -21,7 +21,7 @@ function render(){
   const title=document.createElement("strong");title.textContent=v.name;
   const meta=document.createElement("p");meta.textContent=v.theme.toUpperCase()+" · "+v.status.toUpperCase()+" · "+v.revisionCount+" saved revision(s)"+(v.publishAt?" · "+new Date(v.publishAt).toLocaleString():"");
   const actions=document.createElement("div");actions.className="design-version-actions";
-  actions.append(action("EDIT",()=>edit(v)),action("DUPLICATE",()=>duplicate(v)),action("VERSION HISTORY",()=>history(v)));
+  actions.append(action("EDIT",()=>edit(v)),action("PREVIEW ↗",()=>window.open("/?design-preview="+encodeURIComponent(v.id),"_blank","noopener")),action("DUPLICATE",()=>duplicate(v)),action("VERSION HISTORY",()=>history(v)));
   if(v.status!=="published")actions.append(action("MAKE LIVE NOW",()=>activate(v),"primary"));
   if(v.status==="published")actions.append(action("ARCHIVE",()=>archive(v),"danger"));
   else actions.append(action("DELETE",()=>remove(v),"danger"));
@@ -34,15 +34,15 @@ function edit(v){
  put("designVersionName",isLive?"Copy of "+v.name:v.name);put("designTheme",v.theme);fill(v.design);
  put("designStatus",isLive?"draft":v.status);put("designPublishAt",localDate(v.publishAt));
  put("designRevisionNote",isLive?"Copy of live version": "Edited version");
- themePreview();say(isLive?"This is a new draft copied from the live version. The current live homepage will remain unchanged.":"Editing saved version. Saving will add a revision to its history.");
+ themePreview();$("designStatus").dispatchEvent(new Event("change"));say(isLive?"This is a new draft copied from the live version. The current live homepage will remain unchanged.":"Editing saved version. Saving will add a revision to its history.");
  $("designEditor").scrollIntoView({behavior:"smooth",block:"start"});
 }
-function duplicate(v){editingId=null;editingStatus="draft";put("designVersionName","Copy of "+v.name);put("designTheme",v.theme);fill(v.design);put("designStatus","draft");put("designPublishAt","");put("designRevisionNote","Copied from "+v.name);themePreview();say("A new draft copy has been prepared. The original version is untouched.");$("designEditor").scrollIntoView({behavior:"smooth",block:"start"})}
+function duplicate(v){editingId=null;editingStatus="draft";put("designVersionName","Copy of "+v.name);put("designTheme",v.theme);fill(v.design);put("designStatus","draft");put("designPublishAt","");put("designRevisionNote","Copied from "+v.name);themePreview();$("designStatus").dispatchEvent(new Event("change"));say("A new draft copy has been prepared. The original version is untouched.");$("designEditor").scrollIntoView({behavior:"smooth",block:"start"})}
 async function history(v){
  say("Loading version history…");const {data,error}=await db.rpc("get_moderator_orlong_homepage_revisions",{p_version_id:v.id});if(error){say(error.message);return}
  const root=$("designHistory");root.replaceChildren();const h=document.createElement("h3");h.textContent="VERSION HISTORY — "+v.name;root.append(h);
  if(!data?.length){const p=document.createElement("p");p.textContent="No earlier revisions have been recorded.";root.append(p)}
- (data||[]).forEach(r=>{const row=document.createElement("div");row.className="design-history-row";const label=document.createElement("span");label.textContent="REVISION "+r.number+" · "+new Date(r.createdAt).toLocaleString()+" · "+(r.note||"No note");const load=action("RESTORE AS NEW DRAFT",()=>{const s=r.snapshot||{};editingId=null;editingStatus="draft";put("designVersionName","Restored: "+(s.name||v.name));put("designTheme",s.theme||"blue");fill(s.design);put("designStatus","draft");put("designPublishAt","");put("designRevisionNote","Restored from revision "+r.number);themePreview();say("Revision loaded as a new draft. Your original history is preserved.");$("designHistory").replaceChildren();$("designEditor").scrollIntoView({behavior:"smooth",block:"start"})});row.append(label,load);root.append(row)});
+ (data||[]).forEach(r=>{const row=document.createElement("div");row.className="design-history-row";const label=document.createElement("span");label.textContent="REVISION "+r.number+" · "+new Date(r.createdAt).toLocaleString()+" · "+(r.note||"No note");const load=action("RESTORE AS NEW DRAFT",()=>{const s=r.snapshot||{};editingId=null;editingStatus="draft";put("designVersionName","Restored: "+(s.name||v.name));put("designTheme",s.theme||"blue");fill(s.design);put("designStatus","draft");put("designPublishAt","");put("designRevisionNote","Restored from revision "+r.number);themePreview();$("designStatus").dispatchEvent(new Event("change"));say("Revision loaded as a new draft. Your original history is preserved.");$("designHistory").replaceChildren();$("designEditor").scrollIntoView({behavior:"smooth",block:"start"})});row.append(label,load);root.append(row)});
  say("History loaded. Restoring a revision creates a new draft and never overwrites the saved history.");
 }
 async function save(statusOverride){
@@ -57,8 +57,8 @@ async function save(statusOverride){
   await load();
  }catch(e){say(e.message||"Could not save this homepage version.")}finally{button.disabled=false}
 }
-async function activate(v){if(!confirm("Make “"+v.name+"” the live homepage design now?"))return;const snap={...v};editingId=snap.id;put("designVersionName",snap.name);put("designTheme",snap.theme);fill(snap.design);put("designStatus","published");put("designPublishAt","");put("designRevisionNote","Published immediately");themePreview();await save("published")}
-async function archive(v){if(!confirm("Archive this live version? The site will fall back to the previous eligible published design."))return;editingId=v.id;put("designVersionName",v.name);put("designTheme",v.theme);fill(v.design);put("designStatus","archived");put("designPublishAt","");put("designRevisionNote","Archived");await save("archived")}
+async function activate(v){if(!confirm("Make “"+v.name+"” the live homepage design now?"))return;const snap={...v};editingId=snap.id;put("designVersionName",snap.name);put("designTheme",snap.theme);fill(snap.design);put("designStatus","published");put("designPublishAt","");put("designRevisionNote","Published immediately");themePreview();$("designStatus").dispatchEvent(new Event("change"));await save("published")}
+async function archive(v){if(!confirm("Archive this live version? The site will fall back to the previous eligible published design."))return;editingId=v.id;put("designVersionName",v.name);put("designTheme",v.theme);fill(v.design);put("designStatus","archived");put("designPublishAt","");put("designRevisionNote","Archived");$("designStatus").dispatchEvent(new Event("change"));await save("archived")}
 async function remove(v){if(!confirm("Delete this draft or scheduled version and its revision history?"))return;const {error}=await db.rpc("delete_moderator_orlong_homepage_version",{p_version_id:v.id});if(error){say(error.message);return}await load();say("Version deleted.")}
 async function load(){say("Loading saved homepage versions…");const {data,error}=await db.rpc("get_moderator_orlong_homepage_versions");if(error)throw error;versions=Array.isArray(data)?data:[];render();say("Homepage design studio ready. Your live site remains unchanged until a version is published or its scheduled time arrives.")}
 async function init(){
