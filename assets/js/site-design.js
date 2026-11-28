@@ -135,7 +135,7 @@ function renderBookCatalogue(books){
   const copy=document.createElement("div");copy.className="orlong-book-copy";const eyebrow=document.createElement("p");eyebrow.className="eyebrow";eyebrow.textContent=book.bookLabel||book.seriesName||"ORLONG UNIVERSE";
   const title=document.createElement("h3");title.textContent=book.title;const desc=document.createElement("p");desc.textContent=book.description||"Discover this story in the Orlong Universe.";
   const actions=document.createElement("div");actions.className="orlong-book-actions";
-  if(book.isPublished===false){const coming=document.createElement("span");coming.className="orlong-book-coming-soon";coming.textContent="COMING SOON";actions.append(coming)}
+  if(book.isPublished===false){const coming=document.createElement("span");coming.className="orlong-book-coming-soon";coming.textContent="COMING SOON";Object.assign(coming.style,{display:"inline-flex",alignItems:"center",padding:"10px 12px",border:"1px solid var(--book-ice)",color:"var(--book-text)",fontSize:"9px",letterSpacing:"1px",fontWeight:"700"});actions.append(coming)}
   else{const read=document.createElement("a");read.href=book.readerUrl;read.textContent="ENTER READING ROOM";actions.append(read);if(book.contentsUrl){const contents=document.createElement("a");contents.href=book.contentsUrl;contents.textContent="BOOK CONTENTS";actions.append(contents)}}
   copy.append(eyebrow,title,desc,actions);card.append(cover,copy);root.append(card);
  });
