@@ -7,3 +7,5 @@
 .orlong-universal-chapters .chapter-admin-layout{margin:18px 0}
 .orlong-universal-chapters #universalChapterMessage{min-height:1.4em}
 .orlong-universal-chapters #universalChapterMessage.error{color:#ff8e8e}
+
+.part-admin-row{align-items:center}.part-admin-info{min-width:0;font-size:11px;line-height:1.6}.part-admin-actions{display:flex;gap:8px;flex:0 0 auto}.part-admin-actions button{padding:8px 11px;font-size:9px}.part-admin-actions .danger{color:#ffb7bd;border-color:#b74a56;background:#6d202a22}.part-admin-actions .danger:hover{background:#8f2634;color:#fff}
