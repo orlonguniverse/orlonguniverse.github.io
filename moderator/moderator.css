@@ -168,3 +168,17 @@
 .design-theme-choice:hover,.design-theme-choice.is-selected{border-color:var(--swatch,var(--orlong-accent,#398cff));background:#14243a;box-shadow:0 0 0 1px var(--swatch,var(--orlong-accent,#398cff))}
 .design-version-list:empty:after{content:"No saved versions yet. Select NEW VERSION to create your first private homepage design.";display:block;padding:18px;color:#a9b9ca;background:#0b1725;border:1px dashed #344a62;font-size:12px;line-height:1.7}
 @media(max-width:600px){.design-theme-choices{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Stage 8D.6 — simple book catalogue management */
+.book-manager-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:22px;align-items:start;margin:22px 0}
+.book-manager-form,.book-manager-help{padding:22px;background:var(--panel,#101a29);border:1px solid var(--line,#ffffff20);border-radius:5px}
+.book-manager-form{display:grid;gap:13px}
+.book-manager-form label{display:grid;gap:7px;font-size:10px;letter-spacing:1px}
+.book-manager-form input:not([type=checkbox]),.book-manager-form select,.book-manager-form textarea{width:100%;box-sizing:border-box;padding:11px;background:#0d1725;color:#f2f5fa;border:1px solid #52647a;border-radius:3px;font:12px Inter,Arial,sans-serif}
+.book-manager-form .check-row{display:flex;align-items:center;gap:10px}
+.book-manager-form .check-row input{width:17px;height:17px;accent-color:var(--orlong-accent,#398cff)}
+.book-manager-help{position:sticky;top:90px;line-height:1.7}.book-manager-help h3{font-family:Cinzel,Georgia,serif;font-size:18px}.book-manager-help li{margin:10px 0;color:var(--muted,#b7c2d1);font-size:12px}
+.book-manager-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:16px 0 30px}
+.book-manager-card{padding:17px;background:var(--panel,#101a29);border:1px solid var(--line,#ffffff20);border-radius:4px;display:grid;gap:9px}
+.book-manager-card strong{font-family:Cinzel,Georgia,serif;font-size:15px}.book-manager-card p{margin:0;color:var(--muted,#b7c2d1);font-size:10px;letter-spacing:.7px}.book-manager-card small{overflow-wrap:anywhere;color:var(--muted,#b7c2d1);font-size:10px}.book-manager-card button{justify-self:start}
+@media(max-width:850px){.book-manager-layout{grid-template-columns:1fr}.book-manager-help{position:static}}
