@@ -919,3 +919,8 @@ body.book-only-mode .mobile-focus-toggle{display:none!important}
 .comment-expression-gallery img{display:block;max-width:100%;max-height:220px;object-fit:contain;border-radius:9px;border:1px solid rgba(120,160,210,.3)}
 .comment-expression-emoji{font-size:34px}
 @media(max-width:600px){.expression-picker-dialog{padding:15px}.expression-picker-controls{grid-template-columns:1fr}.expression-picker-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.expression-picker-item img{height:75px}.expression-composer-tools{grid-template-columns:1fr auto}.expression-open-button{font-size:10px;padding:9px 11px}}
+
+.expression-preview-button{justify-self:start;border:1px solid rgba(210,185,121,.42);border-radius:999px;background:transparent;color:inherit;padding:9px 13px;font-size:11px;cursor:pointer}
+.expression-comment-preview{grid-column:1/-1;padding:13px;border:1px dashed rgba(120,160,210,.45);border-radius:9px;background:rgba(7,16,29,.65)}
+.expression-comment-preview p{white-space:pre-wrap;margin:4px 0 10px}
+.expression-comment-preview img{max-width:min(230px,100%);max-height:180px;object-fit:contain;border-radius:8px;margin:5px}
