@@ -9,7 +9,23 @@ function status(t){$("siteMapStatus").textContent=t}
 function mark(){dirty=true;$("siteMapSave").disabled=false;status("You have unsaved changes. Select SAVE CHANGES when you are ready to update the live website menu.")}
 function field(label,value,placeholder){const wrap=node("label","site-map-field",label),el=node("input");el.value=value||"";el.placeholder=placeholder||"";wrap.append(el);return {wrap,el}}
 function action(label,cls,fn){const b=node("button",cls||"secondary",label);b.type="button";b.addEventListener("click",fn);return b}
-function renderFlow(){const host=$("siteMapFlow");if(!host)return;host.replaceChildren();const normalise=value=>{let p=String(value||"").split("?")[0].split("#")[0];if(p.length>1&&p.endsWith("/"))p=p.slice(0,-1);return p||"/"};const pages=config.pages||[];const groups=[["primary","TOP-LEVEL LINKS"],["book",(config.menus||[]).find(x=>x.id==="book")?.label||"BOOK DROPDOWN"],["discover",(config.menus||[]).find(x=>x.id==="discover")?.label||"DISCOVER DROPDOWN"]];groups.forEach(([group,label])=>{const menuSetting=(config.menus||[]).find(x=>x.id===group);if(group!=="primary"&&menuSetting?.enabled===false)return;const links=(config.links||[]).filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));if(!links.length)return;const section=node("div","site-map-flow-group");section.append(node("h4","",label));links.forEach(link=>{const match=pages.find(p=>normalise(p.path)===normalise(link.href));const row=node("div","site-map-flow-row"),source=node("span","site-map-flow-node site-map-flow-source",label),arrow1=node("span","site-map-flow-arrow","→"),middle=node("span","site-map-flow-node",link.label||"Untitled link"),arrow2=node("span","site-map-flow-arrow","→"),target=node("span","site-map-flow-node site-map-flow-target",match?match.label:"Page not listed");row.append(source,arrow1,middle,arrow2,target);if(link.enabled===false){row.classList.add("is-hidden");middle.append(node("small","site-map-flow-hidden","HIDDEN"))}if(!match)target.title="No page with this address is listed in the directory.";section.append(row)});host.append(section)})}
+function renderFlow(){
+ const host=$("siteMapFlow");if(!host)return;host.replaceChildren();
+ const normalise=value=>{let p=String(value||"").split("?")[0].split("#")[0];if(p.length>1&&p.endsWith("/"))p=p.slice(0,-1);return p||"/"};
+ const pages=config.pages||[];
+ [["primary","TOP-LEVEL LINKS"],["discover",(config.menus||[]).find(x=>x.id==="discover")?.label||"DISCOVER"]].forEach(([group,label])=>{
+  const menuSetting=(config.menus||[]).find(x=>x.id===group);if(group!=="primary"&&menuSetting?.enabled===false)return;
+  const links=(config.links||[]).filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));if(!links.length)return;
+  const section=node("div","site-map-flow-group");section.append(node("h4","",label));let subsection="";
+  links.forEach(link=>{
+   if(group==="discover"&&link.section&&link.section!==subsection){subsection=link.section;section.append(node("h5","site-map-flow-subsection",subsection.toUpperCase()))}
+   const match=pages.find(p=>normalise(p.path)===normalise(link.href));
+   const row=node("div","site-map-flow-row"),source=node("span","site-map-flow-node site-map-flow-source",group==="discover"?(link.section||"DISCOVER"):label),arrow1=node("span","site-map-flow-arrow","→"),middle=node("span","site-map-flow-node",link.label||"Untitled link"),arrow2=node("span","site-map-flow-arrow","→"),target=node("span","site-map-flow-node site-map-flow-target",match?match.label:"Page not listed");
+   row.append(source,arrow1,middle,arrow2,target);if(link.enabled===false){row.classList.add("is-hidden");middle.append(node("small","site-map-flow-hidden","HIDDEN"))}
+   if(!match)target.title="No page with this address is listed in the directory.";section.append(row);
+  });host.append(section);
+ });
+}
 function move(arr,id,delta){const i=arr.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];arr.forEach((x,n)=>x.order=n);mark();render()}
 function movePage(id,delta){const pages=[...config.pages].sort((a,b)=>(a.order??0)-(b.order??0));const i=pages.findIndex(x=>x.id===id),j=i+delta;if(j<0||j>=pages.length)return;[pages[i],pages[j]]=[pages[j],pages[i]];pages.forEach((x,n)=>x.order=n);config.pages=pages;mark();render();}
 function pageForm(page){
@@ -66,7 +82,7 @@ function renderMenuControls(host){
  const section=node("section","site-map-route-group site-map-config-group");
  section.append(node("h3","","DROPDOWN MENU SETTINGS"),node("p","site-map-hint","Rename or hide a dropdown. Hiding it removes the dropdown from the website menu without deleting its links."));
  menus.forEach(menu=>{
-  const row=node("div","site-map-menu-setting"),grip=node("span","site-map-drag-handle","⠿"),name=field(menu.id==="book"?"BOOK DROPDOWN NAME":"DISCOVER DROPDOWN NAME",menu.label);
+  const row=node("div","site-map-menu-setting"),grip=node("span","site-map-drag-handle","⠿"),name=field("DISCOVER DROPDOWN NAME",menu.label);
   row.draggable=true;row.addEventListener("dragstart",event=>{dragged={menuId:menu.id};event.dataTransfer?.setData("text/plain","menu:"+menu.id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging")});
   row.addEventListener("dragover",event=>{if(dragged?.menuId){event.preventDefault();row.classList.add("drag-over")}});row.addEventListener("dragleave",()=>row.classList.remove("drag-over"));row.addEventListener("drop",event=>{if(!dragged?.menuId)return;event.preventDefault();event.stopPropagation();const from=config.menus.findIndex(x=>x.id===dragged.menuId),to=config.menus.findIndex(x=>x.id===menu.id);if(from>=0&&to>=0&&from!==to){const [picked]=config.menus.splice(from,1);config.menus.splice(to,0,picked);config.menus.forEach((x,n)=>x.order=n);mark();render()}});
   const visible=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=menu.enabled!==false;visible.append(check,node("span","","Show this dropdown on the website"));
@@ -130,27 +146,28 @@ function render(){
   });
  }
  const addPage=action("＋ ADD A PAGE","primary",()=>{const form=pageForm(null);directory.prepend(form);form.querySelector("input").focus()});directory.append(addPage);
- const groups=[["primary","TOP-LEVEL LINKS","These links appear directly along the top of the website."],["book","BOOK DROPDOWN LINKS","These links appear inside your Book dropdown."],["discover","DISCOVER DROPDOWN LINKS","These links appear inside your Discover dropdown."]];
+ const groups=[["primary","TOP-LEVEL LINKS","These links appear directly along the top of the website."],["discover","DISCOVER MENU LINKS","These links appear inside Discover. Add an optional subsection name to group related links under a small heading. Reuse a subsection name to add another link to that group; clear it from every link to remove the subsection."]];
  groups.forEach(([group,title,description])=>{
   const items=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));
   const section=node("section","site-map-route-group"),heading=node("div","site-map-route-heading");
   heading.append(node("h3","",title),node("p","site-map-hint",description));section.append(heading);
   const list=node("div","site-map-route-list");
   items.forEach((item,i)=>{
-   const row=node("article","site-map-route"),grip=node("span","site-map-drag-handle","⠿"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href);
+   const row=node("article","site-map-route"),grip=node("span","site-map-drag-handle","⠿"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href),sectionField=group==="discover"?field("SUBSECTION (OPTIONAL)",item.section||"","e.g. EXPLORE, COMMUNITY"):null;
+   if(sectionField)sectionField.el.addEventListener("change",()=>{item.section=sectionField.el.value.trim();mark();renderFlow()});
    row.draggable=true;row.dataset.navigationId=item.id;row.setAttribute("aria-label","Drag "+(item.label||"menu link")+" to rearrange it or move it to another menu area");
    row.addEventListener("dragstart",event=>{dragged={id:item.id,fromGroup:group};row.classList.add("dragging");event.dataTransfer?.setData("text/plain",item.id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});
    row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging");document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"))});
    wireDropTarget(row,group,item.id);
    const enabled=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=item.enabled!==false;enabled.append(check,node("span","","Show this link in the menu"));
    label.el.addEventListener("change",()=>{item.label=label.el.value.trim();mark();renderFlow()});href.el.addEventListener("change",()=>{item.href=href.el.value.trim();mark();renderFlow()});check.addEventListener("change",()=>{item.enabled=check.checked;mark()});
-   fields.append(label.wrap,href.wrap,enabled);
+   fields.append(label.wrap,href.wrap,...(sectionField?[sectionField.wrap]:[]),enabled);
    const actions=node("div","site-map-actions");actions.append(action("MOVE UP","secondary",()=>moveLink(item.id,-1,group)),action("MOVE DOWN","secondary",()=>moveLink(item.id,1,group)),action("REMOVE","danger",()=>{if(!confirm("Remove this link from the website menu?"))return;config.links=config.links.filter(x=>x.id!==item.id);mark();render()}));
    actions.children[0].disabled=i===0;actions.children[1].disabled=i===items.length-1;
    row.append(grip,fields,actions);list.append(row)
   });
   wireDropTarget(list,group);
-  section.append(list,action("＋ ADD A MENU LINK","secondary",()=>{const id="nav-"+Math.random().toString(36).slice(2,9);config.links.push({id,label:"New link",href:"/",group,order:items.length,enabled:true});mark();render()}));routes.append(section)
+  section.append(list,action("＋ ADD A MENU LINK","secondary",()=>{const id="nav-"+Math.random().toString(36).slice(2,9);config.links.push({id,label:"New link",href:"/",group,order:items.length,enabled:true,...(group==="discover"?{section:"OTHER"}:{})});mark();render()}));routes.append(section)
  });
  renderFlow();
  $("siteMapSave").disabled=!dirty;
@@ -175,7 +192,7 @@ function wireDropTarget(element,group,targetId=null){
  element.addEventListener("dragleave",()=>element.classList.remove("drag-over"));
  element.addEventListener("drop",event=>{event.preventDefault();event.stopPropagation();element.classList.remove("drag-over");const id=event.dataTransfer?.getData("text/plain")||dragged?.id;if(id)moveLinkByDrop(id,targetId,group,!targetId)});
 }
-async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};normaliseTopLevelOrder();const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
+async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"discover",label:"DISCOVER",enabled:true,order:0}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};normaliseTopLevelOrder();const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
 async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu},navigationOrder:[...config.navigationOrder]};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>status(e.message||"Website map could not load.")));
