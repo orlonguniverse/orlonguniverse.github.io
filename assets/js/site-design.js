@@ -19,7 +19,7 @@ function apply(record){
  document.documentElement.dataset.orlongSeriesTheme=activeTheme;
  document.documentElement.dataset.orlongGlobalTheme=globalTheme;if(document.body)document.body.classList.toggle("orlong-reading-room",isReader);
  const luminance=hex=>{const h=String(hex||"#000").replace("#","");const full=h.length===3?h.split("").map(x=>x+x).join(""):h;const rgb=[0,2,4].map(i=>parseInt(full.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
- const onAccent=luminance(theme.accent)>.42?"#111722":"#ffffff";
+ const onAccent=luminance(theme.accent)>.179?"#111722":"#ffffff";
  const onIce=luminance(theme.ice)>.48?"#111722":"#ffffff";
  const themeVars={"--blue":theme.accent,"--blue-light":theme.ice,"--ice":theme.ice,"--orlong-accent":theme.accent,"--orlong-ice":theme.ice,"--orlong-glow":theme.glow,"--orlong-deep":theme.deep,"--orlong-surface":theme.surface,"--bg":theme.deep,"--surface":theme.surface,"--text":theme.text,"--orlong-text":theme.text,"--orlong-on-accent":onAccent,"--orlong-on-ice":onIce,"--orlong-muted":theme.ice};
  Object.entries(themeVars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
@@ -36,7 +36,7 @@ function apply(record){
   .topbar,.topbar .nav-dropdown-menu,.nav-dropdown-menu{background:color-mix(in srgb,var(--orlong-deep) 88%,var(--orlong-surface))!important;border-color:color-mix(in srgb,var(--orlong-accent) 52%,transparent)!important}
   .topbar .logo,.topbar-right>a,.topbar-right>button,.topbar-right .nav-dropdown>summary,.top-actions>a,.top-actions>button,.top-actions .nav-dropdown>summary,.nav-menu-action{color:var(--orlong-text)!important}
   .topbar-right>a:hover,.topbar-right>button:hover,.topbar-right .nav-dropdown>summary:hover,.topbar-right .nav-dropdown[open]>summary,.top-actions>a:hover,.top-actions>button:hover,.top-actions .nav-dropdown>summary:hover,.nav-dropdown-menu a:hover,.nav-dropdown-menu a[aria-current=page]{color:var(--orlong-on-accent)!important;background:var(--orlong-accent)!important;border-color:var(--orlong-ice)!important}
-  .topbar .nav-start-reading,.button.primary,.primary-button,button.primary,.primary-button,.reader-first-callout a,.events-reader-link a{background:linear-gradient(120deg,var(--orlong-accent),color-mix(in srgb,var(--orlong-accent) 72%,var(--orlong-deep)))!important;color:var(--orlong-on-accent)!important;border:1px solid var(--orlong-ice)!important;text-shadow:none!important;box-shadow:0 5px 18px color-mix(in srgb,var(--orlong-accent) 25%,transparent)!important}
+  .topbar .nav-start-reading,.button.primary,.primary-button,button.primary,.primary-button,.reader-first-callout a,.events-reader-link a{background:var(--orlong-accent)!important;color:var(--orlong-on-accent)!important;border:1px solid var(--orlong-ice)!important;text-shadow:none!important;box-shadow:0 5px 18px color-mix(in srgb,var(--orlong-accent) 25%,transparent)!important}
   .topbar .nav-account-button,.topbar #openAccountButton,.topbar #mainAccountButton{color:var(--orlong-ice)!important;background:color-mix(in srgb,var(--orlong-accent) 16%,var(--orlong-deep))!important;border-color:color-mix(in srgb,var(--orlong-ice) 65%,transparent)!important}
   .nav-dropdown-menu a{color:var(--orlong-text)!important}
   a:hover,.topbar a:hover{color:var(--orlong-ice)!important}
