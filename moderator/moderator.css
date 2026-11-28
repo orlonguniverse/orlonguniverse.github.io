@@ -209,3 +209,24 @@
 .site-map-top-order-label strong{font-size:11px;letter-spacing:1px;color:var(--orlong-text,#f1f5fb)}
 .site-map-top-order-label small{font-size:10px;color:var(--orlong-muted,#a8ceff)}
 @media(max-width:640px){.site-map-top-order-item{grid-template-columns:22px minmax(0,1fr)}.site-map-top-order-item .site-map-actions{grid-column:2;justify-content:flex-start}}
+
+/* Stage 8D.2 — visual archive block composer */
+.archive-block-builder{margin:22px 0;padding:18px;background:linear-gradient(145deg,#101f32,#091321);border:1px solid rgba(201,170,107,.28)}
+.archive-block-builder-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.archive-block-builder-heading h3{margin:5px 0;color:#e8d9b8;font:500 16px Cinzel,serif;letter-spacing:1px}
+.archive-block-builder-heading .hint{max-width:620px;line-height:1.7}
+.archive-block-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.archive-block-add select{min-height:38px;padding:8px;background:#081321;color:#e7edf6;border:1px solid #405a78;font:10px Inter,sans-serif}
+.archive-block-list{display:grid;gap:11px;margin:17px 0}
+.archive-block-card{padding:14px;background:#0a1524;border:1px solid #344c68}
+.archive-block-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.archive-block-card-head>strong{color:#e3d0a7;font:500 11px Cinzel,serif;letter-spacing:1px}
+.archive-block-actions{display:flex;gap:5px;flex-wrap:wrap}
+.archive-block-action{min-height:29px;padding:6px 9px;font-size:8px}
+.archive-block-action:disabled{opacity:.35;cursor:not-allowed}
+.archive-block-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.archive-block-field{display:grid;gap:6px;color:#b9cbe0;font-size:8px;letter-spacing:1px}
+.archive-block-field:has(textarea){grid-column:1/-1}
+.archive-block-field input,.archive-block-field textarea{width:100%;min-width:0;padding:10px;background:#07111f;border:1px solid #304a68;color:#e7edf6;font:11px/1.6 Inter,sans-serif}
+.archive-block-field textarea{resize:vertical}
+@media(max-width:650px){.archive-block-fields{grid-template-columns:1fr}.archive-block-field:has(textarea){grid-column:1}.archive-block-builder-heading{align-items:flex-start;flex-direction:column}.archive-block-add{width:100%}.archive-block-add select,.archive-block-add button{flex:1}}
