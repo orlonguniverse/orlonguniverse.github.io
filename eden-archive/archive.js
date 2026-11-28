@@ -34,16 +34,16 @@ function renderBlock(block,index){
  }
  return el("p","archive-block-note","This archive section is not available.");
 }
-async function openEntry(entry){
+async function openEntry(entry,targetBlockId=null){
  const dialog=$("archiveReaderDialog");
  $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
  $("archiveReaderTitle").textContent=entry.title;
  $("archiveReaderSummary").textContent="Opening this record…";
  $("archiveReaderCards").replaceChildren();$("archiveReaderBlocks").replaceChildren();dialog.showModal();
- try{let detail=detailCache.get(entry.id);if(!detail){const {data,error}=await client.rpc("get_my_eden_archive_entry",{p_entry_id:entry.id});if(error)throw error;if(!data)throw new Error("This record is not currently unlocked.");detail=data;detailCache.set(entry.id,detail);}renderEntryDetail(detail);}
+ try{let detail=detailCache.get(entry.id);if(!detail){const {data,error}=await client.rpc("get_my_eden_archive_entry",{p_entry_id:entry.id});if(error)throw error;if(!data)throw new Error("This record is not currently unlocked.");detail=data;detailCache.set(entry.id,detail);}renderEntryDetail(detail,targetBlockId);}
  catch(error){$("archiveReaderSummary").textContent=error.message||"This record could not be opened.";}
 }
-function renderEntryDetail(entry){
+function renderEntryDetail(entry,targetBlockId=null){
  $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
  $("archiveReaderTitle").textContent=entry.title;$("archiveReaderSummary").textContent=entry.summary||"";
  const cards=$("archiveReaderCards");cards.replaceChildren();
@@ -56,6 +56,7 @@ function renderEntryDetail(entry){
  }else paragraphs(root,entry.content||"");
  if(byBlock.has("__entry__"))root.append(renderConnections(byBlock.get("__entry__")));
  $("archiveReaderDialog").scrollTop=0;
+ if(targetBlockId){const target=[...root.querySelectorAll("[data-archive-block-id]")].find(node=>node.dataset.archiveBlockId===targetBlockId);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});target.classList.add("archive-block-target-highlight");}}
 }
 function renderConnections(connections){
  const section=el("section","archive-connections");section.append(el("h3","archive-block-heading","CONNECTED THREADS"));
@@ -63,7 +64,7 @@ function renderConnections(connections){
  connections.forEach(c=>{const button=el("button","archive-connection-card");button.type="button";
   button.append(el("span","archive-connection-type",(c.label||c.relationshipType||"RELATED").replaceAll("_"," ").toUpperCase()),el("strong","",c.targetTitle||"Connected record"));
   if(c.description)button.append(el("small","",c.description));
-  button.addEventListener("click",()=>openEntry({id:c.targetEntryId,title:c.targetTitle,category:c.targetCategory}));grid.append(button);
+  button.addEventListener("click",()=>openEntry({id:c.targetEntryId,title:c.targetTitle,category:c.targetCategory},c.targetBlockId||null));grid.append(button);
  });section.append(grid);return section;
 }
 function render(){
