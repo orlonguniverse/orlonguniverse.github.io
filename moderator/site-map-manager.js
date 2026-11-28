@@ -43,6 +43,18 @@ function renderMenuControls(host){
   const wrap=node("label","site-map-enabled"),box=node("input");box.type="checkbox";box.checked=mainMenu[key]!==false;wrap.append(box,node("span","",label));box.addEventListener("change",()=>{mainMenu[key]=box.checked;mark()});options.append(wrap);
  });
  mainSection.append(node("p","site-map-hint","Choose which built-in features readers can access from the Main Menu."),options);
+ const customHeading=node("h4","","YOUR OWN MAIN MENU LINKS");
+ mainSection.append(customHeading,node("p","site-map-hint","Add extra shortcuts to any existing page or external website. These appear alongside the built-in Main Menu tools."));
+ mainMenu.links=Array.isArray(mainMenu.links)?mainMenu.links:[];
+ const customList=node("div","site-map-custom-links");
+ mainMenu.links.forEach((link,index)=>{
+  const row=node("div","site-map-custom-link"),name=field("LINK NAME",link.label),href=field("DESTINATION",link.href);
+  name.el.addEventListener("change",()=>{link.label=name.el.value.trim();mark()});
+  href.el.addEventListener("change",()=>{link.href=href.el.value.trim();mark()});
+  row.append(name.wrap,href.wrap,action("REMOVE","danger",()=>{mainMenu.links.splice(index,1);mark();render()}));
+  customList.append(row);
+ });
+ mainSection.append(customList,action("＋ ADD A MAIN MENU LINK","secondary",()=>{mainMenu.links.push({label:"New link",href:"/"});mark();render()}));
  host.append(section,mainSection);
 }
 function render(){
@@ -80,7 +92,7 @@ function render(){
  $("siteMapSave").disabled=!dirty;
 }
 function moveLink(id,delta,group){const arr=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));move(arr,id,delta);arr.forEach((x,n)=>x.order=n);render()}
-async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true};dirty=false;render();status("Your website map is ready. Edit the menu below, then save when you are happy.");}
+async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};dirty=false;render();status("Your website map is ready. Edit the menu below, then save when you are happy.");}
 async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu}};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
 document.addEventListener("DOMContentLoaded",()=>init().catch(e=>status(e.message||"Website map could not load.")));
