@@ -93,7 +93,6 @@ function renderBlocks(){
  });
 }
 function addBlock(){
- if(archiveBlocks.length>=40){message("An archive entry can contain up to 40 blocks.",true);return;}
  const type=$("archiveBlockType").value;
  const defaults={text:{type,heading:"",body:""},quote:{type,body:"",attribution:""},image:{type,url:"",alt:"",caption:""},callout:{type,heading:"",body:""},divider:{type},timeline:{type,heading:"",items:[]},reveal:{type,label:"REVEAL RECORD",body:""},facts:{type,heading:"",items:[]},gallery:{type,heading:"",items:[]}};
  archiveBlocks.push(defaults[type]);renderBlocks();
