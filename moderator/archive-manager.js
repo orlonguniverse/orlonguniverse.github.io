@@ -3,7 +3,7 @@
 const URL_BASE="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,entries=[],cards=[],chapters=[],archiveBlocks=[],relations=[];
+let client=null,entries=[],cards=[],chapters=[],archiveBlocks=[],relations=[],relationTypes=[];
 const categoryNames={characters:"Characters",locations:"Locations",creatures:"Creatures",organisations:"Organisations",history:"History",technology:"Technology",events:"Events",other:"Other"};
 const blockId=()=> "block-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,8));
 const slug=value=>String(value||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,100);
@@ -11,24 +11,27 @@ function message(value,error=false){$("archiveEntryMessage").textContent=value;$
 function fillSelect(select,items,label,value,first){select.replaceChildren();if(first){const option=document.createElement("option");option.value="";option.textContent=first;select.append(option);}items.forEach(item=>{const option=document.createElement("option");option.value=item[value];option.textContent=item[label];select.append(option);});}
 async function load(){
  $("archiveEntryList").textContent="Loading archive entries…";
- const [entryResult,cardResult,chapterResult,relationResult]=await Promise.all([
+ const [entryResult,cardResult,chapterResult,relationResult,typeResult]=await Promise.all([
   client.rpc("get_moderator_eden_archive_entries"),
   client.rpc("get_moderator_eden_archive_cards"),
   client.rpc("get_moderator_eden_book_structure"),
-  client.rpc("get_moderator_eden_archive_relations")
+  client.rpc("get_moderator_eden_archive_relations"),
+  client.rpc("get_moderator_eden_archive_relation_types")
  ]);
  if(entryResult.error)throw entryResult.error;
  if(cardResult.error)throw cardResult.error;
  if(chapterResult.error)throw chapterResult.error;
  if(relationResult.error)throw relationResult.error;
+ if(typeResult.error)throw typeResult.error;
  relations=Array.isArray(relationResult.data)?relationResult.data:[];
+ relationTypes=Array.isArray(typeResult.data)?typeResult.data:[];
  entries=Array.isArray(entryResult.data)?entryResult.data:[];
  cards=Array.isArray(cardResult.data)?cardResult.data:[];
  chapters=chapterResult.data?.chapters||[];
  fillSelect($("archiveUnlockChapter"),chapters.map(c=>({id:c.id,label:c.number+" · "+c.title})),"label","id","No additional chapter gate");
  const cardSelect=$("archiveRequiredCards");cardSelect.replaceChildren();
  cards.forEach(card=>{const option=document.createElement("option");option.value=card.id;option.textContent=card.number+" · "+card.name+" ("+card.category+")";cardSelect.append(option);});
- renderList();renderRelations();
+ renderRelationForm();renderRelationTypes();renderList();renderRelations();
  const published=entries.filter(e=>e.published).length;
  $("archiveAdminStats").textContent=entries.length+" TOTAL ENTRIES · "+published+" PUBLISHED · "+cards.length+" ACTIVE CARDS";
 }
@@ -147,10 +150,14 @@ function relationBlockOptions(entrySelect,blockSelect,selected){
  if(selected)blockSelect.value=selected;
 }
 function renderRelationForm(){
- relationEntryOptions($("archiveRelationSourceEntry"),$("archiveRelationSourceEntry").value);
- relationEntryOptions($("archiveRelationTargetEntry"),$("archiveRelationTargetEntry").value);
- relationBlockOptions($("archiveRelationSourceEntry"),$("archiveRelationSourceBlock"),$("archiveRelationSourceBlock").value);
- relationBlockOptions($("archiveRelationTargetEntry"),$("archiveRelationTargetBlock"),$("archiveRelationTargetBlock").value);
+ const source=$("archiveRelationSourceEntry"),target=$("archiveRelationTargetEntry");
+ relationEntryOptions(source,source.value);relationEntryOptions(target,target.value);
+ relationBlockOptions(source,$("archiveRelationSourceBlock"),$("archiveRelationSourceBlock").value);
+ relationBlockOptions(target,$("archiveRelationTargetBlock"),$("archiveRelationTargetBlock").value);
+ const typeSelect=$("archiveRelationType"),selected=typeSelect.value;typeSelect.replaceChildren();
+ const groups=new Map();relationTypes.forEach(t=>{if(!groups.has(t.group))groups.set(t.group,[]);groups.get(t.group).push(t);});
+ groups.forEach((items,label)=>{const group=document.createElement("optgroup");group.label=label;items.forEach(t=>{const option=document.createElement("option");option.value=t.key;option.textContent=t.label;option.title=t.description||"";group.append(option);});typeSelect.append(group);});
+ if(selected&&relationTypes.some(t=>t.key===selected))typeSelect.value=selected;
 }
 function renderRelations(){
  const root=$("archiveRelationList");if(!root)return;root.replaceChildren();
@@ -176,6 +183,29 @@ function editRelation(rel){
  $("archiveRelationSort").value=rel.sortOrder||0;$("archiveRelationBidirectional").checked=Boolean(rel.bidirectional);
  $("archiveRelationSave").textContent="SAVE CONNECTION CHANGES";
  $("archiveRelationForm").scrollIntoView({behavior:"smooth",block:"center"});
+}
+function renderRelationTypes(){
+ const root=$("archiveRelationTypeList");if(!root)return;root.replaceChildren();
+ relationTypes.forEach(type=>{
+  const row=el("article","archive-admin-row"),info=el("div","archive-admin-info");
+  info.append(el("strong","",type.label),el("small","",type.group+" · "+type.key.replaceAll("_"," ").toUpperCase()+" · "+type.usageCount+" CONNECTION"+(type.usageCount===1?"":"S")));
+  if(type.description)info.append(el("small","",type.description));
+  const actions=el("div","archive-admin-actions");
+  if(!type.isSystem){const remove=el("button","danger","REMOVE");remove.type="button";remove.disabled=Number(type.usageCount)>0;remove.title=remove.disabled?"Change or delete saved connections using this type first.":"Remove this custom option";remove.addEventListener("click",()=>deleteRelationType(type));actions.append(remove);}
+  else actions.append(el("small","hint","BUILT-IN"));
+  row.append(info,actions);root.append(row);
+ });
+}
+async function addRelationType(event){
+ event.preventDefault();const name=$("archiveRelationTypeName").value.trim();
+ try{const {error}=await client.rpc("add_moderator_eden_archive_relation_type",{p_display_name:name,p_type_group:$("archiveRelationTypeGroup").value,p_description:$("archiveRelationTypeHelp").value.trim()});if(error)throw error;
+  $("archiveRelationTypeManagerForm").reset();await load();message("Added relationship option: "+name+".");
+ }catch(error){message(error.message||"Could not add relationship option.",true);}
+}
+async function deleteRelationType(type){
+ if(!confirm("Remove the custom relationship option '"+type.label+"'?"))return;
+ try{const {error}=await client.rpc("delete_moderator_eden_archive_relation_type",{p_type_key:type.key});if(error)throw error;await load();message("Removed relationship option: "+type.label+".");}
+ catch(error){message(error.message||"Could not remove relationship option.",true);}
 }
 async function saveRelation(event){
  event.preventDefault();
@@ -238,8 +268,8 @@ async function init(){
  $("archiveEntryId").addEventListener("input",()=>{$("archiveEntryId").dataset.manual="true";});
  $("archiveEntryForm").addEventListener("submit",saveEntry);$("archiveBlockAdd").addEventListener("click",addBlock);renderBlocks();
  $("archiveRelationForm").addEventListener("submit",saveRelation);
- ["archiveRelationSourceEntry","archiveRelationTargetEntry"].forEach(id=>$(id).addEventListener("change",renderRelationForm));
- renderRelationForm();
+ $("archiveRelationTypeManagerForm").addEventListener("submit",addRelationType);
+ ["archiveRelationSourceEntry","archiveRelationTargetEntry"].forEach(id=>$(id).addEventListener("change",()=>{if(id==="archiveRelationSourceEntry")$("archiveRelationSourceBlock").value="";else $("archiveRelationTargetBlock").value="";renderRelationForm();}));
  $("archiveEntryClearButton").addEventListener("click",resetForm);
  $("archiveNewEntryButton").addEventListener("click",()=>{resetForm();$("archiveEntryForm").scrollIntoView({behavior:"smooth",block:"start"});});
  $("archiveEntryRefresh").addEventListener("click",()=>load().catch(error=>message(error.message,true)));
