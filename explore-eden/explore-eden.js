@@ -39,7 +39,7 @@ function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false
  const name=text("h3","eden-card-name",isOwned?(card.name||card.card_name):"Undiscovered Card");
  const description=text("p","eden-card-description",card.spoilerSafeDescription||card.spoiler_safe_description||"");
  const footer=document.createElement("div");footer.className="eden-card-footer";
- footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-chapter",card.chapterNumber||card.chapter_number?"CH. "+(card.chapterNumber||card.chapter_number):"CH. —"),text("span","eden-card-book","THE TRIALS OF EDEN"));
+ footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-chapter",card.chapterNumber||card.chapter_number?"CH. "+(card.chapterNumber||card.chapter_number):(String(card.releaseType||card.release_type||"standard")!=="standard"?"INDEPENDENT RELEASE":"CH. —")),text("span","eden-card-book","THE TRIALS OF EDEN"));
  details.append(name,description,footer);frame.append(top,details);
  const cardId=card.id||card.card_id||"";
  const releaseType=String(card.releaseType||card.release_type||"standard");if(releaseType!=="standard"||card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition",String(card.releaseLabel||card.release_label||releaseType.replaceAll("_"," ")).toUpperCase()));
@@ -134,7 +134,7 @@ function undiscoveredProgressSlot(slot){
  const details=document.createElement("div");details.className="eden-card-front-details";
  details.append(text("h3","eden-card-name","Undiscovered"));
  const footer=document.createElement("div");footer.className="eden-card-footer";
- footer.append(text("span","eden-card-category","IDENTITY SEALED"),text("span","eden-card-chapter",slot.chapter_number?"CH. "+slot.chapter_number:"CHAPTER UNKNOWN"),text("span","eden-card-book","THE TRIALS OF EDEN"));
+ footer.append(text("span","eden-card-category","IDENTITY SEALED"),text("span","eden-card-chapter",slot.chapter_number?"CH. "+slot.chapter_number:(slot.is_chapter_independent?"INDEPENDENT RELEASE":"CHAPTER UNKNOWN")),text("span","eden-card-book","THE TRIALS OF EDEN"));
  details.append(footer);frame.append(top,details);front.append(shadow,frame);article.append(front);
  article.setAttribute("aria-label","Undiscovered card. "+rarity+" rarity. "+(slot.chapter_number?"Found in chapter "+slot.chapter_number+".":"Chapter not specified."));
  return article;
