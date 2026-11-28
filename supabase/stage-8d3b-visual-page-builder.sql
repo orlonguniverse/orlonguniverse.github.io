@@ -51,6 +51,7 @@ returns jsonb language plpgsql security definer set search_path=public,pg_temp
 as $$
 declare
  v_block jsonb;
+ v_item jsonb;
  v_type text;
  v_url text;
 begin
