@@ -74,7 +74,7 @@ function selectorForPlacement(node){
 }
 function placementOptions(){
  const main=document.querySelector("main")||document.body,options=[{value:"main|end",label:"At the very bottom of this page"}];
- const candidates=[...main.querySelectorAll("header,section,article,h1,h2,h3") ].filter(node=>!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]")&&!node.hasAttribute("data-orlongSectionId"));
+ const candidates=[...main.querySelectorAll("header,section,article,h1,h2,h3") ].filter(node=>!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]")&&!node.hasAttribute("data-orlong-section-id"));
  candidates.forEach((node,index)=>{
   const heading=node.matches("h1,h2,h3")?node:node.querySelector("h1,h2,h3");
   const label=(node.matches("h1,h2,h3")?"Heading — ":"Section — ")+(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\s+/g," ").slice(0,52);
