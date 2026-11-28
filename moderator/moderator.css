@@ -122,7 +122,7 @@
 
 /* Stage 8D.3D — plain-language dropdown configuration */
 .site-map-config-group,.site-map-main-settings{border-color:#52718f}
-.site-map-menu-setting{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.8fr);gap:14px;align-items:center;padding:12px 0;border-top:1px solid #2b4057}
+.site-map-menu-setting{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid #2b4057}
 .site-map-menu-setting:first-of-type{border-top:0}
 .site-map-main-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 14px;padding:12px;background:#0c1928;border:1px solid #2b4057}
 .site-map-main-settings>.site-map-field{max-width:420px;margin-bottom:10px}
