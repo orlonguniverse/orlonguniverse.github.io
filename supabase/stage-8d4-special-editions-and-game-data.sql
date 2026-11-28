@@ -121,12 +121,15 @@ $$;
 create or replace function public.enforce_eden_card_limited_quantity()
 returns trigger language plpgsql security definer set search_path=public,pg_temp
 as $$
-declare v_limit integer; v_existing bigint; v_new_count integer;
+declare v_limit integer; v_existing bigint; v_new_count integer; v_from timestamptz; v_until timestamptz; v_type text;
 begin
- select limited_quantity into v_limit
+ select limited_quantity,available_from,available_until,release_type
+ into v_limit,v_from,v_until,v_type
  from public.eden_card_release_metadata
- where card_id=new.card_id and release_type='limited';
- if v_limit is null then return new; end if;
+ where card_id=new.card_id;
+ if v_from is not null and v_from>now() then raise exception 'This card is not available yet'; end if;
+ if v_until is not null and v_until<=now() then raise exception 'This card release has ended'; end if;
+ if v_type<>'limited' or v_limit is null then return new; end if;
  v_new_count:=greatest(coalesce(new.copy_count,1),0);
  select coalesce(sum(copy_count),0) into v_existing
  from public.reader_card_copies
