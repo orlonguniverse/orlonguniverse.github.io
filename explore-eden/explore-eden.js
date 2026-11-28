@@ -155,7 +155,7 @@ function renderCardProgress(){
   const fill=document.createElement("span");fill.style.width=(categoryTotal?Math.min(100,ownedCount/categoryTotal*100):0)+"%";track.append(fill);
   const grid=document.createElement("div");grid.className="eden-card-grid progress-slot-grid";
   visible.forEach(slot=>{
-   if(slot.is_owned)grid.append(cardElement({id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,card_number:slot.card_number,name:slot.card_name,card_name:slot.card_name,rarity:slot.rarity,categoryLabel:group.label,category_label:group.label,spoilerSafeDescription:slot.spoiler_safe_description,artworkUrl:slot.artwork_url,artwork_url:slot.artwork_url,copy_count:slot.copy_count},true,false));
+   if(slot.is_owned)grid.append(cardElement({id:slot.card_id,card_id:slot.card_id,cardNumber:slot.card_number,card_number:slot.card_number,name:slot.card_name,card_name:slot.card_name,rarity:slot.rarity,categoryLabel:group.label,category_label:group.label,releaseType:releaseMetadata.get(slot.card_id)?.release_type,releaseLabel:releaseMetadata.get(slot.card_id)?.release_label,spoilerSafeDescription:slot.spoiler_safe_description,artworkUrl:slot.artwork_url,artwork_url:slot.artwork_url,copy_count:slot.copy_count},true,false));
    else grid.append(undiscoveredProgressSlot(slot));
   });
   const left=categoryTotal-ownedCount;
