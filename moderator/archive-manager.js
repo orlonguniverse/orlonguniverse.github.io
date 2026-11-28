@@ -58,7 +58,7 @@ function editEntry(entry){
  $("archiveEditingId").value=entry.id;$("archiveEntryId").value=entry.id;$("archiveEntryId").disabled=true;
  $("archiveEntryTitle").value=entry.title;$("archiveEntryCategory").value=entry.category;
  $("archiveEntrySummary").value=entry.summary||"";$("archiveEntryContent").value=entry.content||"";
- $("archiveUnlockChapter").value=entry.unlockChapterId||"";
+ $("archiveUnlockChapter").value=entry.unlockChapterId||"";$("archiveCardMatchMode").value=entry.cardMatchMode||"all";
  $("archiveEntrySort").value=entry.sortOrder??0;$("archiveEntryPublished").checked=Boolean(entry.published);archiveBlocks=Array.isArray(entry.contentBlocks)?JSON.parse(JSON.stringify(entry.contentBlocks)):[];archiveBlocks.forEach(block=>{if(!block.id)block.id=blockId();});renderBlocks();
  const required=new Set(entry.requiredCardIds||[]);
  [...$("archiveRequiredCards").options].forEach(o=>o.selected=required.has(o.value));
@@ -93,11 +93,14 @@ function addImageUpload(fields,block,multiple=false){
  wrap.append(input);fields.append(wrap);
 }
 function addBlockCardGate(fields,block){
- const wrap=el("label","archive-block-field archive-block-gate");wrap.append(el("span","","REQUIRED CARDS TO REVEAL THIS BLOCK"));
+ const wrap=el("div","archive-block-field archive-block-gate");wrap.append(el("span","","CARD UNLOCK RULE"));
+ const mode=document.createElement("select");mode.setAttribute("aria-label","How selected cards unlock this block");
+ [["all","ALL selected cards are required"],["any","ANY one selected card is enough"]].forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;mode.append(option);});
+ mode.value=block.requiredCardMode==="any"?"any":"all";mode.addEventListener("change",()=>{block.requiredCardMode=mode.value;});wrap.append(mode);
  const select=document.createElement("select");select.multiple=true;select.size=Math.min(5,Math.max(3,cards.length));
  cards.forEach(card=>{const option=document.createElement("option");option.value=card.id;option.textContent=card.number+" · "+card.name;option.selected=(block.requiredCardIds||[]).includes(card.id);select.append(option);});
  select.addEventListener("change",()=>{block.requiredCardIds=[...select.selectedOptions].map(o=>o.value);});
- wrap.append(select);const hint=el("small","hint","Leave empty to show this block to every reader who has unlocked the main record. If cards are selected, the reader must own ALL of them.");wrap.append(hint);fields.append(wrap);
+ wrap.append(select);const hint=el("small","hint","Leave the card list empty to show this block to everyone who unlocked the entry. Otherwise choose whether ALL selected cards or ANY ONE selected card reveals it.");wrap.append(hint);fields.append(wrap);
 }
 function renderBlocks(){
  const root=$("archiveBlockList");root.replaceChildren();
@@ -205,11 +208,12 @@ async function saveEntry(event){
  if(!required.length){message("Select at least one required card.",true);return;}
  const button=$("archiveEntrySaveButton");button.disabled=true;button.textContent="SAVING…";
  try{
-  const {data,error}=await client.rpc("save_moderator_eden_archive_entry_v2",{
+  const {data,error}=await client.rpc("save_moderator_eden_archive_entry_v3",{
    p_entry_id:id,p_title:$("archiveEntryTitle").value.trim(),p_category:$("archiveEntryCategory").value,
    p_summary:$("archiveEntrySummary").value.trim(),p_content:$("archiveEntryContent").value.trim()||$("archiveEntrySummary").value.trim(),
    p_content_blocks:archiveBlocks,
    p_unlock_chapter_id:$("archiveUnlockChapter").value||null,p_required_card_ids:required,
+   p_card_match_mode:$("archiveCardMatchMode").value,
    p_sort_order:Number($("archiveEntrySort").value||0),p_is_published:$("archiveEntryPublished").checked
   });
   if(error)throw error;
