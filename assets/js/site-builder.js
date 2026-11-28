@@ -27,8 +27,14 @@ function renderSection(record){
  (data.blocks||[]).forEach(b=>section.append(makeBlock(b)));
  return section
 }
+function resolvePlacementAnchor(selector){
+ const value=String(selector||"main");
+ if(value.startsWith("@heading:")){const wanted=value.slice(9);return [...document.querySelectorAll("main h1,main h2,main h3")].find(node=>node.textContent.trim()===wanted)||null}
+ if(value.startsWith("@section:")){const wanted=value.slice(9);return [...document.querySelectorAll("main section,main article,main header")].find(node=>(node.querySelector("h1,h2,h3")?.textContent||"").trim()===wanted)||null}
+ try{return document.querySelector(value)}catch(_){return null}
+}
 function placeSection(section,record){
- let anchor=null;try{anchor=document.querySelector(record.anchorSelector||"main")}catch(_){}
+ let anchor=resolvePlacementAnchor(record.anchorSelector||"main");
  if(!anchor||anchor.closest?.("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))anchor=document.querySelector("main")||document.body;
  const placement=record.data?.placement||"after";
  if(placement==="before"&&anchor!==document.body){anchor.parentNode?.insertBefore(section,anchor);return}
@@ -39,6 +45,9 @@ function placeSection(section,record){
 function selectorForPlacement(node){
  if(node===document.body)return "body";
  if(node.id)return "#"+CSS.escape(node.id);
+ if(node.matches("h1,h2,h3"))return "@heading:"+node.textContent.trim().slice(0,180);
+ const heading=node.querySelector?.("h1,h2,h3");
+ if(heading&&node.matches("section,article,header"))return "@section:"+heading.textContent.trim().slice(0,180);
  const parts=[];let current=node;
  while(current&&current!==document.body&&parts.length<5){
   let part=current.tagName.toLowerCase();
@@ -199,13 +208,14 @@ async function start(db,path,bar){
   if(!pages.length)body.append($("div","builder-entry","You haven't created any custom pages yet. Select CREATE NEW PAGE to begin."));
   pages.forEach(page=>{
    const entry=$("div","builder-entry"),title=$("strong","",page.title),meta=$("p","", "/managed-page.html?slug="+page.slug+" · "+((page.content?.blocks||[]).length)+" content blocks · "+(page.published?"PUBLISHED":"DRAFT"));
-   const actions=$("div","builder-row"),edit=$("button","","EDIT PAGE"),content=$("button","","EDIT PAGE CONTENT"),preview=$("button","","OPEN PAGE ↗"),copy=$("button","","DUPLICATE"),del=$("button","danger","DELETE");
+   const actions=$("div","builder-row"),edit=$("button","","EDIT PAGE"),content=$("button","","EDIT PAGE CONTENT"),preview=$("button","","OPEN PAGE ↗"),menu=$("button","","ADD TO WEBSITE MENU"),copy=$("button","","DUPLICATE"),del=$("button","danger","DELETE");
    edit.addEventListener("click",()=>editManagedPage(page));
    content.addEventListener("click",()=>manageManagedPageBlocks(page));
    preview.addEventListener("click",()=>window.open("/managed-page.html?slug="+encodeURIComponent(page.slug),"_blank","noopener"));
+   menu.addEventListener("click",async()=>{try{const {data:config,error:loadError}=await db.rpc("get_moderator_orlong_site_map");if(loadError)throw loadError;config.links=config.links||[];const href="/managed-page.html?slug="+encodeURIComponent(page.slug);const existing=config.links.find(link=>link.href===href);if(existing){existing.label=page.title.toUpperCase();existing.enabled=true}else config.links.push({id:"managed-"+page.slug,label:page.title.toUpperCase(),href,group:"primary",order:Math.max(-1,...config.links.filter(link=>link.group==="primary").map(link=>link.order||0))+1,enabled:true});const {error:saveError}=await db.rpc("save_moderator_orlong_site_map",{p_config:config});if(saveError)throw saveError;message("Page added to the top navigation. You can move it or place it in a dropdown in WEBSITE MAP.")}catch(e){message(e.message||"Could not add this page to the website menu.")}});
    copy.addEventListener("click",async()=>{const clone={...JSON.parse(JSON.stringify(page)),id:null,slug:page.slug+"-copy",title:"Copy of "+page.title,published:false,sortOrder:page.sortOrder||0};try{await managedPageSave(clone);message("Page duplicated as a draft.");await openPages()}catch(e){message(e.message)}});
    del.addEventListener("click",async()=>{if(!confirm("Permanently delete this custom page? This cannot be undone."))return;const {error}=await db.rpc("delete_moderator_orlong_managed_page",{p_page_id:page.id});if(error){message(error.message);return}message("Page deleted.");await openPages()});
-   entry.append(title,meta,actions);actions.append(edit,content,preview,copy,del);body.append(entry);
+   entry.append(title,meta,actions);actions.append(edit,content,preview,menu,copy,del);body.append(entry);
   });
   const back=$("button","","BACK TO THIS PAGE'S SECTIONS");back.addEventListener("click",reload);body.append(back);
  };
