@@ -3,7 +3,7 @@
 const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
-let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[];
+let client=null,catalogue=[],owned=[],cardProgress=[],activeCollectionCategory="all",progressFilter="all",mysteryPacks=[],releaseMetadata=new Map();
 const text=(tag,className,value)=>{const el=document.createElement(tag);if(className)el.className=className;el.textContent=value??"";return el;};
 function imageFor(card){return card.artworkUrl||card.artwork_url||"";}
 function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false){
@@ -25,7 +25,7 @@ function cardElement(card,isOwned,showUnownedArtwork=true,showSaleControls=false
  footer.append(text("span","eden-card-category",card.categoryLabel||card.category_label||card.categoryId||"COLLECTIBLE"),text("span","eden-card-chapter",card.chapterNumber||card.chapter_number?"CH. "+(card.chapterNumber||card.chapter_number):"CH. —"),text("span","eden-card-book","THE TRIALS OF EDEN"));
  details.append(name,description,footer);frame.append(top,details);
  const cardId=card.id||card.card_id||"";
- if(card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition","SPECIAL EDITION"));
+ const releaseType=String(card.releaseType||card.release_type||"standard");if(releaseType!=="standard"||card.setId==="early-access-special-edition"||card.set_id==="early-access-special-edition"||cardId.startsWith("special-"))frame.append(text("span","eden-card-edition",String(card.releaseLabel||card.release_label||releaseType.replaceAll("_"," ")).toUpperCase()));
  front.append(frame);article.append(front);
  if(isOwned)article.append(text("span","eden-card-count",Number(card.copy_count||1)+" "+(Number(card.copy_count||1)===1?"COPY":"COPIES")));
  if(isOwned&&showSaleControls&&Number(card.copy_count||1)>1){
@@ -95,7 +95,7 @@ async function sellDuplicateCopies(cardId,quantity,button){
 }
 function renderCollection(){
  const grid=$("collectionGrid"),filters=$("collectionFilters");grid.replaceChildren();
- const discovered=owned.map(copy=>({...copy,id:copy.card_id,name:copy.card_name,cardNumber:copy.card_number,categoryId:copy.category_code||copy.category_label,categoryLabel:copy.category_label}));
+ const discovered=owned.map(copy=>({...copy,...(releaseMetadata.get(copy.card_id)||{}),id:copy.card_id,name:copy.card_name,cardNumber:copy.card_number,categoryId:copy.category_code||copy.category_label,categoryLabel:copy.category_label}));
  const categories=[...new Map(discovered.map(c=>[c.categoryId,{id:c.categoryId,label:c.categoryLabel}])).values()];
  makeFilters(filters,categories,activeCollectionCategory,id=>{activeCollectionCategory=id;renderCollection();});
  const visible=activeCollectionCategory==="all"?discovered:discovered.filter(c=>c.categoryId===activeCollectionCategory);
@@ -569,7 +569,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
  try{
   const {data:databaseCards,error:catalogueError}=await client.rpc("get_public_card_catalogue");
   if(catalogueError)throw catalogueError;
-  catalogue=(databaseCards||[]).map(c=>({id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
+  const {data:releaseRows,error:releaseError}=await client.rpc("get_public_card_release_metadata");if(releaseError)throw releaseError;releaseMetadata=new Map((releaseRows||[]).map(row=>[row.card_id,row]));
+  catalogue=(databaseCards||[]).map(c=>({... (releaseMetadata.get(c.card_id)||{}),id:c.card_id,card_id:c.card_id,cardNumber:c.card_number,card_number:c.card_number,name:c.name,card_name:c.name,rarity:c.rarity,categoryId:c.category_id,categoryLabel:c.category_label,category_label:c.category_label,setId:c.set_id,unlockChapterId:c.unlock_chapter_id,chapterNumber:c.chapter_number,chapter_number:c.chapter_number,spoilerSafeDescription:c.spoiler_safe_description,artworkUrl:c.artwork_url,artwork_url:c.artwork_url,active:true}));
   await initialise();
  }catch(error){console.error("Explore Eden failed to initialise:",error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","The archive could not be loaded. Please refresh the page."));}
  // Do not reload on Supabase's INITIAL_SESSION event: it fires during page startup
