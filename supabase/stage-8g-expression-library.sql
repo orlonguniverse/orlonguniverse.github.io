@@ -88,7 +88,7 @@ alter table public.chapter_comment_expression_assets enable row level security;
 
 drop policy if exists "Readers view active expression assets" on public.expression_assets;
 create policy "Readers view active expression assets" on public.expression_assets
- for select to authenticated using (is_active);
+ for select to authenticated using (is_active and (is_public or exists(select 1 from public.reader_expression_unlocks u where u.asset_id=id and u.user_id=auth.uid()) or public.is_reader_moderator()));
 drop policy if exists "Readers view own expression unlocks" on public.reader_expression_unlocks;
 create policy "Readers view own expression unlocks" on public.reader_expression_unlocks
  for select to authenticated using (auth.uid() = user_id or public.is_reader_moderator());
@@ -135,10 +135,13 @@ returns table(
 )
 language sql stable security definer set search_path=public
 as $$
- select a.id,a.asset_key,a.title,a.asset_type,a.category,a.asset_url,a.preview_url,
-        a.emoji_text,a.alt_text,a.source,a.provider_id,a.is_featured,
-        (a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid())),
-        a.unlock_chapter_ids,a.unlock_card_ids
+ select a.id,a.asset_key,a.title,a.asset_type,a.category,case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.asset_url end,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.preview_url end,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.emoji_text end,
+        a.alt_text,a.source,a.provider_id,a.is_featured,
+        (a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator()),
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.unlock_chapter_ids else '{}' end,
+        case when a.is_public or exists(select 1 from reader_expression_unlocks u where u.asset_id=a.id and u.user_id=auth.uid()) or public.is_reader_moderator() then a.unlock_card_ids else '{}' end
  from expression_assets a
  where a.is_active
  order by a.is_featured desc,a.sort_order,a.title;
