@@ -192,7 +192,7 @@ async function purchaseShopCard(slotNumber,button){
  button.textContent="PURCHASED";
  $("shopPurchaseStatus").textContent="Purchase successful! "+(data.card_number||"Your card")+" has been added to your collection. Your card reveal is ready.";
  const collectionResult=await client.rpc("get_my_card_collection");
- if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();await refreshCardProgress();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
 }
 
@@ -278,7 +278,7 @@ async function purchaseMysteryPack(pack,button){
  button.textContent="PACK OPENED";
  $("mysteryPackStatus").textContent=pack.title+" opened — "+data.card_count+" card"+(data.card_count===1?"":"s")+" added to your collection. Your discoveries are being revealed.";
  const collectionResult=await client.rpc("get_my_card_collection");
- if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();}
+ if(!collectionResult.error){owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
  // The reveal watcher groups all cards from this pack into one simultaneous reveal.
  window.OrlongCardRevealWatcher?.poll?.();
@@ -539,7 +539,7 @@ async function initialise(){
   await loadDuplicateSaleSettings();
   const [collectionResult,readerResult,progressResult]=await Promise.all([client.rpc("get_my_card_collection"),client.rpc("get_public_card_collections"),client.rpc("get_my_card_progress")]);
   if(collectionResult.error){$("collectionGrid").replaceChildren(text("div","eden-empty","Your collection is temporarily unavailable. Please check that the Stage 3 binder migration has been installed."));$("collectionSummary").textContent="COLLECTION UNAVAILABLE";}
-  else{owned=collectionResult.data||[];renderCollection();}
+  else{owned=collectionResult.data||[];renderCollection();await refreshCardProgress();}
   if(readerResult.error){console.error(readerResult.error);$("readerDirectory").replaceChildren(text("div","eden-empty","The reader directory is unavailable. Please check the Trading Post database setup."));}
   else await renderReaders(readerResult.data||[]);
   if(progressResult.error){console.error(progressResult.error);$("cardProgressGrid").replaceChildren(text("div","eden-empty","Card progress is unavailable. Please run the Stage 8D.1 progress tracker migration in Supabase."));$("progressSummary").textContent="PROGRESS UNAVAILABLE";$("progressOverviewTitle").textContent="Progress is temporarily unavailable";}
