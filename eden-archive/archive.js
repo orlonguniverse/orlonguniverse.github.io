@@ -4,7 +4,7 @@ const SUPABASE_URL="https://kqfwtzrfqsfampqfzoal.supabase.co";
 const SUPABASE_KEY="sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes";
 const $=id=>document.getElementById(id);
 const labels={characters:"CHARACTERS",locations:"LOCATIONS",creatures:"CREATURES",organisations:"ORGANISATIONS",history:"HISTORY",technology:"TECHNOLOGY",events:"EVENTS",other:"OTHER"};
-let client=null,entries=[],activeCategory="all";
+let client=null,entries=[],activeCategory="all",detailCache=new Map(),visibleLimit=24,searchTimer=null;
 const el=(tag,className,value)=>{const node=document.createElement(tag);if(className)node.className=className;if(value!==undefined)node.textContent=value;return node;};
 function safeUrl(value){try{const url=new URL(value,location.href);return ["https:","http:"].includes(url.protocol)?url.href:"";}catch(_){return "";}}
 function paragraphs(parent,value){String(value||"").split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean).forEach(part=>parent.append(el("p","",part)));}
@@ -33,7 +33,28 @@ function renderBlock(block,index){
  }
  return el("p","archive-block-note","This archive section is not available.");
 }
-function openEntry(entry){
+async function openEntry(entry){
+ const dialog=$("archiveReaderDialog");
+ $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
+ $("archiveReaderTitle").textContent=entry.title;
+ $("archiveReaderSummary").textContent="Opening this record…";
+ $("archiveReaderCards").replaceChildren();
+ $("archiveReaderBlocks").replaceChildren();
+ dialog.showModal();
+ try{
+  let detail=detailCache.get(entry.id);
+  if(!detail){
+   const {data,error}=await client.rpc("get_my_eden_archive_entry",{p_entry_id:entry.id});
+   if(error)throw error;
+   if(!data)throw new Error("This record is not currently unlocked.");
+   detail=data;detailCache.set(entry.id,detail);
+  }
+  renderEntryDetail(detail);
+ }catch(error){
+  $("archiveReaderSummary").textContent=error.message||"This record could not be opened.";
+ }
+}
+function renderEntryDetail(entry){
  $("archiveReaderCategory").textContent=labels[entry.category]||String(entry.category||"ARCHIVE").toUpperCase();
  $("archiveReaderTitle").textContent=entry.title;
  $("archiveReaderSummary").textContent=entry.summary||"";
@@ -43,29 +64,55 @@ function openEntry(entry){
  const blocks=Array.isArray(entry.contentBlocks)?entry.contentBlocks:[];
  if(blocks.length){if(entry.content&&entry.content.trim()&&entry.content.trim()!==String(entry.summary||"").trim())paragraphs(root,entry.content);blocks.forEach((block,index)=>root.append(renderBlock(block,index)));}
  else paragraphs(root,entry.content||"");
- $("archiveReaderDialog").showModal();
  $("archiveReaderDialog").scrollTop=0;
+ const connections=Array.isArray(entry.connections)?entry.connections:[];
+ const root=$("archiveReaderBlocks");root.replaceChildren();
+ const blocks=Array.isArray(entry.contentBlocks)?entry.contentBlocks:[];
+ const connectionsByBlock=new Map();
+ connections.forEach(connection=>{const key=connection.sourceBlockId||"__entry__";if(!connectionsByBlock.has(key))connectionsByBlock.set(key,[]);connectionsByBlock.get(key).push(connection);});
+ if(blocks.length){
+  if(entry.content&&entry.content.trim()&&entry.content.trim()!==String(entry.summary||"").trim())paragraphs(root,entry.content);
+  blocks.forEach(block=>{const node=renderBlock(block,0);if(block.id)node.dataset.archiveBlockId=block.id;root.append(node);appendConnections(node,connectionsByBlock.get(block.id)||[]);});
+ }else paragraphs(root,entry.content||"");
+ if(connectionsByBlock.has("__entry__")){const section=renderConnections(connectionsByBlock.get("__entry__"));section.classList.add("archive-entry-connections");root.append(section);}
 }
+function renderConnections(connections){
+ const section=el("section","archive-connections");
+ section.append(el("h3","archive-block-heading","CONNECTED THREADS"));
+ const grid=el("div","archive-connection-grid");
+ connections.forEach(connection=>{
+  const button=el("button","archive-connection-card");
+  button.type="button";
+  button.append(el("span","archive-connection-type",(connection.label||connection.relationshipType||"RELATED").replaceAll("_"," ").toUpperCase()),el("strong","",connection.targetTitle||"Connected record"));
+  if(connection.description)button.append(el("small","",connection.description));
+  button.addEventListener("click",()=>openEntry({id:connection.targetEntryId,title:connection.targetTitle,category:connection.targetCategory}));
+  grid.append(button);
+ });
+ section.append(grid);return section;
+}
+function appendConnections(node,connections){if(connections.length)node.append(renderConnections(connections));}
 function render(){
- const root=$("archiveEntryGrid");root.replaceChildren();
+ const root=$("archiveEntryGrid");
  const query=$("archiveSearch").value.trim().toLowerCase();
  const visible=entries.filter(entry=>(activeCategory==="all"||entry.category===activeCategory)&&(!query||(entry.title+" "+entry.summary+" "+entry.category).toLowerCase().includes(query)));
- visible.forEach((entry,index)=>{
+ const page=visible.slice(0,visibleLimit);root.replaceChildren();
+ page.forEach((entry,index)=>{
   const card=el("article","archive-entry");card.style.setProperty("--entry-index",String(index));
   const top=el("div","archive-entry-top");top.append(el("span","archive-entry-category",labels[entry.category]||String(entry.category).toUpperCase()),el("span","archive-entry-unlocked","RECORD UNLOCKED"));
   const title=el("h3","",entry.title),summary=el("p","archive-entry-summary",entry.summary||"");
-  const meta=el("div","archive-entry-meta");meta.append(el("span","","✧ "+(entry.requiredCards||[]).length+" DISCOVERY KEY"+((entry.requiredCards||[]).length===1?"":"S")),el("span","",(entry.contentBlocks||[]).length+" SECTIONS"));
+  const meta=el("div","archive-entry-meta");meta.append(el("span","","✧ "+(entry.requiredCardCount||0)+" DISCOVERY KEY"+((entry.requiredCardCount||0)===1?"":"S")),el("span","",(entry.contentBlockCount||0)+" SECTIONS"));
   const button=el("button","archive-read-button","EXPLORE RECORD ↗");button.type="button";button.addEventListener("click",()=>openEntry(entry));
   card.append(top,title,summary,meta,button);root.append(card);
  });
  $("archiveEmpty").hidden=entries.length!==0;
  root.hidden=entries.length===0;
  if(entries.length&&visible.length===0){root.hidden=false;root.append(el("p","archive-message","No unlocked records match your search."));}
+ const more=$("archiveLoadMore");if(more){more.hidden=visible.length<=page.length;more.textContent="LOAD MORE RECORDS · "+(visible.length-page.length)+" REMAINING";}
 }
 function renderFilters(){
  const root=$("archiveFilters");root.replaceChildren();
  const categories=[["all","ALL RECORDS"],...Object.entries(labels).filter(([id])=>entries.some(e=>e.category===id)).map(([id,label])=>[id,label])];
- categories.forEach(([id,label])=>{const button=el("button","archive-filter"+(activeCategory===id?" active":""),label);button.type="button";button.setAttribute("aria-pressed",String(activeCategory===id));button.addEventListener("click",()=>{activeCategory=id;renderFilters();render();});root.append(button);});
+ categories.forEach(([id,label])=>{const button=el("button","archive-filter"+(activeCategory===id?" active":""),label);button.type="button";button.setAttribute("aria-pressed",String(activeCategory===id));button.addEventListener("click",()=>{activeCategory=id;visibleLimit=24;renderFilters();render();});root.append(button);});
 }
 async function init(){
  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -76,7 +123,8 @@ async function init(){
  $("archiveContent").hidden=false;
  $("archiveStatus").textContent=entries.length?"Your collected cards have revealed these records.":"Your archive is ready. Collect cards to reveal its first records.";
  $("archiveCount").textContent=entries.length+" ENTR"+(entries.length===1?"Y":"IES")+" UNLOCKED";
- renderFilters();render();$("archiveSearch").addEventListener("input",render);
+ renderFilters();render();$("archiveSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{visibleLimit=24;render();},110);});
+ $("archiveLoadMore").addEventListener("click",()=>{visibleLimit+=24;render();});
  $("archiveReaderClose").addEventListener("click",()=>$("archiveReaderDialog").close());
  $("archiveReaderReturn").addEventListener("click",()=>$("archiveReaderDialog").close());
  $("archiveReaderDialog").addEventListener("click",event=>{if(event.target===$("archiveReaderDialog"))$("archiveReaderDialog").close();});
