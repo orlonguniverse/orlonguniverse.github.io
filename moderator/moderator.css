@@ -276,3 +276,17 @@
 .card-game-builder>label{display:grid;gap:7px;color:#dbe8f7;font-size:10px;letter-spacing:1px}.card-game-builder>label select{max-width:100%;padding:10px;background:#071321;border:1px solid #38516e;color:#e8eef7;border-radius:6px}.card-game-builder #saveCategoryGameTemplate{white-space:normal;line-height:1.5}.card-game-builder #gameTemplateStatus{margin:0;color:#d8bb80;font-size:12px}
 
 .site-map-flow-subsection{margin:8px 0 0;padding:7px 9px;color:var(--orlong-ice,#a8ceff);font:700 9px Inter,sans-serif;letter-spacing:1.2px;border-top:1px solid color-mix(in srgb,var(--orlong-accent,#398cff) 24%,transparent)}
+
+/* Stage 8E.2 — Navigation Studio */
+.site-map-subsection-manager{border-color:#6685a5;background:linear-gradient(145deg,#12243a,#0d1b2b)}
+.site-map-subsection-list{display:grid;gap:7px;margin:12px 0}
+.site-map-subsection-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:#14283d;border:1px solid #38536d;border-radius:5px}
+.site-map-subsection-title{display:grid;gap:4px;min-width:0}
+.site-map-subsection-title strong{font:600 11px Inter,Arial,sans-serif;color:#e6f1fc;letter-spacing:1px}
+.site-map-subsection-title small{color:#9db1c7;font-size:10px}
+.site-map-subsection-row .site-map-actions{justify-content:flex-end}
+.site-map-subsection-manager>.site-map-actions{margin-top:12px}
+.site-map-route:focus-within{border-color:#8fc5f5;box-shadow:0 0 0 2px #8fc5f522}
+.site-map-toolbar #siteMapDiscard{border-color:#8b6d58;color:#ffd8bd}
+.site-map-status{border-radius:5px}
+@media(max-width:760px){.site-map-subsection-row{align-items:flex-start;flex-direction:column}.site-map-subsection-row .site-map-actions{justify-content:flex-start}}
