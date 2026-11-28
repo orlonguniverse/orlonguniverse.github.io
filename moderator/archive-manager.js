@@ -64,6 +64,30 @@ function editEntry(entry){
 const blockLabels={text:"TEXT SECTION",quote:"PULL QUOTE",image:"IMAGE / ILLUSTRATION",callout:"HIGHLIGHTED NOTE",divider:"ORLONG DIVIDER",timeline:"TIMELINE",reveal:"INTERACTIVE REVEAL",facts:"FACT PANEL",gallery:"IMAGE GALLERY"};
 function rowsToText(items,type){return (items||[]).map(item=>type==="timeline"?[item.label,item.body].join(" | "):type==="facts"?[item.label,item.value].join(" | "):[item.url,item.caption].join(" | ")).join("\n");}
 function textToRows(value,type){return value.split("\n").map(line=>line.trim()).filter(Boolean).map(line=>{const parts=line.split("|").map(x=>x.trim());return type==="timeline"?{label:parts[0]||"",body:parts.slice(1).join(" | ")}:type==="facts"?{label:parts[0]||"",value:parts.slice(1).join(" | ")}:{url:parts[0]||"",caption:parts.slice(1).join(" | ")};});}
+async function uploadArchiveAsset(file){
+ if(!file||!["image/png","image/jpeg","image/webp"].includes(file.type))throw new Error("Choose a PNG, JPEG or WebP image.");
+ if(file.size>12*1024*1024)throw new Error("Each archive image must be smaller than 12 MB.");
+ const extension=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+ const path="archive/"+slug(file.name.replace(/\\.[^.]+$/,""))+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7)+"."+extension;
+ const {error}=await client.storage.from("orlong-card-artwork").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"31536000"});
+ if(error)throw error;
+ return client.storage.from("orlong-card-artwork").getPublicUrl(path).data.publicUrl;
+}
+function addImageUpload(fields,block,multiple=false){
+ const wrap=el("label","archive-block-field archive-block-upload");wrap.append(el("span","",multiple?"UPLOAD GALLERY IMAGES":"UPLOAD IMAGE"));
+ const input=document.createElement("input");input.type="file";input.accept="image/png,image/jpeg,image/webp";input.multiple=multiple;
+ input.addEventListener("change",async()=>{
+  const files=[...(input.files||[])];if(!files.length)return;
+  input.disabled=true;
+  try{
+   const urls=[];for(const file of files)urls.push(await uploadArchiveAsset(file));
+   if(multiple){block.items=Array.isArray(block.items)?block.items:[];urls.forEach((url,i)=>block.items.push({url,caption:files[i].name.replace(/\\.[^.]+$/,"")}));}
+   else block.url=urls[0];
+   renderBlocks();message(multiple?urls.length+" gallery image(s) uploaded.":"Image uploaded and attached to this block.");
+  }catch(error){message(error.message||"The image could not be uploaded.",true);input.disabled=false;}
+ });
+ wrap.append(input);fields.append(wrap);
+}
 function renderBlocks(){
  const root=$("archiveBlockList");root.replaceChildren();
  if(!archiveBlocks.length){root.append(el("p","hint","No content blocks yet. Add your first block above."));return;}
@@ -83,11 +107,11 @@ function renderBlocks(){
   };
   if(block.type==="text"||block.type==="callout"){addField("HEADING","heading",block.heading);addField("BODY TEXT","body",block.body,true,"Write this section. Paragraph breaks are preserved.");}
   else if(block.type==="quote"){addField("QUOTATION","body",block.body,true,"A memorable line, testimony or excerpt.");addField("ATTRIBUTION","attribution",block.attribution);}
-  else if(block.type==="image"){addField("IMAGE URL","url",block.url,false,"https://…");addField("IMAGE DESCRIPTION (ALT TEXT)","alt",block.alt);addField("CAPTION","caption",block.caption);}
+  else if(block.type==="image"){addField("IMAGE URL","url",block.url,false,"https://…");addImageUpload(fields,block,false);addField("IMAGE DESCRIPTION (ALT TEXT)","alt",block.alt);addField("CAPTION","caption",block.caption);}
   else if(block.type==="timeline"){addField("TIMELINE HEADING","heading",block.heading);addField("TIMELINE MOMENTS","itemsText",rowsToText(block.items,"timeline"),true,"One moment per line: DATE / PERIOD | What happened");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"timeline");});}
   else if(block.type==="reveal"){addField("READER-FACING BUTTON LABEL","label",block.label||"REVEAL RECORD");addField("HIDDEN CONTENT","body",block.body,true,"The information revealed when the reader chooses to open it.");}
   else if(block.type==="facts"){addField("PANEL HEADING","heading",block.heading);addField("FACTS","itemsText",rowsToText(block.items,"facts"),true,"One fact per line: LABEL | VALUE");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"facts");});}
-  else if(block.type==="gallery"){addField("GALLERY HEADING","heading",block.heading);addField("GALLERY IMAGES","itemsText",rowsToText(block.items,"gallery"),true,"One image per line: IMAGE URL | CAPTION");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"gallery");});}
+  else if(block.type==="gallery"){addField("GALLERY HEADING","heading",block.heading);addField("GALLERY IMAGES","itemsText",rowsToText(block.items,"gallery"),true,"One image per line: IMAGE URL | CAPTION");const ctl=fields.lastChild.querySelector("textarea");ctl.addEventListener("input",()=>{block.items=textToRows(ctl.value,"gallery");});addImageUpload(fields,block,true);}
   else if(block.type==="divider"){fields.append(el("p","hint","A decorative Orlong sigil divider. It creates breathing room between sections."));}
   card.append(fields);root.append(card);
  });
