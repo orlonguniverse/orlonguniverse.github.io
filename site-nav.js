@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(accountButton)navLinks.append(accountButton);
     if(mainSettings.enabled!==false)navLinks.append(main);
     navLinks.append(instagram);
+    navClient.auth.getSession().then(({data})=>window.updateOrlongModeratorLink?.(data?.session?.user||null,navClient)).catch(()=>{});
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
   window.applyOrlongManagedNavigation=loadManagedNavigation;
