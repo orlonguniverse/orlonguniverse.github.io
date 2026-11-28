@@ -12,7 +12,7 @@ function apply(record){
  const globalTheme=record?.theme||"blue";
  const readerThemes={"/books/trials-of-eden/":"blue","/books/trials-of-eden/index.html":"blue","/books/arcanet/":"red","/books/bitsy/":"orange","/books/varex/":"purple","/books/evalon/":"yellow"};
  const isReader=location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html");
- const registeredBook=(window.OrlongBooks||[]).find(b=>b.readerUrl&&(location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl));
+ const registeredBook=(window.OrlongBooks||[]).find(b=>(b.readerUrl&&(location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl))||(b.contentsUrl&&location.pathname===b.contentsUrl));
  const activeTheme=isReader?(registeredBook?.theme||readerThemes[location.pathname]||document.body?.dataset.seriesTheme||"blue"):globalTheme;
  const base=palettes[activeTheme]||palettes.blue,custom=isReader?{}:(record?.design?.colors||{});
  const theme={accent:custom.accent||base.accent,ice:custom.highlight||base.ice,glow:custom.accent||base.glow,deep:custom.background||base.deep,surface:custom.surface||base.surface,text:custom.text||"#f1f5fb"};
@@ -27,7 +27,7 @@ function apply(record){
  const onIce=luminance(theme.ice)>.48?"#111722":"#ffffff";
  const themeVars={"--blue":theme.accent,"--blue-light":theme.ice,"--ice":theme.ice,"--orlong-accent":theme.accent,"--orlong-ice":theme.ice,"--orlong-glow":theme.glow,"--orlong-deep":theme.deep,"--orlong-surface":theme.surface,"--bg":theme.deep,"--surface":theme.surface,"--text":theme.text,"--orlong-text":theme.text,"--orlong-on-accent":onAccent,"--orlong-on-ice":onIce,"--orlong-muted":theme.ice};
  Object.entries(themeVars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
- if(document.body){Object.entries(themeVars).forEach(([k,v])=>document.body.style.setProperty(k,v));if(!isReader){document.body.style.setProperty("--background",theme.deep);document.body.style.setProperty("--surface-2",theme.surface);document.body.style.setProperty("--muted",theme.ice);}}
+ if(document.body){Object.entries(themeVars).forEach(([k,v])=>document.body.style.setProperty(k,v));document.body.style.setProperty("--background",theme.deep);document.body.style.setProperty("--surface-2",theme.surface);document.body.style.setProperty("--muted",theme.ice);}
  if(isReader&&registeredBook){
   const heading=document.querySelector(".book-header h1,.hero h1"),label=document.querySelector(".book-header .book-label,.hero .eyebrow"),subtitle=document.querySelector(".book-header>p,.hero>p");
   if(heading)heading.textContent=registeredBook.title;
@@ -131,7 +131,7 @@ function renderReaderBookSwitcher(books){
  const header=document.querySelector(".book-header,.hero");if(!header)return;
  header.querySelector(".orlong-book-switcher")?.remove();
  const choices=books.filter(b=>b.published!==false&&b.showInReaderSwitcher&&b.readerUrl);
- const current=choices.find(b=>location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl);
+ const current=choices.find(b=>location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl||(b.contentsUrl&&location.pathname===b.contentsUrl));
  if(choices.length<2||!current)return;
  const wrap=document.createElement("div");wrap.className="orlong-book-switcher";const label=document.createElement("label");label.textContent="EXPLORE ANOTHER BOOK";
  const select=document.createElement("select");select.setAttribute("aria-label","Choose a book in the Reading Room");
