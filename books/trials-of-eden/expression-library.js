@@ -32,7 +32,7 @@ function makeAssetButton(item,root){
  if(item.asset_type==="emoji"&&item.emoji_text)button.append(make("span","expression-picker-emoji",item.emoji_text));
  else{const img=document.createElement("img");img.src=item.preview_url||item.asset_url;img.alt=item.alt_text||item.title;img.loading="lazy";button.append(img);}
  button.append(make("span","expression-picker-title",item.title));
- if(!item.is_unlocked){button.disabled=true;button.classList.add("is-locked");button.append(make("small","","LOCKED — "+(item.unlock_chapter_ids?.length?"Complete a chapter":"Unlock a collectible")));}
+ if(!item.is_unlocked){button.disabled=true;button.classList.add("is-locked");button.append(make("small","","LOCKED — "+(item.unlock_chapter_ids?.length?"COMPLETE A CHAPTER":item.unlock_card_ids?.length?"DISCOVER A CARD":"SPECIAL REWARD")));}
  else button.addEventListener("click",()=>addSelection({id:item.asset_id,key:item.asset_key,title:item.title,type:item.asset_type,url:item.asset_url,preview:item.preview_url,emoji:item.emoji_text,alt:item.alt_text,source:item.source||"orlong"}));
  root.append(button);
 }
