@@ -225,7 +225,7 @@ begin
  if new.book_key<>'trials-of-eden' then
   insert into public.orlong_book_parts(book_key,part_id,title,sort_order,is_published)
   select new.book_key,'part-'||lpad(n::text,2,'0'),'Part '||
-   (array['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'])[n],n,true
+   (case n when 1 then 'One' when 2 then 'Two' when 3 then 'Three' when 4 then 'Four' when 5 then 'Five' when 6 then 'Six' when 7 then 'Seven' when 8 then 'Eight' when 9 then 'Nine' else 'Ten' end),n,true
   from generate_series(1,10) n
   on conflict(book_key,part_id) do nothing;
  end if;
@@ -240,7 +240,7 @@ for each row execute function public.seed_default_orlong_book_parts();
 -- Backfill books that were created before this migration, without changing Eden.
 insert into public.orlong_book_parts(book_key,part_id,title,sort_order,is_published)
 select b.book_key,'part-'||lpad(n::text,2,'0'),'Part '||
- (array['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'])[n],n,true
+ (case n when 1 then 'One' when 2 then 'Two' when 3 then 'Three' when 4 then 'Four' when 5 then 'Five' when 6 then 'Six' when 7 then 'Seven' when 8 then 'Eight' when 9 then 'Nine' else 'Ten' end),n,true
 from public.orlong_books b cross join generate_series(1,10) n
 where b.book_key<>'trials-of-eden'
 on conflict(book_key,part_id) do nothing;
