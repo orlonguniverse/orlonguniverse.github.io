@@ -18,7 +18,16 @@ async function init(){
  if(!slug){document.getElementById("pageTitle").textContent="PAGE NOT FOUND";return}
  const db=window.supabase?.createClient?.(URL_BASE,KEY);
  if(!db){document.getElementById("pageBody").textContent="The page could not be loaded. Please refresh and try again.";return}
- const {data,error}=await db.rpc("get_public_orlong_managed_page",{p_slug:slug});
+ let data=null,error=null;
+ const params=new URLSearchParams(location.search);
+ if(params.get("preview")==="1"||params.get("orlong-edit")==="1"){
+  const {data:session}=await db.auth.getSession();
+  if(session?.session){
+   const {data:allowed}=await db.rpc("is_reader_moderator");
+   if(allowed===true){const {data:pages,error:pageError}=await db.rpc("get_moderator_orlong_managed_pages");if(pageError)error=pageError;else data=(pages||[]).find(page=>page.slug===slug)||null;}
+  }
+ }
+ if(!data){const result=await db.rpc("get_public_orlong_managed_page",{p_slug:slug});data=result.data;error=result.error}
  if(error||!data){document.getElementById("pageTitle").textContent="PAGE NOT AVAILABLE";document.getElementById("pageDescription").textContent="This page may be unpublished or the address may be incorrect.";return}
  document.title=data.title+" | Orlong Universe";
  document.getElementById("pageTitle").textContent=data.title;
