@@ -103,7 +103,7 @@ async function sellDuplicateCopies(cardId,quantity,button){
   const {data,error}=await client.rpc("sell_my_duplicate_cards",{p_card_id:cardId,p_quantity:quantity});
   if(error)throw error;
   await refreshCollectionState({silent:true});
-  await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+  await Promise.all([loadMarketplace(),loadXanthTransactions(),loadTradingMarket()]);
   $("duplicateSettingsStatus").textContent="Sold "+data.copies_sold+" duplicate "+(data.card_name||"card")+(data.copies_sold===1?"":"s")+" for "+formatXanth(data.total_value_cents)+".";
  }catch(error){console.error(error);button.disabled=false;button.textContent="TRY AGAIN";$("duplicateSettingsStatus").textContent=error.message||"The duplicate sale could not be completed.";}
 }
@@ -237,7 +237,7 @@ async function purchaseShopCard(slotNumber,button){
  button.textContent="PURCHASED";
  $("shopPurchaseStatus").textContent="Purchase successful! "+(data.card_number||"Your card")+" has been added to your collection. Your card reveal is ready.";
  await refreshCollectionState({silent:true});
- await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+ await Promise.all([loadMarketplace(),loadXanthTransactions(),loadTradingMarket()]);
 }
 
 function closeMysteryPackOverlay(overlay){
@@ -322,7 +322,7 @@ async function purchaseMysteryPack(pack,button){
  button.textContent="PACK OPENED";
  $("mysteryPackStatus").textContent=pack.title+" opened — "+data.card_count+" card"+(data.card_count===1?"":"s")+" added to your collection. Your discoveries are being revealed.";
  await refreshCollectionState({silent:true});
- await Promise.all([loadMarketplace(),loadXanthTransactions()]);
+ await Promise.all([loadMarketplace(),loadXanthTransactions(),loadTradingMarket()]);
  // The reveal watcher groups all cards from this pack into one simultaneous reveal.
  window.OrlongCardRevealWatcher?.poll?.();
 }
