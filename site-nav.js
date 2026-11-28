@@ -137,12 +137,27 @@ document.addEventListener("DOMContentLoaded",()=>{
     const primary=items.filter(item=>item.group==="primary").map(makeManagedLink);
     const bookItems=items.filter(item=>item.group==="book").map(item=>[item.label,item.href,location.pathname===item.href]);
     const discoverItems=items.filter(item=>item.group==="discover").map(item=>[item.label,item.href,location.pathname===item.href]);
-    const managedBook=dropdown("THE BOOK",bookItems);
-    const managedDiscover=dropdown("DISCOVER",discoverItems);
-    navLinks.replaceChildren(...primary);
-    navLinks.append(managedBook,managedDiscover);
+    const menuSettings=Array.isArray(data.menus)?data.menus:[{id:"book",label:"THE BOOK",enabled:true},{id:"discover",label:"DISCOVER",enabled:true}];
+    const bookSettings=menuSettings.find(item=>item.id==="book")||{label:"THE BOOK",enabled:true};
+    const discoverSettings=menuSettings.find(item=>item.id==="discover")||{label:"DISCOVER",enabled:true};
+    const mainSettings=data.mainMenu||{};
+    mainSummary.textContent=mainSettings.label||"MAIN MENU";
+    panel.replaceChildren();
+    if(mainSettings.showGuide!==false)panel.append(guideLink);
+    if(mainSettings.showTheme!==false||mainSettings.showBookOnly!==false){
+     panel.append(settingsLabel);
+     if(mainSettings.showTheme!==false)panel.append(theme);
+     if(mainSettings.showBookOnly!==false)panel.append(bookOnly);
+    }
+    if(mainSettings.showStatistics!==false)panel.append(statsLink);
+    if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
+    const managedMenus=[];
+    if(bookSettings.enabled!==false)managedMenus.push(dropdown(bookSettings.label||"THE BOOK",bookItems));
+    if(discoverSettings.enabled!==false)managedMenus.push(dropdown(discoverSettings.label||"DISCOVER",discoverItems));
+    navLinks.replaceChildren(...primary,...managedMenus);
     if(accountButton)navLinks.append(accountButton);
-    navLinks.append(main,bookOnlyEntry,instagram);
+    if(mainSettings.enabled!==false)navLinks.append(main);
+    navLinks.append(bookOnlyEntry,instagram);
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
   window.applyOrlongManagedNavigation=loadManagedNavigation;
