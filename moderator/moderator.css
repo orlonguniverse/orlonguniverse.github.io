@@ -241,3 +241,11 @@
 .archive-relation-form input,.archive-relation-form select,.archive-relation-form textarea{width:100%;min-width:0}
 .archive-relation-form .check-row{display:flex;align-items:center;gap:9px}
 @media(max-width:700px){.archive-relation-form .field-grid{grid-template-columns:1fr}}
+
+.archive-relation-type-manager{margin:22px 0;padding:20px;background:linear-gradient(145deg,#0d1c2e,#091321);border:1px solid rgba(201,170,107,.22);border-radius:12px}
+.archive-relation-type-create{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:15px 0 22px;padding:16px;background:#0a1726;border:1px solid #304761}
+.archive-relation-type-create label{display:grid;gap:7px;color:#d8e3f0;font-size:10px;font-weight:700;letter-spacing:.7px}
+.archive-relation-type-create input,.archive-relation-type-create select{width:100%;min-width:0}
+.archive-relation-type-create label:nth-child(3){grid-column:1/-1}
+.archive-relation-type-create button{justify-self:start}
+@media(max-width:700px){.archive-relation-type-create{grid-template-columns:1fr}.archive-relation-type-create label:nth-child(3){grid-column:auto}.archive-relation-type-create button{width:100%}}
