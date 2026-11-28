@@ -220,7 +220,7 @@ grant execute on function public.archive_moderator_orlong_book_chapter(text,text
 -- Give every newly created non-Eden book a ready-to-use ten-Part structure.
 create or replace function public.seed_default_orlong_book_parts()
 returns trigger language plpgsql security definer set search_path=public,pg_temp
-as $
+as $$
 begin
  if new.book_key<>'trials-of-eden' then
   insert into public.orlong_book_parts(book_key,part_id,title,sort_order,is_published)
@@ -231,7 +231,7 @@ begin
  end if;
  return new;
 end;
-$;
+$$;
 drop trigger if exists seed_default_orlong_book_parts_trigger on public.orlong_books;
 create trigger seed_default_orlong_book_parts_trigger
 after insert on public.orlong_books
