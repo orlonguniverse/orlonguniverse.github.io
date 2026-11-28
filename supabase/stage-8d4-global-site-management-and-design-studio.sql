@@ -26,7 +26,9 @@ begin
  if length(v_value)>12000 then raise exception 'Content is too long'; end if;
  if p_property in ('href','src') and v_value<>'' and v_value !~ '^(https://|http://|/|#|mailto:|tel:)' then raise exception 'Links and images must use a safe web, relative, anchor, email or telephone URL'; end if;
  if p_property='hidden' and v_value not in ('true','false') then raise exception 'Visibility must be true or false'; end if;
- if p_property in ('style:background-color','style:color') and v_value !~ '^#[0-9A-Fa-f]{3,8}
+ if p_property in ('style:background-color','style:color') and v_value !~ '^#[0-9A-Fa-f]{3,8}$' then raise exception 'Enter a hexadecimal colour such as #183553'; end if;
+ if p_property in ('style:padding','style:max-width','style:border-radius','style:font-size') and v_value !~ '^(0|[0-9]{1,4}(px|rem|%))$' then raise exception 'Use a simple size such as 24px, 1.5rem or 80 percent'; end if;
+ if p_property='style:text-align' and v_value not in ('left','center','right') then raise exception 'Choose left, center or right alignment'; end if;
  insert into public.orlong_site_content(page_path,selector,property,content_value,is_published,updated_by,updated_at)
  values(p_page_path,trim(p_selector),p_property,v_value,coalesce(p_is_published,true),auth.uid(),now())
  on conflict(page_path,selector,property) do update set content_value=excluded.content_value,is_published=excluded.is_published,updated_by=auth.uid(),updated_at=now();
