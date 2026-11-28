@@ -44,7 +44,7 @@ function buildPanel(){
   </section>
   <section class="expression-admin-card">
    <p class="eyebrow">GIF DISCOVERY</p><h3>CONNECT GIPHY</h3>
-   <p>Connect a GIPHY API key to give readers in-site trending GIFs and search across the GIF library. Use a key registered to your Orlong website and restrict it to your domain in the provider dashboard.</p>
+   <p>Connect a GIPHY API key to give readers trending GIFs, sticker search and broad access to the GIPHY catalogue from inside the Reading Room. Register a Web key for Orlong and restrict it to your website domain.</p><p><a href="https://developers.giphy.com/docs/api/quick-start-guide/" target="_blank" rel="noopener noreferrer">GIPHY API setup guide ↗</a></p>
    <label>GIPHY API KEY <input id="expressionGiphyKey" type="password" autocomplete="off" placeholder="Paste your GIPHY API key"></label>
    <label class="expression-admin-check"><input type="checkbox" id="expressionGiphyEnabled"> Enable GIF search for signed-in readers</label>
    <button class="primary" type="button" id="saveExpressionGiphy">SAVE GIF CONNECTION</button><p id="expressionGiphyStatus" role="status"></p>
@@ -139,6 +139,7 @@ async function loadGiphySettings(){
 }
 async function saveGiphy(){
  const key=$("expressionGiphyKey").value.trim(),enabled=$("expressionGiphyEnabled").checked;
+ if(enabled&&!key){$("expressionGiphyStatus").textContent="Paste your GIPHY API key before enabling GIF search.";return;}
  const {error}=await client.rpc("moderator_set_giphy_api_key",{p_api_key:key,p_enabled:enabled});
  $("expressionGiphyStatus").textContent=error?error.message:"GIF connection settings saved.";
  if(!error)$("expressionGiphyKey").value="";
