@@ -62,7 +62,7 @@ begin
  if jsonb_array_length(p_content->'blocks')>100 or length(p_content::text)>150000 then raise exception 'This page contains too much content'; end if;
  for v_block in select value from jsonb_array_elements(p_content->'blocks') loop
   v_type:=v_block->>'type';
-  if v_type not in ('heading','text','callout','accordion','image','button','divider') then raise exception 'This page contains an unsupported content block'; end if;
+  if v_type is null or v_type not in ('heading','text','callout','accordion','image','button','divider') then raise exception 'This page contains an unsupported content block'; end if;
   if length(coalesce(v_block->>'text',''))>12000 or length(coalesce(v_block->>'title',''))>500 or length(coalesce(v_block->>'caption',''))>1000 then raise exception 'A content block is too long'; end if;
   if v_type in ('image','button') and coalesce(v_block->>'url','') !~ '^(https://|http://|/|#)' then raise exception 'Images and buttons need a safe web or relative address'; end if;
   if v_type='accordion' and (jsonb_typeof(v_block->'items') is distinct from 'array' or jsonb_array_length(v_block->'items')>20) then raise exception 'A collapsible section needs a valid list of up to 20 items'; end if;
