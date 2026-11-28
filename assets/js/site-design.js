@@ -11,7 +11,7 @@ const palettes={
 function apply(record){
  const globalTheme=record?.theme||"blue";
  const readerThemes={"/books/trials-of-eden/":"blue","/books/trials-of-eden/index.html":"blue","/books/arcanet/":"red","/books/bitsy/":"orange","/books/varex/":"purple","/books/evalon/":"yellow"};
- const isReader=location.pathname.startsWith("/books/")&&!location.pathname.includes("contents.html")&&!location.pathname.includes("account.html");
+ const isReader=location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html");
  const registeredBook=(window.OrlongBooks||[]).find(b=>b.readerUrl&&(location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl));
  const activeTheme=isReader?(registeredBook?.theme||readerThemes[location.pathname]||document.body?.dataset.seriesTheme||"blue"):globalTheme;
  const base=palettes[activeTheme]||palettes.blue,custom=isReader?{}:(record?.design?.colors||{});
@@ -29,7 +29,7 @@ function apply(record){
  Object.entries(themeVars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
  if(document.body){Object.entries(themeVars).forEach(([k,v])=>document.body.style.setProperty(k,v));if(!isReader){document.body.style.setProperty("--background",theme.deep);document.body.style.setProperty("--surface-2",theme.surface);document.body.style.setProperty("--muted",theme.ice);}}
  if(isReader&&registeredBook){
-  const heading=document.querySelector(".book-header h1"),label=document.querySelector(".book-header .book-label"),subtitle=document.querySelector(".book-header>p");
+  const heading=document.querySelector(".book-header h1,.hero h1"),label=document.querySelector(".book-header .book-label,.hero .eyebrow"),subtitle=document.querySelector(".book-header>p,.hero>p");
   if(heading)heading.textContent=registeredBook.title;
   if(label&&registeredBook.house)label.textContent=registeredBook.house;
   if(subtitle&&registeredBook.bookLabel)subtitle.textContent=registeredBook.bookLabel;
@@ -128,7 +128,7 @@ function renderBookNavigation(books){
  });
 }
 function renderReaderBookSwitcher(books){
- const header=document.querySelector(".book-header");if(!header)return;
+ const header=document.querySelector(".book-header,.hero");if(!header)return;
  header.querySelector(".orlong-book-switcher")?.remove();
  const choices=books.filter(b=>b.published!==false&&b.showInReaderSwitcher&&b.readerUrl);
  const current=choices.find(b=>location.pathname===b.readerUrl||location.pathname===b.readerUrl+"index.html"||location.pathname.replace(/index\.html$/,"")===b.readerUrl);
@@ -148,7 +148,7 @@ async function init(){
   window.OrlongBooks=books;
   if(location.pathname==="/")renderBookCatalogue(books);
   renderBookNavigation(books);
-  if(location.pathname.startsWith("/books/")&&!location.pathname.includes("contents.html")&&!location.pathname.includes("account.html"))renderReaderBookSwitcher(books);
+  if(location.pathname.startsWith("/books/")&&!location.pathname.includes("account.html"))renderReaderBookSwitcher(books);
   const previewId=new URLSearchParams(location.search).get("design-preview");
   if(previewId){
    const {data:session}=await db.auth.getSession();
