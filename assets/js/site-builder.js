@@ -84,10 +84,7 @@ async function render(db,path){
  if(error){console.warn("Orlong page sections:",error.message);return {error:error.message,count:0}}
  const records=Array.isArray(data)?data:[];
  const placed=new Map();
- records.forEach(record=>{
-  try{const section=renderSection(record);placeSection(section,record,placed)}
-  catch(e){console.warn("Could not place saved Orlong section:",record?.id,e)}
- });
+ records.forEach(record=>{try{placeSection(renderSection(record),record,placed)}catch(e){console.warn("Could not place saved Orlong section:",record?.id,e)}});
  return {count:records.length};
 }
 async function start(db,path,bar){
@@ -136,30 +133,189 @@ async function start(db,path,bar){
   actions.append(edit,block,manage,visibility,up,down,duplicate,del);entry.append(title,meta,placement,actions);body.append(entry);
  });
   renderNativeSections();
- }; 
+ };
  const renderNativeSections=()=>{
   const main=document.querySelector("main");if(!main)return;
   const native=[...main.querySelectorAll(":scope > section,:scope > article,:scope > header,:scope > footer")]
    .filter(node=>!node.hasAttribute("data-orlong-section-id")&&!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"));
-  const heading=$("h2","","EXISTING PAGE SECTIONS");
-  const intro=$("p","","These are the sections already built into this page. They are separate from the extra sections you create above. You can hide or restore a section here, or open the visual editor and click its individual text, image or link to edit it.");
-  body.append(heading,intro);
+  body.append($("h2","","EXISTING PAGE SECTIONS"),$("p","","These are sections already built into this page, not just sections you create. Hide or restore them here. To edit individual wording, images or links, select the visual editor and click that item on the page."));
   if(!native.length){body.append($("div","builder-entry","No built-in page sections were found inside the main content area."));return}
   native.forEach((node,index)=>{
    const title=node.querySelector("h1,h2,h3,h4")?.textContent?.trim()||node.getAttribute("aria-label")||node.className?.toString().split(" ")[0]||node.tagName.toLowerCase();
    const entry=$("div","builder-entry"),name=$("strong","",(index+1)+". "+title.slice(0,90));
    const meta=$("p","",node.hidden?"HIDDEN FROM READERS":"BUILT-IN PAGE SECTION");
    const actions=$("div","builder-row"),locate=$("button","","LOCATE SECTION"),toggle=$("button","",node.hidden?"RESTORE SECTION":"HIDE SECTION");
-   locate.addEventListener("click",()=>{node.scrollIntoView({behavior:"smooth",block:"center"});node.style.outline="3px solid #78baff";setTimeout(()=>{node.style.outline=""},1800);message("Section located. Click an individual heading, paragraph, image or link on the page to edit it.")});
+   locate.addEventListener("click",()=>{node.scrollIntoView({behavior:"smooth",block:"center"});node.style.outline="3px solid #78baff";window.setTimeout(()=>{node.style.outline=""},1800);message("Section located. Click an individual heading, paragraph, image or link on the page to edit it.")});
    toggle.addEventListener("click",async()=>{
-    toggle.disabled=true;const next=!node.hidden;const selector=selectorForPlacement(node);
+    toggle.disabled=true;const next=!node.hidden,selector=selectorForPlacement(node);
     try{
      const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:path,p_selector:selector,p_property:"hidden",p_content_value:String(next),p_is_published:true});
-     if(error)throw error;node.hidden=next;message(next?"Existing section hidden. You can restore it here at any time.":"Existing section restored.");
-     renderNativeSections();
+     if(error)throw error;node.hidden=next;message(next?"Existing section hidden. You can restore it here at any time.":"Existing section restored.");renderNativeSections();
     }catch(e){message(e.message||"Could not change this section.")}finally{toggle.disabled=false}
    });
    actions.append(locate,toggle);entry.append(name,meta,actions);body.append(entry);
   });
- }
- const input=
+ };
+ const input=(label,value="",multiline=false)=>{const wrap=$("label","",label),field=$(multiline?"textarea":"input");field.value=value;wrap.append(field);return {wrap,field}};
+ const choose=(label,values,value)=>{const wrap=$("label","",label),field=$("select");values.forEach(v=>{const o=$("option","",v[1]);o.value=v[0];field.append(o)});field.value=value;wrap.append(field);return {wrap,field}};
+ const dialog=(title,fields,onSave,afterSave=reload,onCancel=reload)=>{
+  body.replaceChildren();const h=$("h2","",title),fieldHost=$("div","builder-dialog-fields");body.append(h,fieldHost);
+  const renderFields=()=>{const list=typeof fields==="function"?fields():fields;fieldHost.replaceChildren();list.forEach(f=>fieldHost.append(f?.wrap||f));};
+  renderFields();
+  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE"),cancel=$("button","","CANCEL");saveBtn.type=cancel.type="button";cancel.addEventListener("click",onCancel);
+  saveBtn.addEventListener("click",async()=>{saveBtn.disabled=true;try{await onSave();message("Saved successfully.");await afterSave();}catch(e){message(e.message||"Could not save this change.");}finally{saveBtn.disabled=false}});
+  actions.append(saveBtn,cancel);body.append(actions);return renderFields;
+ };
+ const placementDescription=section=>{
+  const option=placementOptions().find(item=>item.value===((section.anchorSelector||"main")+"|"+(section.data?.placement||"end")));
+  return "POSITION: "+(option?.label||"At the bottom of the page");
+ };
+ const editSection=section=>{
+  const title=input("SECTION TITLE",section.data.title||""),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],section.data.theme||"default"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],section.data.width||"standard"),align=choose("ALIGNMENT",[["left","Left"],["center","Centred"]],section.data.align||"left"),placement=choose("WHERE SHOULD THIS SECTION APPEAR?",placementOptions().map(x=>[x.value,x.label]),(section.anchorSelector||"main")+"|"+(section.data.placement||"end"));
+  const publishedWrap=$("label","","PUBLISH THIS SECTION"),publishedField=$("input");publishedField.type="checkbox";publishedField.checked=section.published!==false;publishedWrap.append(publishedField);
+  dialog("EDIT SECTION",[title.wrap,theme.wrap,width.wrap,align.wrap,placement.wrap,publishedWrap],async()=>{const [selector,position]=placement.field.value.split("|");section.data={...section.data,title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:align.field.value,placement:position||"end"};section.anchorSelector=selector||"main";section.published=publishedField.checked;await save(section)});
+ };
+ const addSection=async()=>{
+  const title=input("SECTION TITLE","New section"),theme=choose("BACKGROUND",[["default","Transparent"],["panel","Dark panel"],["blue","Blue feature"],["light","Light panel"]],"panel"),width=choose("SECTION WIDTH",[["narrow","Narrow"],["standard","Standard"],["wide","Wide"],["full","Full width"]],"standard"),placement=choose("WHERE SHOULD THIS SECTION APPEAR?",placementOptions().map(x=>[x.value,x.label]),"main|end");
+  const publishedWrap=$("label","","PUBLISH THIS SECTION");const publishedField=$("input");publishedField.type="checkbox";publishedField.checked=true;publishedWrap.append(publishedField);
+  dialog("CREATE SECTION",[title.wrap,theme.wrap,width.wrap,placement.wrap,publishedWrap],async()=>{const [selector,position]=placement.field.value.split("|");const section={pagePath:path,anchorSelector:selector||"main",sortOrder:sections.length?Math.max(...sections.map(s=>s.sortOrder||0))+1:0,published:publishedField.checked,data:{title:title.field.value.trim(),theme:theme.field.value,width:width.field.value,align:"left",placement:position||"end",blocks:[]}};await save(section)});
+ };
+ const addBlock=section=>{
+  const type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text box / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],"text");
+  const fields=[type];const dynamic=()=>{fields.splice(1);const t=type.field.value;
+   if(t==="heading"||t==="text"||t==="callout"){fields.push(input(t==="heading"?"HEADING TEXT":"TEXT CONTENT","",true))}
+   if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS (one per line: title | content)","First item | Enter the content here",true))}
+   if(t==="image"){fields.push(input("IMAGE URL (or upload below)",""));fields.push(input("IMAGE ALT TEXT",""));fields.push(input("IMAGE CAPTION",""));const fileWrap=$("label","","UPLOAD IMAGE");const file=$("input");file.type="file";file.accept="image/png,image/jpeg,image/webp,image/gif";fileWrap.append(file);fields.push({wrap:fileWrap,field:file})}
+   if(t==="button"){fields.push(input("BUTTON TEXT","Learn more"));fields.push(input("DESTINATION URL","/"))}
+  };
+  const refreshFields=dialog("ADD CONTENT BLOCK",()=>fields,async()=>{
+   const t=type.field.value,v=fields.slice(1).map(f=>f.field.value);
+   let block={type:t};
+   if(t==="heading"||t==="text"||t==="callout")block.text=v[0];
+   if(t==="accordion"){block.title=v[0];block.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const folder=path.replace(/[^a-z0-9]/gi,"-").replace(/-+/g,"-").replace(/^-|-$/g,"")||"site";const filePath=folder+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image URL or upload an image.");block.url=url;block.alt=v[1];block.caption=v[2];}
+   if(t==="button"){block.text=v[0];block.url=v[1];if(!safeUrl(block.url))throw new Error("Enter a valid button destination.");}
+   section.data.blocks=[...(section.data.blocks||[]),block];await save(section);
+  },()=>manageBlocks(section),()=>manageBlocks(section));
+  type.field.addEventListener("change",()=>{dynamic();refreshFields()});dynamic();refreshFields();
+ };
+ const manageBlocks=section=>{
+  body.replaceChildren($("h2","","EDIT SECTION CONTENT"),$("p","","This is the content inside this section. Edit an item, move it up or down, remove it, or add another item. Changes appear in the page preview as soon as they are saved."));
+  const blocks=section.data.blocks||[];
+  if(!blocks.length)body.append($("p","","This section is empty. Add your first content block."));
+  blocks.forEach((block,index)=>{
+   const entry=$("div","builder-entry"),name=$("strong","",(index+1)+". "+block.type.toUpperCase()),preview=$("p","",(block.text||block.title||block.caption||block.url||"").slice(0,150));
+   const actions=$("div","builder-row"),edit=$("button","","EDIT"),remove=$("button","danger","REMOVE"),up=$("button","","↑"),down=$("button","","↓");
+   edit.addEventListener("click",()=>editBlock(section,index));
+   remove.addEventListener("click",async()=>{if(!confirm("Remove this content block?"))return;section.data.blocks.splice(index,1);try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   up.disabled=index===0;down.disabled=index===blocks.length-1;
+   up.addEventListener("click",async()=>{const a=section.data.blocks;[a[index-1],a[index]]=[a[index],a[index-1]];try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   down.addEventListener("click",async()=>{const a=section.data.blocks;[a[index+1],a[index]]=[a[index],a[index+1]];try{await save(section);manageBlocks(section)}catch(e){message(e.message)}});
+   actions.append(edit,up,down,remove);entry.append(name,preview,actions);body.append(entry);
+  });
+  const controls=$("div","builder-row"),addContent=$("button","","＋ ADD CONTENT BLOCK"),back=$("button","","BACK TO SECTIONS");addContent.addEventListener("click",()=>addBlock(section));back.addEventListener("click",reload);controls.append(addContent,back);body.append(controls);
+ };
+ const editBlock=(section,index)=>{
+  const block=section.data.blocks[index],fields=[];
+  const addField=(label,value,multi=false)=>{const f=input(label,value||"",multi);fields.push(f);return f};
+  if(["heading","text","callout"].includes(block.type))addField(block.type==="heading"?"HEADING TEXT":"TEXT CONTENT",block.text,true);
+  if(block.type==="accordion"){addField("MENU TITLE",block.title);addField("ITEMS (one per line: title | content)",(block.items||[]).map(x=>x.title+" | "+x.text).join("\n"),true)}
+  if(block.type==="image"){addField("IMAGE URL",block.url);addField("ALT TEXT",block.alt);addField("CAPTION",block.caption)}
+  if(block.type==="button"){addField("BUTTON TEXT",block.text);addField("DESTINATION URL",block.url)}
+  dialog("EDIT "+block.type.toUpperCase(),fields.map(f=>f.wrap),async()=>{
+   const v=fields.map(f=>f.field.value);
+   if(["heading","text","callout"].includes(block.type))block.text=v[0];
+   if(block.type==="accordion"){block.title=v[0];block.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(block.type==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image URL.");block.url=v[0];block.alt=v[1];block.caption=v[2]}
+   if(block.type==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");block.text=v[0];block.url=v[1]}
+   section.data.blocks[index]=block;await save(section);
+  },()=>manageBlocks(section),()=>manageBlocks(section));
+ };
+ const moveSection=async(section,delta)=>{const i=sections.findIndex(s=>s.id===section.id),j=i+delta;if(j<0||j>=sections.length)return;const a=sections[i],b=sections[j],n=a.sortOrder;a.sortOrder=b.sortOrder;b.sortOrder=n;try{await save(a);await save(b);await reload()}catch(e){message(e.message)}};
+ const deleteSection=async section=>{if(!confirm("Delete this custom section and all its content?"))return;const {error:delError}=await db.rpc("delete_moderator_orlong_site_section",{p_section_id:section.id});if(delError){message(delError.message);return}await reload();message("Section deleted.")};
+ const managedPageSave=async(page)=>{
+  const {data,error}=await db.rpc("save_moderator_orlong_managed_page",{
+   p_page_id:page.id||null,p_slug:page.slug,p_title:page.title,p_description:page.description||"",
+   p_content:page.content||{blocks:[]},p_is_published:page.published===true,p_sort_order:page.sortOrder||0
+  });
+  if(error)throw error;page.id=data.page_id;page.slug=data.slug;return page;
+ };
+ const openPages=async()=>{
+  body.replaceChildren($("h2","","YOUR WEBSITE PAGES"),$("p","","Create new pages, keep unfinished ideas as drafts, and publish them whenever you're ready. Each page gets its own shareable address."));
+  const toolbar=$("div","builder-row"),create=$("button","","＋ CREATE NEW PAGE"),refresh=$("button","","REFRESH LIST");
+  create.addEventListener("click",()=>editManagedPage(null));refresh.addEventListener("click",()=>openPages());toolbar.append(create,refresh);body.append(toolbar);
+  const {data,error}=await db.rpc("get_moderator_orlong_managed_pages");if(error)throw error;
+  const pages=Array.isArray(data)?data:[];
+  if(!pages.length)body.append($("div","builder-entry","You haven't created any custom pages yet. Select CREATE NEW PAGE to begin."));
+  pages.forEach(page=>{
+   const entry=$("div","builder-entry"),title=$("strong","",page.title),meta=$("p","", "/managed-page.html?slug="+page.slug+" · "+((page.content?.blocks||[]).length)+" content blocks · "+(page.published?"PUBLISHED":"DRAFT"));
+   const actions=$("div","builder-row"),edit=$("button","","EDIT PAGE"),content=$("button","","EDIT PAGE CONTENT"),preview=$("button","","OPEN PAGE ↗"),visual=$("button","","OPEN VISUAL EDITOR"),menu=$("button","","ADD TO WEBSITE MENU"),replaceMenu=$("button","","REPLACE MENU LINK"),copy=$("button","","DUPLICATE"),del=$("button","danger","DELETE");
+   edit.addEventListener("click",()=>editManagedPage(page));
+   content.addEventListener("click",()=>manageManagedPageBlocks(page));
+   preview.addEventListener("click",()=>window.open("/managed-page.html?slug="+encodeURIComponent(page.slug)+"&preview=1","_blank","noopener"));
+   visual.addEventListener("click",()=>window.open("/managed-page.html?slug="+encodeURIComponent(page.slug)+"&preview=1&orlong-edit=1","_blank","noopener"));
+   menu.addEventListener("click",async()=>{try{const {data:config,error:loadError}=await db.rpc("get_moderator_orlong_site_map");if(loadError)throw loadError;config.links=config.links||[];const href="/managed-page.html?slug="+encodeURIComponent(page.slug);const existing=config.links.find(link=>link.href===href);if(existing){existing.label=page.title.toUpperCase();existing.enabled=true}else config.links.push({id:"managed-"+page.slug,label:page.title.toUpperCase(),href,group:"primary",order:Math.max(-1,...config.links.filter(link=>link.group==="primary").map(link=>link.order||0))+1,enabled:true});const {error:saveError}=await db.rpc("save_moderator_orlong_site_map",{p_config:config});if(saveError)throw saveError;message("Page added to the top navigation. You can move it or place it in a dropdown in WEBSITE MAP.")}catch(e){message(e.message||"Could not add this page to the website menu.")}});
+   replaceMenu.addEventListener("click",async()=>{try{const {data:config,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;const links=(config.links||[]).filter(link=>link.enabled!==false);if(!links.length)throw new Error("There are no active menu links to replace.");body.replaceChildren($("h2","","REPLACE A MENU DESTINATION"),$("p","","Choose an existing menu link. Its wording and position will stay the same, but it will open this new page instead."));const target=choose("WHICH EXISTING MENU LINK SHOULD OPEN THIS PAGE?",links.map(link=>[link.id,(link.group||"menu").toUpperCase()+" — "+link.label]),links[0].id);const actions=$("div","builder-row"),save=$("button","","REPLACE DESTINATION"),back=$("button","","CANCEL");save.addEventListener("click",async()=>{const link=config.links.find(item=>item.id===target.field.value);if(!link)return;link.href="/managed-page.html?slug="+encodeURIComponent(page.slug);try{const {error:saveError}=await db.rpc("save_moderator_orlong_site_map",{p_config:config});if(saveError)throw saveError;message("Menu destination replaced. The original menu wording and position have been kept.");await openPages()}catch(e){message(e.message)}});back.addEventListener("click",openPages);body.append(target.wrap,actions);actions.append(save,back)}catch(e){message(e.message||"Could not load menu links.")}});
+   copy.addEventListener("click",async()=>{const clone={...JSON.parse(JSON.stringify(page)),id:null,slug:page.slug+"-copy-"+Date.now().toString().slice(-5),title:"Copy of "+page.title,published:false,sortOrder:page.sortOrder||0};try{await managedPageSave(clone);message("Page duplicated as a draft.");await openPages()}catch(e){message(e.message)}});
+   del.addEventListener("click",async()=>{if(!confirm("Permanently delete this custom page? This cannot be undone."))return;const {error}=await db.rpc("delete_moderator_orlong_managed_page",{p_page_id:page.id});if(error){message(error.message);return}message("Page deleted.");await openPages()});
+   entry.append(title,meta,actions);actions.append(edit,content,preview,visual,menu,replaceMenu,copy,del);body.append(entry);
+  });
+  const back=$("button","","BACK TO THIS PAGE'S SECTIONS");back.addEventListener("click",reload);body.append(back);
+ };
+ const editManagedPage=page=>{
+  const model=page?JSON.parse(JSON.stringify(page)):{id:null,slug:"",title:"",description:"",content:{blocks:[]},published:false,sortOrder:0};
+  body.replaceChildren($("h2","",page?"EDIT PAGE DETAILS":"CREATE A NEW PAGE"),$("p","","This creates a real page on your website. You can keep it private as a draft until you're ready to publish it."));
+  const title=input("PAGE TITLE",model.title),slug=input("PAGE ADDRESS (lowercase words separated by hyphens)",model.slug),description=input("SHORT INTRODUCTION",model.description,true);
+  const published=$("label","","PUBLISH THIS PAGE"),check=$("input");check.type="checkbox";check.checked=model.published===true;published.append(check);
+  const pathPreview=$("p","", "Page address: /managed-page.html?slug="+(model.slug||"your-page-name"));
+  let slugManuallyEdited=Boolean(model.slug);slug.field.addEventListener("input",()=>{slugManuallyEdited=true;pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")});title.field.addEventListener("input",()=>{if(!slugManuallyEdited){slug.field.value=title.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value}});
+  const actions=$("div","builder-row"),saveBtn=$("button","","SAVE PAGE DETAILS"),contentBtn=$("button","","EDIT PAGE CONTENT"),back=$("button","","CANCEL");
+  saveBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;try{await managedPageSave(model);message("Page details saved.");editManagedPage(model)}catch(e){message(e.message)}});
+  contentBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;if(!model.id){try{await managedPageSave(model)}catch(e){message(e.message);return}}manageManagedPageBlocks(model)});
+  back.addEventListener("click",openPages);
+  [title.wrap,slug.wrap,description.wrap,published,pathPreview,actions].forEach(n=>body.append(n));actions.append(saveBtn,contentBtn,back);
+ };
+ const manageManagedPageBlocks=page=>{
+  page.content=page.content||{blocks:[]};page.content.blocks=page.content.blocks||[];
+  body.replaceChildren($("h2","","PAGE CONTENT"),$("p","","Build this page using headings, paragraphs, images, buttons and collapsible sections. Select EDIT to change an item or use the arrows to change its order."));
+  page.content.blocks.forEach((block,index)=>{
+   const entry=$("div","builder-entry"),summary=$("strong","",(index+1)+". "+block.type.toUpperCase()),preview=$("p","",(block.text||block.title||block.caption||block.url||"").slice(0,140)),actions=$("div","builder-row");
+   const edit=$("button","","EDIT"),up=$("button","","MOVE UP"),down=$("button","","MOVE DOWN"),remove=$("button","danger","REMOVE");
+   edit.addEventListener("click",()=>editManagedBlock(page,index));
+   up.disabled=index===0;down.disabled=index===page.content.blocks.length-1;
+   up.addEventListener("click",async()=>{[page.content.blocks[index-1],page.content.blocks[index]]=[page.content.blocks[index],page.content.blocks[index-1]];try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   down.addEventListener("click",async()=>{[page.content.blocks[index+1],page.content.blocks[index]]=[page.content.blocks[index],page.content.blocks[index+1]];try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   remove.addEventListener("click",async()=>{if(!confirm("Remove this content block?"))return;page.content.blocks.splice(index,1);try{await managedPageSave(page);manageManagedPageBlocks(page)}catch(e){message(e.message)}});
+   actions.append(edit,up,down,remove);entry.append(summary,preview,actions);body.append(entry);
+  });
+  const actions=$("div","builder-row"),addContent=$("button","","＋ ADD CONTENT"),save=$("button","","SAVE PAGE"),back=$("button","","BACK TO PAGE DETAILS");
+  addContent.addEventListener("click",()=>editManagedBlock(page,null));save.addEventListener("click",async()=>{try{await managedPageSave(page);message("Page content saved.")}catch(e){message(e.message)}});
+  back.addEventListener("click",()=>editManagedPage(page));actions.append(addContent,save,back);body.append(actions);
+ };
+ const editManagedBlock=(page,index)=>{
+  const old=index===null?{type:"text",text:""}:page.content.blocks[index],type=choose("CONTENT TYPE",[["heading","Heading"],["text","Text / paragraph"],["callout","Highlighted text box"],["accordion","Collapsible menu"],["image","Image"],["button","Button / link"],["divider","Divider"]],old.type);
+  const fields=[type];const dynamic=()=>{fields.splice(1);const t=type.field.value;
+   if(["heading","text","callout"].includes(t))fields.push(input(t==="heading"?"HEADING":"TEXT","",true));
+   if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS — ONE PER LINE, TITLE | CONTENT","First question | Answer",true))}
+   if(t==="image"){fields.push(input("IMAGE ADDRESS (OR UPLOAD BELOW)",""));fields.push(input("ALT TEXT",""));fields.push(input("CAPTION",""));const uploadWrap=$("label","","UPLOAD IMAGE FILE");const upload=$("input");upload.type="file";upload.accept="image/png,image/jpeg,image/webp,image/gif";uploadWrap.append(upload);fields.push({wrap:uploadWrap,field:upload})}
+   if(t==="button"){fields.push(input("BUTTON LABEL","Learn more"));fields.push(input("DESTINATION","/"))}
+   if(index!==null&&t===old.type){if(["heading","text","callout"].includes(t))fields[1].field.value=old.text||"";if(t==="accordion"){fields[1].field.value=old.title||"";fields[2].field.value=(old.items||[]).map(x=>x.title+" | "+x.text).join("\n")}if(t==="image"){fields[1].field.value=old.url||"";fields[2].field.value=old.alt||"";fields[3].field.value=old.caption||""}if(t==="button"){fields[1].field.value=old.text||"";fields[2].field.value=old.url||""}}
+  };
+  const render=dialog(index===null?"ADD PAGE CONTENT":"EDIT PAGE CONTENT",()=>fields,async()=>{
+   const t=type.field.value,v=fields.slice(1).map(f=>f.field.value),b={type:t};
+   if(["heading","text","callout"].includes(t))b.text=v[0]||"";
+   if(t==="accordion"){b.title=v[0]||"";b.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
+   if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const folder=("managed-"+page.slug).replace(/[^a-z0-9-]/g,"-");const filePath=folder+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image address or upload an image.");b.url=url;b.alt=v[1]||"";b.caption=v[2]||""}
+   if(t==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");b.text=v[0]||"Learn more";b.url=v[1]}
+   if(index===null)page.content.blocks.push(b);else page.content.blocks[index]=b;
+   await managedPageSave(page);
+  },()=>manageManagedPageBlocks(page),()=>manageManagedPageBlocks(page));
+  type.field.addEventListener("change",()=>{dynamic();render()});dynamic();render();
+ };
+ add.addEventListener("click",()=>{panel.hidden=false;addSection()});
+ manage.addEventListener("click",()=>{panel.hidden=false;reload().catch(e=>message("Could not open section manager: "+e.message))});
+ pagesButton.addEventListener("click",()=>{panel.hidden=false;openPages().catch(e=>message("Could not load page manager: "+e.message))});
+ try{await reload()}catch(e){message(e.message||"Could not load page sections. Run the Visual Page Builder migration first.");}
+}
+window.OrlongSiteBuilder={render,start};
+})();
