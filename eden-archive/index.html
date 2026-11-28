@@ -41,6 +41,14 @@
 <div id="archiveEmpty" class="archive-message" hidden><h2>THE ARCHIVE IS QUIET</h2><p>You haven't unlocked any records yet. Collect cards in Explore Eden to reveal the secrets connected to them.</p><a class="archive-primary" href="../explore-eden/">EXPLORE EDEN</a></div>
 </section>
 </main>
+<dialog id="archiveReaderDialog" class="archive-reader-dialog" aria-labelledby="archiveReaderTitle">
+ <div class="archive-reader-shell">
+  <div class="archive-reader-top"><span id="archiveReaderCategory" class="eyebrow">ARCHIVE RECORD</span><button type="button" id="archiveReaderClose" class="archive-reader-close" aria-label="Close archive record">✕</button></div>
+  <h2 id="archiveReaderTitle"></h2><p id="archiveReaderSummary" class="archive-reader-summary"></p>
+  <div id="archiveReaderCards" class="archive-entry-cards"></div><div id="archiveReaderBlocks" class="archive-reader-blocks"></div>
+  <div class="archive-reader-end"><span>✧</span><p>END OF RECORD</p><button type="button" id="archiveReaderReturn" class="archive-read-button">RETURN TO THE ARCHIVE</button></div>
+ </div>
+</dialog>
 <footer class="archive-footer">ORLONG UNIVERSE · THE EDEN ARCHIVE<br><a href="../books/trials-of-eden/">RETURN TO THE READING ROOM</a></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../site-nav.js?v=stage-8d38"></script>
