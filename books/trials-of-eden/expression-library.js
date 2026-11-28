@@ -72,6 +72,14 @@ async function loadLibrary(){
  const config=await engagementClient.rpc("get_expression_giphy_config");giphyKey=config.data||"";
  loadGiphy("");
 }
+async function loadMyExpressionRequests(){
+ const root=$("myExpressionRequests");if(!root||!engagementUser)return;
+ const {data,error}=await engagementClient.from("expression_asset_requests").select("title,requested_type,status,moderator_note,created_at").eq("user_id",engagementUser.id).order("created_at",{ascending:false}).limit(12);
+ root.replaceChildren();
+ if(error){root.append(make("p","engagement-muted","Your requests could not be loaded."));return;}
+ if(!data?.length){root.append(make("p","engagement-muted","Your expression requests will appear here."));return;}
+ data.forEach(item=>{const row=make("div","expression-request-history-row");row.append(make("strong","",item.title),make("span","",item.requested_type.toUpperCase()+" · "+item.status.toUpperCase()));if(item.moderator_note)row.append(make("small","",item.moderator_note));root.append(row);});
+}
 function buildPicker(){
  const dialog=make("dialog","expression-picker-dialog");dialog.id="expressionPickerDialog";
  const head=make("div","expression-picker-head");head.append(make("div","","ORLONG EXPRESSION LIBRARY"));
@@ -93,8 +101,8 @@ function buildPicker(){
  ["sticker","gif","meme","emoji"].forEach(value=>{const o=document.createElement("option");o.value=value;o.textContent=value.toUpperCase();requestType.append(o);});
  const title=document.createElement("input");title.required=true;title.maxLength=120;title.placeholder="What should we add?";
  const description=document.createElement("textarea");description.required=true;description.maxLength=1000;description.placeholder="Describe the character, reaction, joke or image you have in mind…";
- const send=make("button","","SEND REQUEST");send.type="submit";
- form.append(requestType,title,description,send);
+ const send=make("button","","SEND REQUEST");send.type="submit";const requestMessage=make("p","engagement-small","");requestMessage.id="expressionRequestMessage";const requestHistory=make("div","expression-request-history");requestHistory.id="myExpressionRequests";
+ form.append(requestType,title,description,send,requestMessage,requestHistory);
  form.addEventListener("submit",async event=>{
   event.preventDefault();if(!engagementUser){setMessage("commentMessage","Sign in to request a new expression.");return;}
   const result=await engagementClient.rpc("request_expression_asset",{p_type:requestType.value,p_title:title.value.trim(),p_description:description.value.trim()});
