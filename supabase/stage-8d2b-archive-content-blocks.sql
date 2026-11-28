@@ -78,7 +78,7 @@ begin
  if p_unlock_chapter_id is not null and not exists(select 1 from public.eden_book_chapters where chapter_id=p_unlock_chapter_id) then raise exception 'Choose a valid chapter release gate'; end if;
  if p_required_card_ids is null or cardinality(p_required_card_ids)<1 then raise exception 'Connect at least one required card to this entry'; end if;
  v_blocks:=coalesce(p_content_blocks,'[]'::jsonb);
- if jsonb_typeof(v_blocks)<>'array' or jsonb_array_length(v_blocks)>40 then raise exception 'Use an array of no more than 40 archive blocks'; end if;
+ if jsonb_typeof(v_blocks)<>'array' then raise exception 'Archive content blocks must be an array'; end if;
  if octet_length(v_blocks::text)>180000 then raise exception 'Archive blocks are too large. Reduce the amount of text or imagery.'; end if;
  if exists(
    select 1 from jsonb_array_elements(v_blocks) b
