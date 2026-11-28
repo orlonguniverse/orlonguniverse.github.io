@@ -136,3 +136,21 @@
 .site-map-custom-link{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:10px;align-items:end;padding:12px;background:#0c1928;border:1px solid #2b4057}
 .site-map-main-settings h4{margin:18px 0 5px;color:#b8d8ff;font-size:10px;letter-spacing:1px}
 @media(max-width:650px){.site-map-custom-link{grid-template-columns:1fr}}
+
+
+/* Stage 8D.4 — Front Page Design Studio */
+.design-studio-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:22px;align-items:start}
+.design-editor-card,.design-version-card,.design-history{padding:18px;background:#101c2b;border:1px solid #30465e;border-radius:5px}
+.design-editor-card h3,.design-versions-column h3{margin:20px 0 12px;color:#c5def8;font:600 13px Cinzel,Georgia,serif;letter-spacing:1px}
+.design-editor-card h3:first-child{margin-top:0}
+.design-editor-card label{display:grid;gap:6px;margin:12px 0;color:#c8d8e8;font-size:10px;letter-spacing:.6px}
+.design-editor-card input,.design-editor-card textarea,.design-editor-card select{width:100%;box-sizing:border-box;padding:10px;background:#0b1725;color:#f4f7fb;border:1px solid #3b5672;font:12px Inter,Arial,sans-serif}
+.design-theme-preview{display:grid;place-items:center;min-height:66px;margin:12px 0;padding:14px;color:#fff;font:600 12px Cinzel,Georgia,serif;letter-spacing:2px;border:1px solid #6c8ba9}
+.design-version-list{display:grid;gap:10px}
+.design-version-card strong{display:block;color:#edf5ff;font:600 14px Cinzel,Georgia,serif}
+.design-version-card p{color:#9fb2c8;font-size:11px;line-height:1.6}
+.design-version-actions{display:flex;gap:7px;flex-wrap:wrap}
+.design-version-actions button,.design-history-row button{padding:8px 10px;font-size:9px}
+.design-history{margin-top:14px}
+.design-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid #2b4057;color:#b8c9db;font-size:10px}
+@media(max-width:850px){.design-studio-layout{grid-template-columns:1fr}.design-history-row{grid-template-columns:1fr}}
