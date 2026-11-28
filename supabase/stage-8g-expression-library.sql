@@ -142,7 +142,7 @@ create policy "Moderators manage expression provider settings" on public.express
 
 grant select on public.expression_assets, public.reader_expression_unlocks,
  public.expression_asset_requests to authenticated;
-grant insert on public.expression_asset_requests, 
+grant insert on public.expression_asset_requests to authenticated;
 grant select, insert, update, delete on public.expression_assets, public.expression_asset_requests,
  public.expression_provider_settings to authenticated;
 grant select on public.expression_provider_settings to authenticated;
