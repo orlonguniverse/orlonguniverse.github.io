@@ -290,3 +290,24 @@
 .site-map-toolbar #siteMapDiscard{border-color:#8b6d58;color:#ffd8bd}
 .site-map-status{border-radius:5px}
 @media(max-width:760px){.site-map-subsection-row{align-items:flex-start;flex-direction:column}.site-map-subsection-row .site-map-actions{justify-content:flex-start}}
+
+/* Stage 8G — Moderator Expression Library */
+.expression-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0}
+.expression-admin-card{min-width:0;padding:20px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.expression-admin-card h3{font-family:Cinzel,serif;font-weight:500;letter-spacing:1px;margin:8px 0 16px}
+.expression-admin-card form{display:grid;gap:12px}
+.expression-admin-card label{display:grid;gap:6px;color:var(--muted);font-size:11px;letter-spacing:.04em}
+.expression-admin-card input,.expression-admin-card textarea,.expression-admin-card select{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--white);font:inherit}
+.expression-admin-card small,.expression-admin-card .hint{color:var(--muted);font-size:10px}
+.expression-admin-check{display:flex!important;align-items:center;grid-template-columns:18px 1fr}
+.expression-admin-check input{width:16px;height:16px}
+.expression-admin-row,.expression-request-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.expression-admin-row>div:first-child{display:flex;align-items:center;gap:12px;min-width:0}
+.expression-admin-row img{width:65px;height:55px;object-fit:cover;border-radius:6px}
+.expression-admin-preview{font-size:30px}
+.expression-admin-row strong,.expression-request-row strong{display:block}
+.expression-admin-row small,.expression-request-row small{display:block;color:var(--muted);margin-top:5px}
+.expression-admin-row>div:last-child,.expression-request-row>div:last-child{display:flex;flex-wrap:wrap;gap:7px}
+.expression-request-row{display:block}
+.expression-request-row p{color:var(--muted);font-size:12px}
+@media(max-width:850px){.expression-admin-grid{grid-template-columns:1fr}}
