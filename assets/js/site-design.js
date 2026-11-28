@@ -161,9 +161,22 @@ function renderReaderBookSwitcher(books){
  wrap.append(label,select);header.append(wrap);
 }
 
+async function ensureSupabase(){
+ if(window.supabase?.createClient)return true;
+ if(!window.__orlongSupabaseLoad){
+  window.__orlongSupabaseLoad=new Promise((resolve,reject)=>{
+   const existing=document.querySelector('script[src*="supabase-js@2"]');
+   if(existing){existing.addEventListener("load",resolve,{once:true});existing.addEventListener("error",reject,{once:true});if(window.supabase?.createClient)resolve();return;}
+   const script=document.createElement("script");script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";script.onload=resolve;script.onerror=reject;document.head.append(script);
+  });
+ }
+ try{await window.__orlongSupabaseLoad}catch(error){console.warn("Supabase could not be loaded for the homepage catalogue:",error);return false}
+ return !!window.supabase?.createClient;
+}
 async function init(){
  try{
-  const db=window.supabase?.createClient?.(URL_BASE,KEY);if(!db)return;
+  if(!await ensureSupabase()){apply(null);return;}
+  const db=window.supabase.createClient(URL_BASE,KEY);
   const {data:booksData,error:booksError}=await db.rpc("get_public_orlong_books");
   const books=(!booksError&&Array.isArray(booksData))?booksData:[];
   window.OrlongBooks=books;
