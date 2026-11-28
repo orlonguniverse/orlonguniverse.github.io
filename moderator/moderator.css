@@ -130,3 +130,9 @@
 .site-map-main-options .site-map-enabled{padding:6px 0}
 .site-map-config-group .site-map-enabled,.site-map-main-settings .site-map-enabled{font-size:11px}
 @media(max-width:650px){.site-map-menu-setting{grid-template-columns:1fr}.site-map-main-options{grid-template-columns:1fr}}
+
+
+.site-map-custom-links{display:grid;gap:8px;margin:10px 0}
+.site-map-custom-link{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:10px;align-items:end;padding:12px;background:#0c1928;border:1px solid #2b4057}
+.site-map-main-settings h4{margin:18px 0 5px;color:#b8d8ff;font-size:10px;letter-spacing:1px}
+@media(max-width:650px){.site-map-custom-link{grid-template-columns:1fr}}
