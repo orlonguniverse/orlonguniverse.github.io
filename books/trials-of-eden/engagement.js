@@ -359,7 +359,7 @@ async function submitComment(event) {
   event.preventDefault();
   if (!engagementUser) return;
   const body = byId("commentBody").value.trim();
-  if (!body) return;
+  if (!body && !selectedExpressionAssets.length) return;
   const { error } = await engagementClient.from("chapter_comments").insert({
     user_id:engagementUser.id, chapter_id:discussionChapterId(),
     parent_id:replyToComment, body, category:byId("commentCategory")?.value||"general", contains_spoiler:byId("commentSpoiler").checked,
