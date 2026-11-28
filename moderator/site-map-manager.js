@@ -24,12 +24,14 @@ function renderMenuControls(host){
  const section=node("section","site-map-route-group site-map-config-group");
  section.append(node("h3","","DROPDOWN MENU SETTINGS"),node("p","site-map-hint","Rename or hide a dropdown. Hiding it removes the dropdown from the website menu without deleting its links."));
  menus.forEach(menu=>{
-  const row=node("div","site-map-menu-setting"),name=field(menu.id==="book"?"BOOK DROPDOWN NAME":"DISCOVER DROPDOWN NAME",menu.label);
+  const row=node("div","site-map-menu-setting"),grip=node("span","site-map-drag-handle","⠿"),name=field(menu.id==="book"?"BOOK DROPDOWN NAME":"DISCOVER DROPDOWN NAME",menu.label);
+  row.draggable=true;row.addEventListener("dragstart",event=>{dragged={menuId:menu.id};event.dataTransfer?.setData("text/plain","menu:"+menu.id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging")});
+  row.addEventListener("dragover",event=>{if(dragged?.menuId){event.preventDefault();row.classList.add("drag-over")}});row.addEventListener("dragleave",()=>row.classList.remove("drag-over"));row.addEventListener("drop",event=>{if(!dragged?.menuId)return;event.preventDefault();event.stopPropagation();const from=config.menus.findIndex(x=>x.id===dragged.menuId),to=config.menus.findIndex(x=>x.id===menu.id);if(from>=0&&to>=0&&from!==to){const [picked]=config.menus.splice(from,1);config.menus.splice(to,0,picked);config.menus.forEach((x,n)=>x.order=n);mark();render()}});
   const visible=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=menu.enabled!==false;visible.append(check,node("span","","Show this dropdown on the website"));
   name.el.addEventListener("change",()=>{menu.label=name.el.value.trim();mark();renderFlow()});
   check.addEventListener("change",()=>{menu.enabled=check.checked;mark();renderFlow()});
   const actions=node("div","site-map-actions");actions.append(action("MOVE LEFT","secondary",()=>moveMenu(menu.id,-1)),action("MOVE RIGHT","secondary",()=>moveMenu(menu.id,1)));
-  row.append(name.wrap,visible,actions);section.append(row);
+  row.append(grip,name.wrap,visible,actions);section.append(row);
  });
  const mainSection=node("section","site-map-route-group site-map-main-settings");
  mainSection.append(node("h3","","MAIN MENU SETTINGS"),node("p","site-map-hint","Change the Main Menu button and choose which tools appear inside it."));
@@ -93,20 +95,44 @@ function render(){
   heading.append(node("h3","",title),node("p","site-map-hint",description));section.append(heading);
   const list=node("div","site-map-route-list");
   items.forEach((item,i)=>{
-   const row=node("article","site-map-route"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href);
+   const row=node("article","site-map-route"),grip=node("span","site-map-drag-handle","⠿"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href);
+   row.draggable=true;row.dataset.navigationId=item.id;row.setAttribute("aria-label","Drag "+(item.label||"menu link")+" to rearrange it or move it to another menu area");
+   row.addEventListener("dragstart",event=>{dragged={id:item.id,fromGroup:group};row.classList.add("dragging");event.dataTransfer?.setData("text/plain",item.id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});
+   row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging");document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"))});
+   wireDropTarget(row,group,item.id);
    const enabled=node("label","site-map-enabled"),check=node("input");check.type="checkbox";check.checked=item.enabled!==false;enabled.append(check,node("span","","Show this link in the menu"));
    label.el.addEventListener("change",()=>{item.label=label.el.value.trim();mark();renderFlow()});href.el.addEventListener("change",()=>{item.href=href.el.value.trim();mark();renderFlow()});check.addEventListener("change",()=>{item.enabled=check.checked;mark()});
    fields.append(label.wrap,href.wrap,enabled);
    const actions=node("div","site-map-actions");actions.append(action("MOVE UP","secondary",()=>moveLink(item.id,-1,group)),action("MOVE DOWN","secondary",()=>moveLink(item.id,1,group)),action("REMOVE","danger",()=>{if(!confirm("Remove this link from the website menu?"))return;config.links=config.links.filter(x=>x.id!==item.id);mark();render()}));
    actions.children[0].disabled=i===0;actions.children[1].disabled=i===items.length-1;
-   row.append(fields,actions);list.append(row)
+   row.append(grip,fields,actions);list.append(row)
   });
+  wireDropTarget(list,group);
   section.append(list,action("＋ ADD A MENU LINK","secondary",()=>{const id="nav-"+Math.random().toString(36).slice(2,9);config.links.push({id,label:"New link",href:"/",group,order:items.length,enabled:true});mark();render()}));routes.append(section)
  });
  renderFlow();
  $("siteMapSave").disabled=!dirty;
 }
+function normaliseGroup(group){const arr=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));arr.forEach((x,n)=>x.order=n)}
 function moveLink(id,delta,group){const arr=config.links.filter(x=>x.group===group).sort((a,b)=>(a.order??0)-(b.order??0));move(arr,id,delta);arr.forEach((x,n)=>x.order=n);render()}
+function moveLinkByDrop(sourceId,targetId,targetGroup,append=false){
+ const source=config.links.find(x=>x.id===sourceId);if(!source)return;
+ const target=targetId?config.links.find(x=>x.id===targetId):null;
+ if(target&&target.id===sourceId)return;
+ config.links=config.links.filter(x=>x.id!==sourceId);
+ source.group=targetGroup;
+ const destination=config.links.filter(x=>x.group===targetGroup).sort((a,b)=>(a.order??0)-(b.order??0));
+ const at=target?destination.findIndex(x=>x.id===target.id):destination.length;
+ destination.splice(at<0?destination.length:at,0,source);
+ destination.forEach((x,n)=>x.order=n);
+ ["primary","book","discover"].forEach(normaliseGroup);
+ mark();render();
+}
+function wireDropTarget(element,group,targetId=null){
+ element.addEventListener("dragover",event=>{event.preventDefault();element.classList.add("drag-over");if(event.dataTransfer)event.dataTransfer.dropEffect="move"});
+ element.addEventListener("dragleave",()=>element.classList.remove("drag-over"));
+ element.addEventListener("drop",event=>{event.preventDefault();event.stopPropagation();element.classList.remove("drag-over");const id=event.dataTransfer?.getData("text/plain")||dragged?.id;if(id)moveLinkByDrop(id,targetId,group,!targetId)});
+}
 async function load(){status("Loading your website pages and menu…");const {data,error}=await db.rpc("get_moderator_orlong_site_map");if(error)throw error;config=data||{pages:defaults,links:[]};config.pages=(config.pages||defaults).map((x,i)=>({...x,order:x.order??i}));config.links=(config.links||[]).map((x,i)=>({...x,order:x.order??i}));config.menus=Array.isArray(config.menus)?config.menus:[{id:"book",label:"THE BOOK",enabled:true,order:0},{id:"discover",label:"DISCOVER",enabled:true,order:1}];config.mainMenu=config.mainMenu||{label:"MAIN MENU",enabled:true,showGuide:true,showTheme:true,showBookOnly:true,showStatistics:true,showSoundtrack:true,links:[]};const managed=await db.rpc("get_moderator_orlong_managed_pages");managedPages=!managed.error&&Array.isArray(managed.data)?managed.data:[];dirty=false;render();status("Your website map is ready. All standard pages and custom pages are listed below.");}
 async function save(){const btn=$("siteMapSave");btn.disabled=true;status("Saving your changes…");try{const payload={pages:config.pages.map((x,i)=>({...x,order:i})),links:config.links.map(x=>({...x})),menus:config.menus.map((x,i)=>({...x,order:i})),mainMenu:{...config.mainMenu}};const {error}=await db.rpc("save_moderator_orlong_site_map",{p_config:payload});if(error)throw error;config=payload;dirty=false;render();status("All saved! Your website's shared navigation will now use these menu links.");}catch(e){status(e.message||"Could not save. Please try again.");btn.disabled=false}}
 async function init(){if(!$("siteMapDirectory"))return;db=window.supabase.createClient("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");const {data}=await db.auth.getSession();if(!data.session)return;const {data:ok}=await db.rpc("is_reader_moderator");if(ok!==true)return;$("siteMapSave").addEventListener("click",save);$("siteMapRefresh").addEventListener("click",()=>load().catch(e=>status(e.message)));await load()}
