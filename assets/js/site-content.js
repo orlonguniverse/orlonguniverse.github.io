@@ -40,14 +40,14 @@ async function visualEditor(db){
  const openInspector=(node,selector)=>{
   chosen=node;chosenSelector=selector;inspector.style.display="block";
   selected.textContent="Selected: "+node.tagName.toLowerCase()+(node.id?" #"+node.id:"")+(node.classList.length?" · "+[...node.classList].slice(0,2).join(" / "):"");
-  property.value=node.tagName==="A"?"href":node.tagName==="IMG"?"src":"text";
+  property.value=node.tagName==="A"?"href":node.tagName==="IMG"?"src":["SECTION","ARTICLE","HEADER","FOOTER","NAV","MAIN"].includes(node.tagName)?"style:background-color":"text";
   updateField();status.textContent="";node.style.outline="2px solid #7fc0ff";
  };
  const outline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;e.target.dataset.orlongOldOutline=e.target.style.outline;e.target.style.outline="2px solid #42a5ff"};
  const unoutline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;if(e.target!==chosen)e.target.style.outline=e.target.dataset.orlongOldOutline||""};
  const clickHandler=e=>{
   if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;
-  const node=e.target.closest("a,img,video,audio,button,h1,h2,h3,h4,h5,h6,p,span,small,strong,em,b,i,li,label,summary,blockquote,figcaption,input,textarea,select");
+  const node=e.target.closest("a,img,video,audio,button,h1,h2,h3,h4,h5,h6,p,span,small,strong,em,b,i,li,label,summary,blockquote,figcaption,input,textarea,select,section,article,header,footer,nav,main");
   if(!node)return;
   const selector=selectorFor(node);if(!selector)return;
   e.preventDefault();e.stopPropagation();openInspector(node,selector);
