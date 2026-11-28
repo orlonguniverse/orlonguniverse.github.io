@@ -61,6 +61,23 @@ $$;
 revoke all on function public.reader_can_access_eden_archive_entry(text) from public,anon,authenticated;
 grant execute on function public.reader_can_access_eden_archive_entry(text) to authenticated;
 
+create or replace function public.reader_can_access_eden_archive_block(p_block jsonb)
+returns boolean language sql stable security definer set search_path=public,pg_temp
+as $
+ select case
+  when p_block is null then false
+  when not (p_block ? 'requiredCardIds') then true
+  when jsonb_typeof(p_block->'requiredCardIds')<>'array' then false
+  when jsonb_array_length(p_block->'requiredCardIds')=0 then true
+  else (select count(distinct owned.card_id)
+   from jsonb_array_elements_text(p_block->'requiredCardIds') req(card_id)
+   join public.reader_card_copies owned on owned.owner_user_id=auth.uid() and owned.card_id=req.card_id)
+   =jsonb_array_length(p_block->'requiredCardIds')
+ end;
+$;
+revoke all on function public.reader_can_access_eden_archive_block(jsonb) from public,anon,authenticated;
+grant execute on function public.reader_can_access_eden_archive_block(jsonb) to authenticated;
+
 -- Lightweight directory: no full text, galleries or content block JSON.
 create or replace function public.get_my_eden_archive_entries()
 returns jsonb language sql stable security definer set search_path=public,pg_temp
@@ -71,11 +88,7 @@ as $$
    'updatedAt',e.updated_at,
    'requiredCardCount',(select count(*) from public.eden_archive_entry_cards ec where ec.entry_id=e.entry_id),
    'contentBlockCount',(select count(*) from jsonb_array_elements(coalesce(e.content_blocks,'[]'::jsonb)) b
-    where coalesce(jsonb_typeof(b->'requiredCardIds'),'null')='null'
-     or jsonb_array_length(coalesce(b->'requiredCardIds','[]'::jsonb))=0
-     or (select count(distinct owned.card_id) from jsonb_array_elements_text(b->'requiredCardIds') req(card_id)
-      join public.reader_card_copies owned on owned.owner_user_id=auth.uid() and owned.card_id=req.card_id)
-      =jsonb_array_length(b->'requiredCardIds'))
+    where public.reader_can_access_eden_archive_block(b))
   ) order by e.sort_order,e.title)
   from public.eden_archive_entries e
   where e.is_published=true and public.reader_can_access_eden_archive_entry(e.entry_id)
@@ -94,12 +107,7 @@ begin
  select coalesce(jsonb_agg(b.value-'requiredCardIds' order by b.ordinality),'[]'::jsonb)
  into v_blocks
  from jsonb_array_elements(coalesce(v_entry.content_blocks,'[]'::jsonb)) with ordinality b(value,ordinality)
- where coalesce(jsonb_typeof(b.value->'requiredCardIds'),'null')='null'
-    or jsonb_array_length(coalesce(b.value->'requiredCardIds','[]'::jsonb))=0
-    or (select count(distinct owned.card_id)
-        from jsonb_array_elements_text(b.value->'requiredCardIds') req(card_id)
-        join public.reader_card_copies owned on owned.card_id=req.card_id and owned.owner_user_id=auth.uid())
-       =jsonb_array_length(b.value->'requiredCardIds');
+ where public.reader_can_access_eden_archive_block(b.value);
  with edges as (
   select r.relation_id,r.source_block_id,r.target_entry_id,r.target_block_id,
    r.relationship_type,r.label,r.description,r.is_bidirectional,r.sort_order
@@ -130,12 +138,7 @@ begin
   and (edge.target_block_id is null or exists(
     select 1 from jsonb_array_elements(coalesce(target.content_blocks,'[]'::jsonb)) tb
     where tb->>'id'=edge.target_block_id
-     and (coalesce(jsonb_typeof(tb->'requiredCardIds'),'null')='null'
-      or jsonb_array_length(coalesce(tb->'requiredCardIds','[]'::jsonb))=0
-      or (select count(distinct owned.card_id)
-          from jsonb_array_elements_text(tb->'requiredCardIds') req(card_id)
-          join public.reader_card_copies owned on owned.card_id=req.card_id and owned.owner_user_id=auth.uid())
-         =jsonb_array_length(tb->'requiredCardIds'))));
+     and public.reader_can_access_eden_archive_block(tb)));
  return jsonb_build_object(
   'id',v_entry.entry_id,'title',v_entry.title,'category',v_entry.category,
   'summary',v_entry.summary,'content',v_entry.content,'contentBlocks',v_blocks,
@@ -186,7 +189,8 @@ begin
   if v_block ? 'requiredCardIds' and jsonb_typeof(v_block->'requiredCardIds') not in ('array','null') then
    raise exception 'Block card requirements must be an array of card IDs';
   end if;
-  v_ids:=array(select jsonb_array_elements_text(coalesce(v_block->'requiredCardIds','[]'::jsonb)));
+  v_ids:=case when jsonb_typeof(v_block->'requiredCardIds')='array'
+   then array(select jsonb_array_elements_text(v_block->'requiredCardIds')) else array[]::text[] end;
   if cardinality(v_ids)>0 and (
    select count(distinct c.card_id) from unnest(v_ids) x(card_id)
    join public.card_catalogue c on c.card_id=x.card_id and c.is_active=true
@@ -271,12 +275,14 @@ $$;
 
 revoke all on function public.get_my_eden_archive_entries() from public,anon;
 revoke all on function public.get_my_eden_archive_entry(text) from public,anon;
+revoke all on function public.reader_can_access_eden_archive_block(jsonb) from public,anon;
 revoke all on function public.get_moderator_eden_archive_relations() from public,anon;
 revoke all on function public.save_moderator_eden_archive_entry_v2(text,text,text,text,text,jsonb,text,text[],integer,boolean) from public,anon;
 revoke all on function public.save_moderator_eden_archive_relation(bigint,text,text,text,text,text,text,text,integer,boolean) from public,anon;
 revoke all on function public.delete_moderator_eden_archive_relation(bigint) from public,anon;
 grant execute on function public.get_my_eden_archive_entries() to authenticated;
 grant execute on function public.get_my_eden_archive_entry(text) to authenticated;
+grant execute on function public.reader_can_access_eden_archive_block(jsonb) to authenticated;
 grant execute on function public.get_moderator_eden_archive_relations() to authenticated;
 grant execute on function public.save_moderator_eden_archive_entry_v2(text,text,text,text,text,jsonb,text,text[],integer,boolean) to authenticated;
 grant execute on function public.save_moderator_eden_archive_relation(bigint,text,text,text,text,text,text,text,integer,boolean) to authenticated;
