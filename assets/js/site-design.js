@@ -117,6 +117,7 @@ if(!document.getElementById("orlongThemeControlStyles")){const controlStyles=doc
 
 function renderBookCatalogue(books){
  const section=document.querySelector(".book-section");if(!section)return;
+ if(!Array.isArray(books)||!books.some(book=>Object.prototype.hasOwnProperty.call(book,"showOnHomepage")))return;
  section.querySelector(".orlong-book-catalogue")?.remove();
  const root=document.createElement("div");root.className="orlong-book-catalogue";
  const featured=(Array.isArray(books)?books:[]).filter(book=>book.showOnHomepage===true);
