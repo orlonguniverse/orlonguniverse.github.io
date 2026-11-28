@@ -138,19 +138,19 @@ async function start(db,path,bar){
   body.querySelectorAll(".native-section-inventory").forEach(el=>el.remove());
   const main=document.querySelector("main");if(!main)return;
   const host=$("div","native-section-inventory");
-  const native=[...main.querySelectorAll("section,article,header,footer")]
+  const native=[...document.querySelectorAll("main section,main article,main header,main footer,body > header,body > footer")]
    .filter(node=>!node.hasAttribute("data-orlong-section-id")&&!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"));
   const contentSelectorFor=node=>{
    if(node.id)return "#"+CSS.escape(node.id);
-   const parts=[];let current=node;
-   while(current&&current!==main&&current!==document.body&&parts.length<7){
+   const root=node.closest("main")||document.body,parts=[];let current=node;
+   while(current&&current!==root&&current!==document.body&&parts.length<7){
     let part=current.tagName.toLowerCase();
     if(current.classList.length)part+="."+[...current.classList].slice(0,2).map(CSS.escape).join(".");
     const parent=current.parentElement;
     if(parent){const same=[...parent.children].filter(x=>x.tagName===current.tagName);if(same.length>1&&!current.classList.length)part+=":nth-of-type("+(same.indexOf(current)+1)+")"}
     parts.unshift(part);current=parent;
    }
-   return "main > "+parts.join(" > ");
+   return (root===document.body?"body > ":"main > ")+parts.join(" > ");
   };
   host.append($("h2","","EXISTING PAGE SECTIONS"),$("p","","These are sections already built into this page, not just sections you create. Hide or restore them here. To edit individual wording, images or links, select the visual editor and click that item on the page."));
   if(!native.length){host.append($("div","builder-entry","No built-in page sections were found inside the main content area."));body.append(host);return}
