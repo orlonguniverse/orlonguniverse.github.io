@@ -71,10 +71,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   };
   const startReading=makeLink("BOOK COLLECTION","/book-collection/",location.pathname.startsWith("/book-collection/"));
   startReading.classList.add("nav-start-reading");
-  const read=dropdown("THE BOOK",[
-   ["READING ROOM","/books/trials-of-eden/"],
-   ["CHAPTER CONTENTS","/books/trials-of-eden/contents.html",location.pathname.endsWith("/contents.html")]
-  ]);
+  const read=null;
   const exploreEden=makeLink("EXPLORE EDEN","/explore-eden/",location.pathname.startsWith("/explore-eden"));
   exploreEden.classList.add("nav-explore-eden");
   const community=dropdown("DISCOVER",[
@@ -119,7 +116,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(exitBookOnly,instagram);
   }else{
-   navLinks.replaceChildren(startReading,read,exploreEden,community);
+   navLinks.replaceChildren(startReading,exploreEden,community);
    if(accountButton)navLinks.append(accountButton);
    navLinks.append(main,bookOnlyEntry,instagram);
   }
