@@ -67,6 +67,7 @@ function render(){
   const actions=node("div","site-map-actions");
   actions.append(action("MOVE UP","secondary",()=>movePage(p.id,-1)),action("MOVE DOWN","secondary",()=>movePage(p.id,1)),action("EDIT","secondary",()=>{card.querySelectorAll(".site-map-inline-form").forEach(x=>x.remove());card.append(pageForm(p));}));
   actions.children[0].disabled=i===0;actions.children[1].disabled=i===pages.length-1;
+  actions.append(action("OPEN VISUAL EDITOR ↗","primary",()=>{const href=(p.path||"/")+(String(p.path||"/").includes("?")?"&":"?")+"orlong-edit=1";window.open(href,"_blank","noopener")}));
   actions.append(action("REMOVE","danger",()=>{if(!confirm("Remove this page from the directory? This will not delete the actual website page or its menu links."))return;config.pages=config.pages.filter(x=>x.id!==p.id);mark();render()}));
   card.append(top,details,actions);directory.append(card)
  });
