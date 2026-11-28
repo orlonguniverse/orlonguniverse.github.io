@@ -20,6 +20,17 @@ function apply(record){
  const d=record?.design||{};
  const set=(id,value)=>{const el=document.getElementById(id);if(el&&typeof value==="string"&&value.trim())el.textContent=value};
  if(location.pathname==="/"){
+  const hero=document.querySelector(".home-hero");
+  if(hero){
+   hero.style.textAlign=d.heroAlignment==="left"?"left":"center";
+   hero.style.minHeight=d.heroHeight==="compact"?"420px":d.heroHeight==="cinematic"?"760px":"590px";
+   const inner=hero.querySelector(".hero-inner");if(inner)inner.style.marginLeft=d.heroAlignment==="left"?"max(0px, calc((100vw - 1080px)/2))":"auto";
+   if(d.heroBackgroundImage){
+    try{const u=new URL(d.heroBackgroundImage,location.origin);if(["http:","https:"].includes(u.protocol))hero.style.backgroundImage="linear-gradient(145deg, color-mix(in srgb, var(--orlong-deep) 82%, transparent), color-mix(in srgb, var(--bg) 88%, transparent)), url("+JSON.stringify(u.href)+")";}catch(_){}
+    hero.style.backgroundSize="cover";hero.style.backgroundPosition="center";
+   }else{hero.style.backgroundImage="";}
+  }
+  [[".book-section",d.showBookSection],[".steps-section",d.showFirstVisit],[".discover-section",d.showDiscover],[".creator",d.showCreator]].forEach(([selector,show])=>{const el=document.querySelector(selector);if(el)el.hidden=show===false;});
   set("homeHeroKicker",d.heroKicker);set("homeHeroTitle",d.heroTitle);set("homeHeroFocusButton",d.focusLabel);set("homeHeroSubtitle",d.heroSubtitle);set("homeHeroCopy",d.heroCopy);set("homeHeroNote",d.heroNote);set("homeBookEyebrow",d.bookEyebrow);set("bookIntroTitle",d.bookTitle);set("homeBookCopy1",d.bookCopy1);set("homeBookCopy2",d.bookCopy2);set("firstVisitTitle",d.firstVisitTitle);set("firstVisitIntro",d.firstVisitIntro);set("discoverTitle",d.discoverTitle);set("discoverIntro",d.discoverIntro);set("creatorTitle",d.creatorTitle);set("creatorCopy",d.creatorCopy);
   const primary=document.getElementById("homeHeroPrimary"),secondary=document.getElementById("homeHeroSecondary");
   if(primary){if(d.primaryLabel)primary.textContent=d.primaryLabel;if(d.primaryHref)primary.href=d.primaryHref}
