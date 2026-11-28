@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    const script=document.createElement("script");script.src="/assets/js/orlong-audio.js?v=stage-6j";script.dataset.orlongMusic="true";document.body.appendChild(script);
   }
  };
- const installSharedContentManager=()=>{if(!document.querySelector("script[data-orlong-site-content]")){const script=document.createElement("script");script.src="/assets/js/site-content.js?v=stage-8d3c";script.dataset.orlongSiteContent="true";document.body.appendChild(script);}};
+ const installSharedContentManager=()=>{if(!document.querySelector("script[data-orlong-site-content]")){const script=document.createElement("script");script.src="/assets/js/site-content.js?v=stage-8d3d";script.dataset.orlongSiteContent="true";document.body.appendChild(script);}};
  const initialiseSharedFeatures=()=>{initialiseSharedAccountLabel();installCardRevealSystem();installSharedAudio();installSharedContentManager();};
  if(window.supabase?.createClient)initialiseSharedFeatures();
  else{
