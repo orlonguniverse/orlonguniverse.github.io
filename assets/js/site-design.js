@@ -104,7 +104,8 @@ function renderBookCatalogue(books){
  books.forEach(book=>{
   const card=document.createElement("article");card.className="orlong-book-card";card.dataset.bookTheme=book.theme||"blue";
   const bookPalette=palettes[book.theme]||palettes.blue;
-  card.style.setProperty("--book-accent",bookPalette.accent);card.style.setProperty("--book-ice",bookPalette.ice);card.style.setProperty("--book-glow",bookPalette.glow);card.style.setProperty("--book-deep",bookPalette.deep);card.style.setProperty("--book-surface",bookPalette.surface);
+  const bookLuminance=hex=>{const h=hex.replace("#","");const rgb=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
+  card.style.setProperty("--book-accent",bookPalette.accent);card.style.setProperty("--book-ice",bookPalette.ice);card.style.setProperty("--book-glow",bookPalette.glow);card.style.setProperty("--book-deep",bookPalette.deep);card.style.setProperty("--book-surface",bookPalette.surface);card.style.setProperty("--book-on-accent",bookLuminance(bookPalette.accent)>.179?"#111722":"#ffffff");
   const cover=document.createElement("div");cover.className="orlong-book-cover";const coverText=document.createElement("strong");coverText.textContent=book.title;cover.append(coverText);
   const copy=document.createElement("div");copy.className="orlong-book-copy";const eyebrow=document.createElement("p");eyebrow.className="eyebrow";eyebrow.textContent=book.bookLabel||book.seriesName||"ORLONG UNIVERSE";
   const title=document.createElement("h3");title.textContent=book.title;const desc=document.createElement("p");desc.textContent=book.description||"Discover this story in the Orlong Universe.";
