@@ -240,7 +240,7 @@ async function start(db,path,bar){
   const title=input("PAGE TITLE",model.title),slug=input("PAGE ADDRESS (lowercase words separated by hyphens)",model.slug),description=input("SHORT INTRODUCTION",model.description,true);
   const published=$("label","","PUBLISH THIS PAGE"),check=$("input");check.type="checkbox";check.checked=model.published===true;published.append(check);
   const pathPreview=$("p","", "Page address: /managed-page.html?slug="+(model.slug||"your-page-name"));
-  slug.field.addEventListener("input",()=>{pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")});
+  let slugManuallyEdited=Boolean(model.slug);slug.field.addEventListener("input",()=>{slugManuallyEdited=true;pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")});title.field.addEventListener("input",()=>{if(!slugManuallyEdited){slug.field.value=title.field.value.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");pathPreview.textContent="Page address: /managed-page.html?slug="+slug.field.value}});
   const actions=$("div","builder-row"),saveBtn=$("button","","SAVE PAGE DETAILS"),contentBtn=$("button","","EDIT PAGE CONTENT"),back=$("button","","CANCEL");
   saveBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;try{await managedPageSave(model);message("Page details saved.");editManagedPage(model)}catch(e){message(e.message)}});
   contentBtn.addEventListener("click",async()=>{model.title=title.field.value.trim();model.slug=slug.field.value.trim().toLowerCase();model.description=description.field.value.trim();model.published=check.checked;if(!model.id){try{await managedPageSave(model)}catch(e){message(e.message);return}}manageManagedPageBlocks(model)});
@@ -269,7 +269,7 @@ async function start(db,path,bar){
   const fields=[type];const dynamic=()=>{fields.splice(1);const t=type.field.value;
    if(["heading","text","callout"].includes(t))fields.push(input(t==="heading"?"HEADING":"TEXT","",true));
    if(t==="accordion"){fields.push(input("MENU TITLE","More information"));fields.push(input("ITEMS — ONE PER LINE, TITLE | CONTENT","First question | Answer",true))}
-   if(t==="image"){fields.push(input("IMAGE ADDRESS",""));fields.push(input("ALT TEXT",""));fields.push(input("CAPTION",""))}
+   if(t==="image"){fields.push(input("IMAGE ADDRESS (OR UPLOAD BELOW)",""));fields.push(input("ALT TEXT",""));fields.push(input("CAPTION",""));const uploadWrap=$("label","","UPLOAD IMAGE FILE");const upload=$("input");upload.type="file";upload.accept="image/png,image/jpeg,image/webp,image/gif";uploadWrap.append(upload);fields.push({wrap:uploadWrap,field:upload})}
    if(t==="button"){fields.push(input("BUTTON LABEL","Learn more"));fields.push(input("DESTINATION","/"))}
    if(index!==null&&t===old.type){if(["heading","text","callout"].includes(t))fields[1].field.value=old.text||"";if(t==="accordion"){fields[1].field.value=old.title||"";fields[2].field.value=(old.items||[]).map(x=>x.title+" | "+x.text).join("\n")}if(t==="image"){fields[1].field.value=old.url||"";fields[2].field.value=old.alt||"";fields[3].field.value=old.caption||""}if(t==="button"){fields[1].field.value=old.text||"";fields[2].field.value=old.url||""}}
   };
@@ -277,7 +277,7 @@ async function start(db,path,bar){
    const t=type.field.value,v=fields.slice(1).map(f=>f.field.value),b={type:t};
    if(["heading","text","callout"].includes(t))b.text=v[0]||"";
    if(t==="accordion"){b.title=v[0]||"";b.items=v[1].split("\n").filter(Boolean).map(line=>{const i=line.indexOf("|");return {title:(i<0?line:line.slice(0,i)).trim(),text:(i<0?"":line.slice(i+1)).trim()}})}
-   if(t==="image"){if(!safeUrl(v[0]))throw new Error("Enter a valid image address.");b.url=v[0];b.alt=v[1]||"";b.caption=v[2]||""}
+   if(t==="image"){let url=v[0].trim();const file=fields[4]?.field?.files?.[0];if(file){if(file.size>15*1024*1024)throw new Error("Choose an image smaller than 15 MB.");const ext=file.type==="image/png"?"png":file.type==="image/gif"?"gif":file.type==="image/jpeg"?"jpg":"webp";const folder=("managed-"+page.slug).replace(/[^a-z0-9-]/g,"-");const filePath=folder+"/"+Date.now()+"."+ext;const {error:uploadError}=await db.storage.from("orlong-site-media").upload(filePath,file,{upsert:false,cacheControl:"31536000"});if(uploadError)throw uploadError;url=db.storage.from("orlong-site-media").getPublicUrl(filePath).data.publicUrl}if(!safeUrl(url))throw new Error("Enter a valid image address or upload an image.");b.url=url;b.alt=v[1]||"";b.caption=v[2]||""}
    if(t==="button"){if(!safeUrl(v[1]))throw new Error("Enter a valid button destination.");b.text=v[0]||"Learn more";b.url=v[1]}
    if(index===null)page.content.blocks.push(b);else page.content.blocks[index]=b;
    await managedPageSave(page);
