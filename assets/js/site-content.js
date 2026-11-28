@@ -47,7 +47,7 @@ async function visualEditor(db){
  const unoutline=e=>{if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;if(e.target!==chosen)e.target.style.outline=e.target.dataset.orlongOldOutline||""};
  const clickHandler=e=>{
   if(!(e.target instanceof Element)||e.target.closest("#orlongVisualEditor,#orlongBuilderPanel,#orlongElementInspector,[data-orlong-editor-ui]"))return;
-  const node=e.target.closest("a,img,button,h1,h2,h3,h4,p,span,small,strong,li,label,input,textarea,select");
+  const node=e.target.closest("a,img,video,audio,button,h1,h2,h3,h4,h5,h6,p,span,small,strong,em,b,i,li,label,summary,blockquote,figcaption,input,textarea,select");
   if(!node)return;
   const selector=selectorFor(node);if(!selector)return;
   e.preventDefault();e.stopPropagation();openInspector(node,selector);
