@@ -431,3 +431,44 @@
 @media(max-width:600px){.progress-category{padding:13px}.progress-category-heading{align-items:flex-start;flex-direction:column}.progress-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 
 .eden-help-grid a{display:inline-block;margin-top:9px;color:var(--eden-blue);font-size:9px;letter-spacing:.8px;text-decoration:none}
+
+/* Stage 8D.1 — collector's discovery dashboard */
+.progress-overview{--completion:0%;display:grid;grid-template-columns:150px minmax(0,1fr) auto;align-items:center;gap:24px;margin:22px 0 34px;padding:24px 26px;background:radial-gradient(ellipse at 4% 50%,rgba(71,135,194,.2),transparent 42%),linear-gradient(125deg,#101f32,#0a1422 72%);border:1px solid rgba(143,184,224,.25);box-shadow:0 18px 48px #0004;position:relative;overflow:hidden}
+.progress-overview:after{content:"✧";position:absolute;right:18%;top:-35px;font:100px Cinzel,serif;color:#d7bd805c;pointer-events:none;transform:rotate(12deg)}
+.progress-overview-ring{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#9bcaff var(--completion),#26394d var(--completion));position:relative;box-shadow:0 0 28px #5795ce25}
+.progress-overview-ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#1c3048,#091321 78%);border:1px solid #9bcaff35}
+.progress-overview-ring>div{position:relative;display:grid;justify-items:center;gap:3px}
+.progress-overview-ring strong{font:500 29px Cinzel,serif;color:#f1e4c5}
+.progress-overview-ring span{font-size:7px;letter-spacing:2px;color:#9db4cd}
+.progress-overview-copy{position:relative;z-index:1}
+.progress-overview-copy .eyebrow{margin:0 0 8px;color:#b9a16f}
+.progress-overview-copy h3{margin:0;color:#f0e4cc;font:500 clamp(18px,2.4vw,25px) Cinzel,serif}
+.progress-overview-copy>p:not(.eyebrow){max-width:620px;margin:8px 0 16px;color:#aebed0;font-size:11px;line-height:1.7}
+.progress-overview-stats{display:flex;gap:26px;flex-wrap:wrap}
+.progress-overview-stats>div{display:grid;gap:3px}
+.progress-overview-stats strong{font:500 19px Cinzel,serif;color:#e9d7ad}
+.progress-overview-stats span{font-size:7px;letter-spacing:1.3px;color:#8ea4bd}
+.progress-overview-actions{position:relative;z-index:1}
+.progress-overview-actions .reader-open{white-space:nowrap}
+.progress-toolbar{display:flex;justify-content:space-between;align-items:end;gap:18px;margin:0 0 18px}
+.progress-toolbar .eyebrow{margin:0 0 5px;color:#b9a16f}
+.progress-toolbar h3{margin:0;color:#e7dcc4;font:500 16px Cinzel,serif;letter-spacing:1px}
+.progress-filter{display:flex;gap:5px;flex-wrap:wrap}
+.progress-filter button{padding:9px 11px;background:#0b1726;border:1px solid #53677e;color:#a9bbcf;font-size:8px;font-weight:700;letter-spacing:.8px;cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.progress-filter button:hover,.progress-filter button.is-active{background:#203b59;border-color:#8fbce8;color:#f0e5cf}
+.progress-category-list{gap:22px}
+.progress-category{padding:20px;background:linear-gradient(145deg,rgba(18,34,53,.94),rgba(8,16,27,.96));border:1px solid rgba(143,184,224,.2);box-shadow:0 12px 32px #0003;position:relative;overflow:hidden}
+.progress-category:before{content:"";position:absolute;inset:0 auto 0 0;width:2px;background:linear-gradient(180deg,transparent,#9bcaff80,transparent)}
+.progress-category-heading h3{display:flex;align-items:center;gap:9px}
+.progress-category-sigil{color:#c9b27c;font-size:16px}
+.progress-category-footnote{margin:14px 0 0;text-align:right;color:#8299b2;font-size:8px;letter-spacing:1.1px}
+.progress-undiscovered{transition:transform .22s ease,filter .22s ease}
+.progress-undiscovered:hover{transform:translateY(-4px);filter:brightness(1.15)}
+.progress-undiscovered .eden-card-front{border-color:#657b94;box-shadow:0 8px 22px #0007,0 0 0 1px #9bcaff12}
+.progress-undiscovered .eden-card-shadow{background:radial-gradient(ellipse at 50% 38%,#29415a,#0a1421 72%)}
+.progress-undiscovered .eden-card-shadow .shadow-symbol{color:#c8b37f;text-shadow:0 0 22px #c8b37f55}
+.progress-undiscovered .eden-card-frame{background:linear-gradient(180deg,#06101b55 0%,transparent 30%,#06101bdc 100%)}
+.progress-meter span{background:linear-gradient(90deg,#397db9,#9bcaff,#d4bd83);box-shadow:0 0 12px #8fc7ff70}
+@media(max-width:760px){.progress-overview{grid-template-columns:112px minmax(0,1fr);gap:17px;padding:19px}.progress-overview-ring{width:108px;height:108px}.progress-overview-ring strong{font-size:24px}.progress-overview-actions{grid-column:1/-1}.progress-overview-actions .reader-open{width:100%}.progress-toolbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.progress-overview{grid-template-columns:1fr;justify-items:center;text-align:center}.progress-overview-copy{width:100%}.progress-overview-stats{justify-content:center;gap:18px}.progress-overview-actions{width:100%}.progress-filter{width:100%}.progress-filter button{flex:1;padding:9px 6px;font-size:7px}.progress-category{padding:14px}}
+@media(prefers-reduced-motion:reduce){.progress-undiscovered,.progress-meter span,.progress-filter button{transition:none}.progress-undiscovered:hover{transform:none}}
