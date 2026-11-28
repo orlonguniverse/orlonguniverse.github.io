@@ -500,3 +500,6 @@
 .card-game-ability p{grid-column:1/-1;margin:0;color:#b8c6d7;font-size:12px;line-height:1.6}
 .card-game-ability-power{grid-column:1/-1;color:#d8bb80;font-size:10px;letter-spacing:1px}
 @media(max-width:560px){.card-game-detail-shell{padding:22px}.card-game-detail-shell h2{font-size:19px}}
+
+/* Stage 8F — collection progress freshness */
+.progress-overview-actions{display:flex;flex-direction:column;align-items:flex-start;gap:9px}.progress-overview-actions button:disabled{opacity:.6;cursor:wait}.progress-refresh-status{margin:0;color:var(--muted,#a5b2c3);font-size:10px;letter-spacing:.6px;line-height:1.5}
