@@ -230,3 +230,6 @@
 .archive-block-field input,.archive-block-field textarea{width:100%;min-width:0;padding:10px;background:#07111f;border:1px solid #304a68;color:#e7edf6;font:11px/1.6 Inter,sans-serif}
 .archive-block-field textarea{resize:vertical}
 @media(max-width:650px){.archive-block-fields{grid-template-columns:1fr}.archive-block-field:has(textarea){grid-column:1}.archive-block-builder-heading{align-items:flex-start;flex-direction:column}.archive-block-add{width:100%}.archive-block-add select,.archive-block-add button{flex:1}}
+
+.archive-block-upload input[type=file]{padding:9px;background:#10243a;border:1px dashed #6684a5;color:#c7d9ed;font-size:10px;cursor:pointer}
+.archive-block-upload input[type=file]::file-selector-button{margin-right:10px;padding:7px 10px;background:#203d5c;border:1px solid #6288ae;color:#f0e5cf;font:700 9px Inter,sans-serif;cursor:pointer}
