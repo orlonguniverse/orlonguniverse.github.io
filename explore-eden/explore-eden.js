@@ -112,7 +112,8 @@ function undiscoveredProgressSlot(slot){
  const frame=document.createElement("div");frame.className="eden-card-frame";
  const top=document.createElement("div");top.className="eden-card-topline";
  const rarity=String(slot.rarity||"UNKNOWN").toUpperCase();
- const rarityBadge=text("span","eden-card-rarity progress-rarity-"+rarity.toLowerCase(),rarity);\n top.append(text("span","eden-card-number","SLOT "+String(slot.slot_number).padStart(2,"0")),rarityBadge);
+ const rarityBadge=text("span","eden-card-rarity progress-rarity-"+rarity.toLowerCase(),rarity);
+ top.append(text("span","eden-card-number","SLOT "+String(slot.slot_number).padStart(2,"0")),rarityBadge);
  const details=document.createElement("div");details.className="eden-card-front-details";
  details.append(text("h3","eden-card-name","Undiscovered"));
  const footer=document.createElement("div");footer.className="eden-card-footer";
