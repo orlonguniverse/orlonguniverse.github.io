@@ -62,7 +62,7 @@ function placementOptions(){
  const candidates=[...main.querySelectorAll("header,section,article,h1,h2,h3") ].filter(node=>!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]")&&!node.hasAttribute("data-orlongSectionId"));
  candidates.forEach((node,index)=>{
   const heading=node.matches("h1,h2,h3")?node:node.querySelector("h1,h2,h3");
-  const label=(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\\s+/g," ").slice(0,58);
+  const label=(node.matches("h1,h2,h3")?"Heading — ":"Section — ")+(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\\s+/g," ").slice(0,52);
   const selector=selectorForPlacement(node);
   options.push({value:selector+"|after",label:"After: "+label});
   options.push({value:selector+"|before",label:"Before: "+label});
@@ -99,16 +99,22 @@ async function start(db,path,bar){
   const existing=sections.findIndex(item=>item.id===section.id);if(existing>=0)sections[existing]=section;else sections.push(section);
   refreshPreview();return section;
  };
- const reload=async()=>{const {data,error:loadError}=await db.rpc("get_moderator_orlong_site_sections",{p_page_path:path});if(loadError)throw loadError;sections=Array.isArray(data)?data:[];refreshPreview();body.replaceChildren();if(!sections.length){body.append($("p","","This page has no custom sections yet. Use the blue ＋ ADD SECTION button in the top toolbar to begin."));return}
- sections.forEach((section,index)=>{
-  const entry=$("div","builder-entry"),title=$("strong","",section.data?.title||"Untitled section "+(index+1)),meta=$("p","",(section.data?.blocks||[]).length+" content blocks · "+(section.published?"PUBLISHED":"DRAFT"));
+ const reload=async()=>{
+  const {data,error:loadError}=await db.rpc("get_moderator_orlong_site_sections",{p_page_path:path});
+  if(loadError)throw loadError;
+  sections=Array.isArray(data)?data:[];refreshPreview();body.replaceChildren();
+  body.append($("h2","","SECTIONS ON THIS PAGE"),$("p","","Each card below represents one section of this page. Move sections up or down to change their order. EDIT SECTION changes its position and appearance; EDIT CONTENT changes its words, images and links."));
+  const createBar=$("div","builder-row"),createButton=$("button","","＋ ADD A SECTION");createButton.addEventListener("click",addSection);createBar.append(createButton);body.append(createBar);
+  if(!sections.length){body.append($("div","builder-entry","There are no custom sections on this page yet. Select ADD A SECTION to create your first one."));return}
+  sections.forEach((section,index)=>{
+  const entry=$("div","builder-entry"),title=$("strong","", "SECTION "+(index+1)+" — "+(section.data?.title||"Untitled section")),meta=$("p","",(section.data?.blocks||[]).length+" content blocks · "+(section.published?"PUBLISHED":"DRAFT"));
   const actions=$("div","builder-row");
   const edit=$("button","","EDIT SECTION");edit.addEventListener("click",()=>editSection(section));
   const block=$("button","","＋ ADD CONTENT");block.addEventListener("click",()=>addBlock(section));
   const manage=$("button","","EDIT CONTENT");manage.addEventListener("click",()=>manageBlocks(section));
   const visibility=$("button","",section.published===false?"PUBLISH":"HIDE");visibility.addEventListener("click",async()=>{section.published=section.published===false;try{await save(section);await reload();message(section.published?"Section published.":"Section hidden from readers.")}catch(e){message(e.message)}});
-  const up=$("button","","↑");up.title="Move section up";up.disabled=index===0;up.addEventListener("click",()=>moveSection(section,-1));
-  const down=$("button","","↓");down.title="Move section down";down.disabled=index===sections.length-1;down.addEventListener("click",()=>moveSection(section,1));
+  const up=$("button","","MOVE UP");up.title="Move section up";up.disabled=index===0;up.addEventListener("click",()=>moveSection(section,-1));
+  const down=$("button","","MOVE DOWN");down.title="Move section down";down.disabled=index===sections.length-1;down.addEventListener("click",()=>moveSection(section,1));
   const duplicate=$("button","","DUPLICATE");duplicate.addEventListener("click",async()=>{const copy={pagePath:path,anchorSelector:section.anchorSelector||"main",sortOrder:sections.length?Math.max(...sections.map(item=>item.sortOrder||0))+1:0,published:section.published!==false,data:JSON.parse(JSON.stringify(section.data||{}))};copy.data.title="Copy of "+(copy.data.title||"Untitled section");try{await save(copy);await reload();message("Section duplicated.")}catch(e){message(e.message||"Could not duplicate this section.")}});
   const del=$("button","danger","DELETE");del.addEventListener("click",()=>deleteSection(section));
   const placement=$("p","",placementDescription(section));
