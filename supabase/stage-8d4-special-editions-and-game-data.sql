@@ -121,7 +121,7 @@ $$;
 -- the global print-run limit.
 create or replace function public.enforce_eden_card_limited_quantity()
 returns trigger language plpgsql security definer set search_path=public,pg_temp
-as $
+as $$
 declare v_limit integer; v_existing bigint; v_type text;
 begin
  select limited_quantity,release_type
@@ -143,7 +143,7 @@ begin
  end if;
  return new;
 end;
-$;
+$$;
 
 drop trigger if exists enforce_eden_card_limited_quantity on public.reader_card_copies;
 create trigger enforce_eden_card_limited_quantity
