@@ -27,28 +27,52 @@ function renderSection(record){
  (data.blocks||[]).forEach(b=>section.append(makeBlock(b)));
  return section
 }
+function placeSection(section,record){
+ let anchor=null;try{anchor=document.querySelector(record.anchorSelector||"main")}catch(_){}
+ if(!anchor||anchor.closest?.("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))anchor=document.querySelector("main")||document.body;
+ const placement=record.data?.placement||"after";
+ if(placement==="before"&&anchor!==document.body){anchor.parentNode?.insertBefore(section,anchor);return}
+ if(placement==="inside"||placement==="end"||anchor===document.body||anchor.tagName?.toLowerCase()==="main"){anchor.append(section);return}
+ anchor.insertAdjacentElement("afterend",section);
+}
+function selectorForPlacement(node){
+ if(node===document.body)return "body";
+ if(node.id)return "#"+CSS.escape(node.id);
+ const parts=[];let current=node;
+ while(current&&current!==document.body&&parts.length<5){
+  let part=current.tagName.toLowerCase();
+  const parent=current.parentElement;
+  if(parent){const same=[...parent.children].filter(x=>x.tagName===current.tagName);if(same.length>1)part+=":nth-of-type("+(same.indexOf(current)+1)+")"}
+  parts.unshift(part);current=parent;
+ }
+ return "main > "+parts.join(" > ");
+}
+function placementOptions(){
+ const main=document.querySelector("main")||document.body,options=[{value:"main|end",label:"At the very bottom of this page"}];
+ const candidates=[...main.querySelectorAll(":scope > header,:scope > section,:scope > article,:scope > div,:scope > h1,:scope > h2,:scope > h3,:scope > p")].filter(node=>!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]")&&!node.hasAttribute("data-orlongSectionId"));
+ candidates.forEach((node,index)=>{
+  const heading=node.matches("h1,h2,h3")?node:node.querySelector("h1,h2,h3");
+  const label=(heading?.textContent||node.getAttribute("aria-label")||node.tagName.toLowerCase()).trim().replace(/\\s+/g," ").slice(0,58);
+  const selector=selectorForPlacement(node);
+  options.push({value:selector+"|after",label:"After: "+label});
+  options.push({value:selector+"|before",label:"Before: "+label});
+ });
+ options.push({value:"main|inside",label:"At the top of the main page content"});
+ return options;
+}
 async function render(db,path){
  style();const {data,error}=await db.rpc("get_public_orlong_site_sections",{p_page_path:path});
  if(error){console.warn("Orlong page sections:",error.message);return}
- const inserted=new Map();
- (Array.isArray(data)?data:[]).forEach(record=>{
-  const section=renderSection(record);let anchor=null;
-  try{anchor=document.querySelector(record.anchorSelector||"main")}catch(_){}
-  if(!anchor)anchor=document.querySelector("main")||document.body;
-  if(anchor.tagName.toLowerCase()==="main"||anchor===document.body){anchor.append(section);return}
-  const key=record.anchorSelector||"main",previous=inserted.get(key);
-  if(previous&&previous.parentNode){previous.insertAdjacentElement("afterend",section)}else anchor.insertAdjacentElement("afterend",section);
-  inserted.set(key,section);
- });
+ (Array.isArray(data)?data:[]).forEach(record=>placeSection(renderSection(record),record));
 }
 async function start(db,path,bar){
  const {data,error}=await db.auth.getSession();if(error||!data.session)return;
  const {data:allowed}=await db.rpc("is_reader_moderator");if(allowed!==true)return;
  style();
- const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS");
+ const add=$("button","","＋ ADD SECTION"),manage=$("button","","MANAGE SECTIONS"),pagesButton=$("button","","MANAGE PAGES");
  Object.assign(add.style,{padding:"8px 11px",background:"#236caa",color:"#fff",border:"1px solid #6faee4",cursor:"pointer"});
  Object.assign(manage.style,{padding:"8px 11px",background:"#183553",color:"#fff",border:"1px solid #496886",cursor:"pointer"});
- bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));
+ bar.insertBefore(add,bar.querySelector("#orlongEditorExit"));bar.insertBefore(manage,bar.querySelector("#orlongEditorExit"));bar.insertBefore(pagesButton,bar.querySelector("#orlongEditorExit"));
  const panel=$("aside","orlong-builder-panel");panel.id="orlongBuilderPanel";panel.dataset.orlongEditorUi="true";panel.setAttribute("aria-label","Website design editor");panel.hidden=true;document.body.append(panel);
  const status=$("p","builder-status","Your page preview remains visible beside this sidebar. Select a section below or create a new one.");
  const head=$("h2","","PAGE DESIGN & CONTENT");const close=$("button","builder-close","CLOSE");close.type="button";close.addEventListener("click",()=>panel.hidden=true);
@@ -57,16 +81,7 @@ async function start(db,path,bar){
  const message=t=>status.textContent=t;
  const refreshPreview=()=>{
   document.querySelectorAll("[data-orlongSectionId]").forEach(node=>node.remove());
-  const inserted=new Map();
-  [...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>{
-   const section=renderSection(record);let anchor=null;
-   try{anchor=document.querySelector(record.anchorSelector||"main")}catch(_){}
-   if(!anchor)anchor=document.querySelector("main")||document.body;
-   if(anchor.tagName.toLowerCase()==="main"||anchor===document.body){anchor.append(section);return}
-   const key=record.anchorSelector||"main",previous=inserted.get(key);
-   if(previous&&previous.parentNode)previous.insertAdjacentElement("afterend",section);else anchor.insertAdjacentElement("afterend",section);
-   inserted.set(key,section);
-  });
+  [...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>placeSection(renderSection(record),record));
  };
  const save=async(section)=>{
   const {data:result,error:saveError}=await db.rpc("save_moderator_orlong_site_section",{p_section_id:section.id||null,p_page_path:path,p_anchor_selector:section.anchorSelector||"main",p_sort_order:section.sortOrder||0,p_section_data:section.data,p_is_published:section.published!==false});
