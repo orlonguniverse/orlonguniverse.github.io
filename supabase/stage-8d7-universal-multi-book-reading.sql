@@ -216,4 +216,33 @@ grant execute on function public.save_moderator_orlong_book_part(text,text,text,
 grant execute on function public.save_moderator_orlong_book_chapter(text,text,text,text,text,integer,boolean,timestamptz,jsonb,text) to authenticated;
 grant execute on function public.archive_moderator_orlong_book_chapter(text,text) to authenticated;
 
+
+-- Give every newly created non-Eden book a ready-to-use ten-Part structure.
+create or replace function public.seed_default_orlong_book_parts()
+returns trigger language plpgsql security definer set search_path=public,pg_temp
+as $
+begin
+ if new.book_key<>'trials-of-eden' then
+  insert into public.orlong_book_parts(book_key,part_id,title,sort_order,is_published)
+  select new.book_key,'part-'||lpad(n::text,2,'0'),'Part '||
+   (array['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'])[n],n,true
+  from generate_series(1,10) n
+  on conflict(book_key,part_id) do nothing;
+ end if;
+ return new;
+end;
+$;
+drop trigger if exists seed_default_orlong_book_parts_trigger on public.orlong_books;
+create trigger seed_default_orlong_book_parts_trigger
+after insert on public.orlong_books
+for each row execute function public.seed_default_orlong_book_parts();
+
+-- Backfill books that were created before this migration, without changing Eden.
+insert into public.orlong_book_parts(book_key,part_id,title,sort_order,is_published)
+select b.book_key,'part-'||lpad(n::text,2,'0'),'Part '||
+ (array['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'])[n],n,true
+from public.orlong_books b cross join generate_series(1,10) n
+where b.book_key<>'trials-of-eden'
+on conflict(book_key,part_id) do nothing;
+
 commit;
