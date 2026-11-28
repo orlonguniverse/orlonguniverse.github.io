@@ -156,7 +156,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     navLinks.replaceChildren(...primary,...managedMenus);
     if(accountButton)navLinks.append(accountButton);
     if(mainSettings.enabled!==false)navLinks.append(main);
-    navLinks.append(bookOnlyEntry,instagram);
+    if(mainSettings.showBookOnly!==false)navLinks.append(bookOnlyEntry);
+    navLinks.append(instagram);
    }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
   };
   window.applyOrlongManagedNavigation=loadManagedNavigation;
