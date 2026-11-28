@@ -89,6 +89,39 @@ alter table public.chapter_comments
  add constraint chapter_comments_expression_attachments_check
  check (jsonb_typeof(expression_attachments)='array' and jsonb_array_length(expression_attachments)<=4);
 
+alter table public.chapter_comments drop constraint if exists chapter_comments_body_check;
+alter table public.chapter_comments add constraint chapter_comments_body_or_expression_check
+ check (
+  (char_length(trim(body)) between 1 and 2000)
+  or (char_length(trim(body))=0 and jsonb_array_length(expression_attachments)>0)
+ );
+
+create or replace function public.validate_comment_expression_attachments()
+returns trigger language plpgsql set search_path=public
+as $
+declare v_item jsonb; v_url text;
+begin
+ if jsonb_typeof(new.expression_attachments)<>'array' or jsonb_array_length(new.expression_attachments)>4 then
+  raise exception 'A comment can contain up to four expression items.';
+ end if;
+ for v_item in select value from jsonb_array_elements(new.expression_attachments) loop
+  if coalesce(v_item->>'type','') not in ('emoji','sticker','gif','meme') then
+   raise exception 'Invalid expression item type.';
+  end if;
+  v_url:=nullif(v_item->>'url','');
+  if v_url is not null and v_url !~ '^https://[A-Za-z0-9.-]+(/|$)' then
+   raise exception 'Expression media must use a secure HTTPS address.';
+  end if;
+ end loop;
+ return new;
+end;
+$;
+drop trigger if exists chapter_comment_expression_attachment_validation on public.chapter_comments;
+create trigger chapter_comment_expression_attachment_validation
+ before insert or update of expression_attachments on public.chapter_comments
+ for each row execute function public.validate_comment_expression_attachments();
+
+
 
 alter table public.expression_assets enable row level security;
 alter table public.reader_expression_unlocks enable row level security;
