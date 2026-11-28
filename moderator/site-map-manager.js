@@ -177,8 +177,8 @@ function render(){
   heading.append(node("h3","",title),node("p","site-map-hint",description));section.append(heading);
   const list=node("div","site-map-route-list");
   items.forEach((item,i)=>{
-   const row=node("article","site-map-route"),grip=node("span","site-map-drag-handle","⠿"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href),sectionField=group==="discover"?field("SUBSECTION (OPTIONAL)",item.section||"","e.g. EXPLORE, COMMUNITY"):null;
-   if(sectionField)sectionField.el.addEventListener("change",()=>{item.section=sectionField.el.value.trim();mark();renderFlow()});
+   const row=node("article","site-map-route"),grip=node("span","site-map-drag-handle","⠿"),fields=node("div","site-map-route-fields"),label=field("WHAT READERS SEE",item.label),href=field("WHERE IT TAKES THEM",item.href),sectionField=group==="discover"?{wrap:node("label","site-map-field","DISCOVERY SUBSECTION"),el:null}:null;
+   if(sectionField){const select=node("select","");select.style.cssText="width:100%;min-width:0;box-sizing:border-box;padding:9px;background:#091522;border:1px solid #38536e;color:#fff;font:12px Inter,sans-serif";const current=String(item.section||"").trim();[...new Set(["",...subsectionNames(),"OTHER"])].forEach(value=>{const option=node("option","",value||"NO SUBSECTION");option.value=value;option.selected=value===current;select.append(option)});select.addEventListener("change",()=>{item.section=select.value;mark();render()});sectionField.wrap.append(select)}
    row.draggable=true;row.dataset.navigationId=item.id;row.setAttribute("aria-label","Drag "+(item.label||"menu link")+" to rearrange it or move it to another menu area");
    row.addEventListener("dragstart",event=>{dragged={id:item.id,fromGroup:group};row.classList.add("dragging");event.dataTransfer?.setData("text/plain",item.id);if(event.dataTransfer)event.dataTransfer.effectAllowed="move"});
    row.addEventListener("dragend",()=>{dragged=null;row.classList.remove("dragging");document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"))});
