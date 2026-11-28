@@ -144,6 +144,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     mainSummary.textContent=mainSettings.label||"MAIN MENU";
     panel.replaceChildren();
     if(mainSettings.showGuide!==false)panel.append(guideLink);
+    (mainSettings.links||[]).forEach(item=>{const customLink=makeLink(item.label,item.href,location.pathname===item.href);customLink.classList.add("nav-menu-statistics");panel.append(customLink);});
     if(mainSettings.showTheme!==false||mainSettings.showBookOnly!==false){
      panel.append(settingsLabel);
      if(mainSettings.showTheme!==false)panel.append(theme);
