@@ -33,13 +33,21 @@ function resolvePlacementAnchor(selector){
  if(value.startsWith("@section:")){const wanted=value.slice(9);return [...document.querySelectorAll("main section,main article,main header")].find(node=>(node.querySelector("h1,h2,h3")?.textContent||"").trim()===wanted)||null}
  try{return document.querySelector(value)}catch(_){return null}
 }
-function placeSection(section,record){
- let anchor=resolvePlacementAnchor(record.anchorSelector||"main");
+function placeSection(section,record,placed=new Map()){
+ const selector=record.anchorSelector||"main";
+ let anchor=resolvePlacementAnchor(selector);
  if(!anchor||anchor.closest?.("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"))anchor=document.querySelector("main")||document.body;
- const placement=record.data?.placement||"after";
+ const placement=record.data?.placement||"after",key=selector+"|"+placement,previous=placed.get(key);
  if(placement==="before"&&anchor!==document.body){anchor.parentNode?.insertBefore(section,anchor);return}
- if(placement==="inside"){anchor.prepend(section);return}
+ if(placement==="inside"){
+  if(previous&&previous.parentNode===anchor)anchor.insertBefore(section,previous);else anchor.prepend(section);
+  placed.set(key,section);return
+ }
  if(placement==="end"||anchor===document.body||anchor.tagName?.toLowerCase()==="main"){anchor.append(section);return}
+ if(placement==="after"){
+  if(previous&&previous.parentNode===anchor.parentNode)previous.insertAdjacentElement("afterend",section);else anchor.insertAdjacentElement("afterend",section);
+  placed.set(key,section);return
+ }
  anchor.insertAdjacentElement("afterend",section);
 }
 function selectorForPlacement(node){
@@ -73,7 +81,7 @@ function placementOptions(){
 async function render(db,path){
  style();const {data,error}=await db.rpc("get_public_orlong_site_sections",{p_page_path:path});
  if(error){console.warn("Orlong page sections:",error.message);return}
- (Array.isArray(data)?data:[]).forEach(record=>placeSection(renderSection(record),record));
+ const placed=new Map();(Array.isArray(data)?data:[]).forEach(record=>placeSection(renderSection(record),record,placed));
 }
 async function start(db,path,bar){
  const {data,error}=await db.auth.getSession();if(error||!data.session)return;
@@ -91,7 +99,7 @@ async function start(db,path,bar){
  const message=t=>status.textContent=t;
  const refreshPreview=()=>{
   document.querySelectorAll("[data-orlongSectionId]").forEach(node=>node.remove());
-  [...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>placeSection(renderSection(record),record));
+  const placed=new Map();[...sections].sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)).forEach(record=>placeSection(renderSection(record),record,placed));
  };
  const save=async(section)=>{
   const {data:result,error:saveError}=await db.rpc("save_moderator_orlong_site_section",{p_section_id:section.id||null,p_page_path:path,p_anchor_selector:section.anchorSelector||"main",p_sort_order:section.sortOrder||0,p_section_data:section.data,p_is_published:section.published!==false});
