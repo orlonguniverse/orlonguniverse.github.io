@@ -233,3 +233,11 @@
 
 .archive-block-upload input[type=file]{padding:9px;background:#10243a;border:1px dashed #6684a5;color:#c7d9ed;font-size:10px;cursor:pointer}
 .archive-block-upload input[type=file]::file-selector-button{margin-right:10px;padding:7px 10px;background:#203d5c;border:1px solid #6288ae;color:#f0e5cf;font:700 9px Inter,sans-serif;cursor:pointer}
+
+.archive-relationship-heading{margin-top:35px}
+.archive-relation-form{margin:18px 0 22px;padding:20px;background:linear-gradient(145deg,#101f32,#091321);border:1px solid rgba(201,170,107,.28)}
+.archive-relation-form .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.archive-relation-form label{display:grid;gap:7px}
+.archive-relation-form input,.archive-relation-form select,.archive-relation-form textarea{width:100%;min-width:0}
+.archive-relation-form .check-row{display:flex;align-items:center;gap:9px}
+@media(max-width:700px){.archive-relation-form .field-grid{grid-template-columns:1fr}}
