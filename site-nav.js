@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    summary.addEventListener("click",()=>navLinks.querySelectorAll(".nav-dropdown[open]").forEach(openMenu=>{if(openMenu!==details)openMenu.removeAttribute("open");}));
    return details;
   };
-  const startReading=makeLink("START READING","/books/trials-of-eden/",location.pathname.startsWith("/books/trials-of-eden/")&&!location.pathname.endsWith("contents.html")&&!location.pathname.endsWith("account.html"));
+  const startReading=makeLink("BOOK COLLECTION","/book-collection/",location.pathname.startsWith("/book-collection/"));
   startReading.classList.add("nav-start-reading");
   const read=dropdown("THE BOOK",[
    ["READING ROOM","/books/trials-of-eden/"],
