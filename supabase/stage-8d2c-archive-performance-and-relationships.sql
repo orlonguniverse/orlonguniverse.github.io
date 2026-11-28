@@ -29,6 +29,8 @@ create table if not exists public.eden_archive_relations (
 );
 create index if not exists eden_archive_relations_source on public.eden_archive_relations(source_entry_id,source_block_id,sort_order);
 create index if not exists eden_archive_relations_target on public.eden_archive_relations(target_entry_id,target_block_id);
+create index if not exists reader_card_copies_owner_card_archive on public.reader_card_copies(owner_user_id,card_id);
+create index if not exists eden_archive_entry_cards_entry_card on public.eden_archive_entry_cards(entry_id,card_id);
 alter table public.eden_archive_relations enable row level security;
 revoke all on public.eden_archive_relations from anon,authenticated;
 
@@ -68,7 +70,12 @@ as $$
    'id',e.entry_id,'title',e.title,'category',e.category,'summary',e.summary,
    'updatedAt',e.updated_at,
    'requiredCardCount',(select count(*) from public.eden_archive_entry_cards ec where ec.entry_id=e.entry_id),
-   'contentBlockCount',jsonb_array_length(e.content_blocks)
+   'contentBlockCount',(select count(*) from jsonb_array_elements(coalesce(e.content_blocks,'[]'::jsonb)) b
+    where coalesce(jsonb_typeof(b->'requiredCardIds'),'null')='null'
+     or jsonb_array_length(coalesce(b->'requiredCardIds','[]'::jsonb))=0
+     or (select count(distinct owned.card_id) from jsonb_array_elements_text(b->'requiredCardIds') req(card_id)
+      join public.reader_card_copies owned on owned.owner_user_id=auth.uid() and owned.card_id=req.card_id)
+      =jsonb_array_length(b->'requiredCardIds'))
   ) order by e.sort_order,e.title)
   from public.eden_archive_entries e
   where e.is_published=true and public.reader_can_access_eden_archive_entry(e.entry_id)
@@ -176,6 +183,9 @@ begin
  join public.card_catalogue c on c.card_id=requested.card_id where c.is_active=true;
  if v_card_count<>cardinality(p_required_card_ids) then raise exception 'One or more selected entry cards are invalid, inactive or duplicated'; end if;
  for v_block in select value from jsonb_array_elements(v_blocks) loop
+  if v_block ? 'requiredCardIds' and jsonb_typeof(v_block->'requiredCardIds') not in ('array','null') then
+   raise exception 'Block card requirements must be an array of card IDs';
+  end if;
   v_ids:=array(select jsonb_array_elements_text(coalesce(v_block->'requiredCardIds','[]'::jsonb)));
   if cardinality(v_ids)>0 and (
    select count(distinct c.card_id) from unnest(v_ids) x(card_id)
