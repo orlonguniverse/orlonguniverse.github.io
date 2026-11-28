@@ -47,8 +47,8 @@ body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17345a 0,transpare
 .archive-read-button{transition:background .2s,border-color .2s,transform .2s}
 .archive-read-button:hover{background:#245080;border-color:#91c5ff;transform:translateY(-1px)}
 .archive-reader-dialog{width:min(900px,calc(100% - 28px));max-width:900px;max-height:min(92vh,1100px);padding:0;border:1px solid #54759a;background:#081321;color:var(--archive-white);box-shadow:0 30px 100px #000b}
-.archive-reader-dialog::backdrop{background:#02060dcc;backdrop-filter:blur(8px)}
-.archive-reader-shell{padding:clamp(20px,4vw,48px);background:radial-gradient(ellipse at 50% 0%,#19375888,transparent 42%),#081321;overflow:auto;max-height:min(92vh,1100px)}
+.archive-reader-dialog::backdrop{background:#02060de6}
+.archive-reader-shell{padding:clamp(20px,4vw,48px);background:#081321;overflow:visible;max-height:none}
 .archive-reader-top{display:flex;justify-content:space-between;align-items:center;gap:15px}
 .archive-reader-close{width:38px;height:38px;border:1px solid #3a5573;background:#0c1b2d;color:#d8e6f5;font-size:16px;cursor:pointer}
 .archive-reader-shell>h2{margin:22px 0 9px;font:500 clamp(27px,5vw,44px) Cinzel,serif;letter-spacing:1.5px;color:#f1e4c5}
@@ -95,10 +95,9 @@ body{margin:0;background:radial-gradient(ellipse at 50% -15%,#17345a 0,transpare
 /* Gentle motion: archive cards arrive like filed records; reduced-motion remains respected. */
 @keyframes archive-record-arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .archive-entry{animation:archive-record-arrive .48s both;animation-delay:calc(min(var(--entry-index,0),8)*45ms)}
-.archive-reader-shell{scroll-behavior:smooth}
-.archive-reader-blocks>*{animation:archive-record-arrive .45s both}
-.archive-reader-blocks>*:nth-child(2){animation-delay:45ms}.archive-reader-blocks>*:nth-child(3){animation-delay:90ms}.archive-reader-blocks>*:nth-child(4){animation-delay:135ms}
-@media(prefers-reduced-motion:reduce){.archive-entry,.archive-reader-blocks>*{animation:none!important}.archive-reader-shell{scroll-behavior:auto}}
+.archive-reader-dialog{overflow-y:auto;overscroll-behavior:contain;scroll-behavior:auto;scrollbar-gutter:stable;contain:layout paint}
+.archive-reader-blocks>*{content-visibility:auto;contain-intrinsic-size:auto 220px}
+@media(prefers-reduced-motion:reduce){.archive-entry,.archive-reader-blocks>*{animation:none!important}.archive-reader-dialog{scroll-behavior:auto}}
 
 /* 8D.2C — fast directory browsing, conditional reveals and connected lore graph */
 .archive-load-more{display:block;margin:24px auto 0;padding:13px 20px;border:1px solid #4c8bd0;background:#102b49;color:#eaf4ff;font:700 9px Inter,sans-serif;letter-spacing:1.5px;cursor:pointer}
