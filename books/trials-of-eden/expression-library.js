@@ -68,7 +68,7 @@ async function loadLibrary(){
  const root=$("expressionPickerGrid");root.replaceChildren(make("p","engagement-muted","Loading your library…"));
  const result=await engagementClient.rpc("get_my_expression_library");
  if(result.error){root.replaceChildren(make("p","engagement-muted","The expression library is unavailable. Run the Stage 8G database migration."));return;}
- cachedItems=result.data||[];renderLibrary();
+ cachedItems=result.data||[];renderLibrary();loadMyExpressionRequests();
  const config=await engagementClient.rpc("get_expression_giphy_config");giphyKey=config.data||"";
  loadGiphy("");
 }
@@ -106,8 +106,8 @@ function buildPicker(){
  form.addEventListener("submit",async event=>{
   event.preventDefault();if(!engagementUser){setMessage("commentMessage","Sign in to request a new expression.");return;}
   const result=await engagementClient.rpc("request_expression_asset",{p_type:requestType.value,p_title:title.value.trim(),p_description:description.value.trim()});
-  setMessage("commentMessage",result.error?result.error.message:"Thanks! Your request has been sent to the Orlong team.");
-  if(!result.error){form.reset();request.open=false;}
+  $("expressionRequestMessage").textContent=result.error?result.error.message:"Thanks! Your request has been sent. You can track its status below.";
+  if(!result.error){form.reset();loadMyExpressionRequests();}
  });
  request.append(form);dialog.append(head,controls,library,giphy,request);document.body.append(dialog);
  dialog.addEventListener("click",event=>{if(event.target===dialog)dialog.close();});
