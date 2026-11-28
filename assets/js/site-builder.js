@@ -138,6 +138,18 @@ async function start(db,path,bar){
   const main=document.querySelector("main");if(!main)return;
   const native=[...main.querySelectorAll(":scope > section,:scope > article,:scope > header,:scope > footer")]
    .filter(node=>!node.hasAttribute("data-orlong-section-id")&&!node.closest("#orlongVisualEditor,#orlongBuilderPanel,[data-orlong-editor-ui]"));
+  const contentSelectorFor=node=>{
+   if(node.id)return "#"+CSS.escape(node.id);
+   const parts=[];let current=node;
+   while(current&&current!==main&&current!==document.body&&parts.length<7){
+    let part=current.tagName.toLowerCase();
+    if(current.classList.length)part+="."+[...current.classList].slice(0,2).map(CSS.escape).join(".");
+    const parent=current.parentElement;
+    if(parent){const same=[...parent.children].filter(x=>x.tagName===current.tagName);if(same.length>1&&!current.classList.length)part+=":nth-of-type("+(same.indexOf(current)+1)+")"}
+    parts.unshift(part);current=parent;
+   }
+   return "main > "+parts.join(" > ");
+  };
   body.append($("h2","","EXISTING PAGE SECTIONS"),$("p","","These are sections already built into this page, not just sections you create. Hide or restore them here. To edit individual wording, images or links, select the visual editor and click that item on the page."));
   if(!native.length){body.append($("div","builder-entry","No built-in page sections were found inside the main content area."));return}
   native.forEach((node,index)=>{
@@ -147,7 +159,7 @@ async function start(db,path,bar){
    const actions=$("div","builder-row"),locate=$("button","","LOCATE SECTION"),toggle=$("button","",node.hidden?"RESTORE SECTION":"HIDE SECTION");
    locate.addEventListener("click",()=>{node.scrollIntoView({behavior:"smooth",block:"center"});node.style.outline="3px solid #78baff";window.setTimeout(()=>{node.style.outline=""},1800);message("Section located. Click an individual heading, paragraph, image or link on the page to edit it.")});
    toggle.addEventListener("click",async()=>{
-    toggle.disabled=true;const next=!node.hidden,selector=selectorForPlacement(node);
+    toggle.disabled=true;const next=!node.hidden,selector=contentSelectorFor(node);
     try{
      const {error}=await db.rpc("save_moderator_orlong_site_content",{p_page_path:path,p_selector:selector,p_property:"hidden",p_content_value:String(next),p_is_published:true});
      if(error)throw error;node.hidden=next;message(next?"Existing section hidden. You can restore it here at any time.":"Existing section restored.");renderNativeSections();
