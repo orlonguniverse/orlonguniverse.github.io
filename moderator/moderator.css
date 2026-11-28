@@ -182,3 +182,18 @@
 .book-manager-card{padding:17px;background:var(--panel,#101a29);border:1px solid var(--line,#ffffff20);border-radius:4px;display:grid;gap:9px}
 .book-manager-card strong{font-family:Cinzel,Georgia,serif;font-size:15px}.book-manager-card p{margin:0;color:var(--muted,#b7c2d1);font-size:10px;letter-spacing:.7px}.book-manager-card small{overflow-wrap:anywhere;color:var(--muted,#b7c2d1);font-size:10px}.book-manager-card button{justify-self:start}
 @media(max-width:850px){.book-manager-layout{grid-template-columns:1fr}.book-manager-help{position:static}}
+
+/* Stage 8D.10 — accessible drag-and-drop navigation editor. */
+.site-map-drag-handle{display:inline-flex;align-items:center;justify-content:center;align-self:start;min-width:28px;min-height:34px;color:#a9c9e8;font-size:22px;cursor:grab;user-select:none;touch-action:none}
+.site-map-route[draggable="true"],.site-map-menu-setting[draggable="true"]{cursor:grab}
+.site-map-route.dragging,.site-map-menu-setting.dragging{opacity:.45;border-style:dashed}
+.site-map-route.drag-over,.site-map-menu-setting.drag-over,.site-map-route-list.drag-over{outline:2px dashed #8cc8ff;outline-offset:3px;background:#193754}
+.site-map-route{grid-template-columns:28px minmax(0,1fr)!important;align-items:start}
+.site-map-route-fields{grid-column:2;grid-row:1}
+.site-map-route>.site-map-actions{grid-column:2;grid-row:2}
+.site-map-menu-setting{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px;margin:8px 0;background:#13263a;border:1px solid #3a536d}
+.site-map-menu-setting .site-map-actions{grid-column:3;grid-row:1}
+.site-map-menu-setting .site-map-enabled{grid-column:2;grid-row:2}
+.site-map-menu-setting .site-map-field{grid-column:2;grid-row:1}
+.site-map-menu-setting.drag-over{outline:2px dashed #8cc8ff;outline-offset:3}
+@media(max-width:600px){.site-map-route{grid-template-columns:24px minmax(0,1fr)!important}.site-map-menu-setting{grid-template-columns:24px minmax(0,1fr)}.site-map-menu-setting .site-map-actions{grid-column:2;grid-row:3}.site-map-menu-setting .site-map-enabled{grid-column:2;grid-row:2}}
