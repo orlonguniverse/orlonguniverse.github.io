@@ -127,3 +127,14 @@ body.book-only-mode .nav-book-only-entry{display:none!important}
 
 /* Keep the expanded top-level navigation usable at tablet widths. */
 @media(max-width:1100px){.topbar>.topbar-right,.topbar>.top-actions{flex-wrap:wrap!important;}}
+
+/* Stage 8D.10 — cleaner, calmer shared navigation. */
+.topbar>.topbar-right,.topbar>.top-actions{gap:5px!important}
+.topbar>.topbar-right>a,.topbar>.topbar-right>button,.topbar>.top-actions>a,.topbar>.top-actions>button,.topbar .nav-dropdown>summary{min-height:38px;padding:9px 12px!important;border-radius:4px!important;font-size:9px!important;letter-spacing:1px!important}
+.topbar .nav-start-reading{padding:10px 15px!important}
+.topbar .nav-dropdown[open]>summary,.topbar a[aria-current="page"]{color:#fff!important;border-color:var(--orlong-accent,#398cff)!important;background:color-mix(in srgb,var(--orlong-accent,#398cff) 14%,transparent)!important}
+.topbar .nav-dropdown-menu{border-radius:6px!important;padding:7px!important}
+.topbar .nav-dropdown-menu a{min-height:40px!important;border-radius:3px!important}
+.topbar .nav-main-menu-panel .nav-moderator-link{display:flex;align-items:center;min-height:38px;padding:10px 12px;color:#c8ddf4;font-size:9px;letter-spacing:1px;border:1px solid transparent}
+.topbar .nav-main-menu-panel .nav-moderator-link:hover{color:#fff;background:#398cff18;border-color:#398cff55}
+@media(max-width:760px){.topbar>.topbar-right,.topbar>.top-actions{gap:5px!important}.topbar>.topbar-right>a,.topbar>.topbar-right>button,.topbar>.top-actions>a,.topbar>.top-actions>button,.topbar .nav-dropdown>summary{min-height:36px!important;padding:8px 10px!important}}
