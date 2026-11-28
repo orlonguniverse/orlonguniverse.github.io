@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(error||!data||!Array.isArray(data.links))return;
     const items=data.links.filter(item=>item.enabled!==false).sort((a,b)=>(a.group||"").localeCompare(b.group||"")||(a.order??0)-(b.order??0));
     const makeManagedLink=item=>{const a=makeLink(item.label,item.href,location.pathname===item.href||location.pathname===item.href.replace(/index\\.html$/,""));a.dataset.navigationId=item.id;return a;};
-    const primary=items.filter(item=>item.group==="primary").map(makeManagedLink);
+    const primary=[makeManagedLink({id:"book-collection",label:"BOOK COLLECTION",href:"/book-collection/"}),...items.filter(item=>item.group==="primary"&&item.href!=="/book-collection/").map(makeManagedLink)];
     const bookItems=items.filter(item=>item.group==="book").map(item=>[item.label,item.href,location.pathname===item.href]);
     const discoverItems=items.filter(item=>item.group==="discover").map(item=>[item.label,item.href,location.pathname===item.href]);
     const menuSettings=Array.isArray(data.menus)?data.menus:[{id:"book",label:"THE BOOK",enabled:true},{id:"discover",label:"DISCOVER",enabled:true}];
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     }
     if(mainSettings.showStatistics!==false)panel.append(statsLink);
     if(mainSettings.showSoundtrack!==false)panel.append(musicSlot);
-    const managedMenus=menuSettings.filter(item=>item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"THE BOOK":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
+    const managedMenus=menuSettings.filter(item=>item.id!=="book"&&item.enabled!==false).sort((a,b)=>(a.order??0)-(b.order??0)).map(item=>dropdown(item.label||(item.id==="book"?"THE BOOK":"DISCOVER"),item.id==="book"?bookItems:discoverItems));
     navLinks.replaceChildren(...primary,...managedMenus);
     if(accountButton)navLinks.append(accountButton);
     if(mainSettings.enabled!==false)navLinks.append(main);
