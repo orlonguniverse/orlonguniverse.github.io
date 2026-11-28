@@ -124,6 +124,28 @@ document.addEventListener("DOMContentLoaded",()=>{
    navLinks.append(main,bookOnlyEntry,instagram);
   }
   navLinks.dataset.orlongGrouped="true";
+  // Load moderator-managed navigation when the Website Map migration is installed.
+  const loadManagedNavigation=async()=>{
+   if(bookOnlyEnabled&&isReadingRoom)return;
+   try{
+    const navClient=window.orlongNavigationClient||window.supabase?.createClient?.("https://kqfwtzrfqsfampqfzoal.supabase.co","sb_publishable_grlK63Et17pEcH5MtwazYA_awTbcfes");
+    if(!navClient)return;
+    const {data,error}=await navClient.rpc("get_public_orlong_navigation");
+    if(error||!data||!Array.isArray(data.links))return;
+    const items=data.links.filter(item=>item.enabled!==false).sort((a,b)=>(a.group||"").localeCompare(b.group||"")||(a.order??0)-(b.order??0));
+    const makeManagedLink=item=>{const a=makeLink(item.label,item.href,location.pathname===item.href||location.pathname===item.href.replace(/index\\.html$/,""));a.dataset.navigationId=item.id;return a;};
+    const primary=items.filter(item=>item.group==="primary").map(makeManagedLink);
+    const bookItems=items.filter(item=>item.group==="book").map(item=>[item.label,item.href,location.pathname===item.href]);
+    const discoverItems=items.filter(item=>item.group==="discover").map(item=>[item.label,item.href,location.pathname===item.href]);
+    const managedBook=dropdown("THE BOOK",bookItems);
+    const managedDiscover=dropdown("DISCOVER",discoverItems);
+    navLinks.replaceChildren(...primary);
+    navLinks.append(managedBook,managedDiscover);
+    if(accountButton)navLinks.append(accountButton);
+    navLinks.append(main,bookOnlyEntry,instagram);
+   }catch(error){console.warn("Managed Orlong navigation could not load:",error);}
+  };
+  loadManagedNavigation();
   document.addEventListener("click",event=>{if(!navLinks.contains(event.target))navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
   document.addEventListener("keydown",event=>{if(event.key==="Escape")navLinks.querySelectorAll(".nav-dropdown[open]").forEach(d=>d.removeAttribute("open"));});
  }
